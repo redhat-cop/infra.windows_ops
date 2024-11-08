@@ -1,0 +1,33 @@
+---
+name: "Manage Service Configuration Survey"
+description: "Survey to configure manage service options"
+spec:
+  - question_name: "Service Name"
+    question_description: "Specify the Windows Service you would like to manage"
+    required: true
+    variable: "service_name"
+    type: "text"
+
+  - question_name: "Service State"
+    question_description: "Specify the state of the Service"
+    required: true
+    variable: "service_state"
+    type: "multiplechoice"
+    choices:
+      - "absent"
+      - "paused"
+      - "started"
+      - "stopped"
+      - "restarted"
+
+  - question_name: "Start mode"
+    question_description: "Set the startup mode for the Service"
+    required: false
+    variable: "service_start_mode"
+    type: "multplechoice"
+    choices:
+      - "auto"
+      - "delayed"
+      - "disabled"
+      - "manual"
+    default: "auto"

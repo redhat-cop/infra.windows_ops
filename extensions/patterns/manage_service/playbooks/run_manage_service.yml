@@ -1,0 +1,13 @@
+---
+- name: Manage Windows Services
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Manage Windows Service
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_service
+      vars:
+        windows_manage_service_name: "{{ service_name }}"  # Set by survey
+        windows_manage_service_state: "{{ service_state }}"  # Set by survey
+        windows_manage_service_start_mode: "{{ service_start_mode }}"  # Set by survey
+...
