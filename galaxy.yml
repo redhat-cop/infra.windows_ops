@@ -1,0 +1,23 @@
+---
+namespace: infra
+name: windows_ops
+version: 1.0.0
+authors:
+  - Ansible (https://github.com/ansible)
+description: A collection of content (roles, playbooks, etc) for Ansible Automation Platform on Windows.
+documentation: ''
+homepage: https://github.com/redhat-cop/infra.windows_ops
+issues: https://github.com/redhat-cop/infra.windows_ops/issues
+license_file: LICENSE
+readme: README.md
+repository: https://github.com/redhat-cop/infra.windows_ops
+tags:
+  - windows
+  - infrastructure
+dependencies:
+  ansible.windows: '*'
+build_ignore:
+  - '.tox'
+  - '.git'
+  - '.github'
+  - '.gitignore'
