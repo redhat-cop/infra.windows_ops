@@ -1,0 +1,69 @@
+---
+# tasks file for windows_manage_iis/create
+
+- name: Install IIS
+  ansible.windows.win_feature:
+    name: Web-Server
+    state: present
+  register: windows_manage_iis_output
+
+- name: Update Results w/win_feature
+  ansible.builtin.set_fact:
+    windows_manage_iis_results: "{{ windows_manage_iis_results | default({}) | combine({'win_feature': windows_manage_iis_output}) }}"
+
+- name: Create site directory structure
+  ansible.windows.win_file:
+    path: "{{ windows_manage_iis_path }}"
+    state: directory
+  register: windows_manage_iis_output
+
+- name: Update Results w/win_file
+  ansible.builtin.set_fact:
+    windows_manage_iis_results: "{{ windows_manage_iis_results | default({}) | combine({'win_file': windows_manage_iis_output}) }}"
+
+- name: Delete Default Site
+  community.windows.win_iis_website:
+    name: "Default Web Site"
+    state: absent
+
+- name: Create IIS site
+  community.windows.win_iis_website:
+    name: "{{ windows_manage_iis_name }}"
+    state: started
+    port: "{{ windows_manage_iis_port }}"
+    physical_path: "{{ windows_manage_iis_path }}"
+  notify: restart iis service
+  register: windows_manage_iis_output
+
+- name: Update Results w/win_iis_website
+  ansible.builtin.set_fact:
+    windows_manage_iis_results: "{{ windows_manage_iis_results | default({}) | combine({'win_iis_website': windows_manage_iis_output}) }}"
+
+- name: Open port for site on the firewall
+  community.windows.win_firewall_rule:
+    name: "iisport{{ windows_manage_iis_port }}"
+    enable: true
+    state: present
+    localport: "{{ windows_manage_iis_port }}"
+    action: Allow
+    direction: In
+    protocol: Tcp
+  register: windows_manage_iis_output
+
+- name: Update Results w/win_firewall_rule
+  ansible.builtin.set_fact:
+    windows_manage_iis_results: "{{ windows_manage_iis_results | default({}) | combine({'win_firewall_rule': windows_manage_iis_output}) }}"
+
+- name: Template simple web site to iis_site_path as index.html
+  ansible.windows.win_template:
+    src: 'index.html.j2'
+    dest: '{{ windows_manage_iis_path }}\index.html'
+  register: windows_manage_iis_output
+
+- name: Update Results w/win_template
+  ansible.builtin.set_fact:
+    windows_manage_iis_results: "{{ windows_manage_iis_results | default({}) | combine({'win_template': windows_manage_iis_output}) }}"
+
+- name: Show results
+  ansible.builtin.debug:
+    var: windows_manage_iis_results

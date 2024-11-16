@@ -1,0 +1,6 @@
+---
+windows_manage_iis_name: "test-iis-server"
+windows_manage_iis_port: 8080
+windows_manage_iis_path: "C:\\sites\\playbooktest"
+windows_manage_iis_feature: None
+windows_manage_iis_test_message: "Never gonna give you up, Never gonna let you go"

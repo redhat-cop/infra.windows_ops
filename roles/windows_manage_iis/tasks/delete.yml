@@ -1,0 +1,51 @@
+---
+# tasks file for windows_manage_iis/delete
+
+- name: Close port for site on the firewall
+  community.windows.win_firewall_rule:
+    name: "iisport{{ windows_manage_iis_port }}"
+    state: absent
+  register: windows_manage_iis_output
+
+- name: Update Results w/win_firewall_rule
+  ansible.builtin.set_fact:
+    windows_manage_iis_results: "{{ windows_manage_iis_results | default({}) | combine({'win_firewall_rule': windows_manage_iis_output}) }}"
+
+- name: Delete IIS site
+  community.windows.win_iis_website:
+    name: "{{ windows_manage_iis_name }}"
+    state: absent
+  notify: restart iis service
+  register: windows_manage_iis_output
+
+- name: Update Results w/win_iis_website
+  ansible.builtin.set_fact:
+    windows_manage_iis_results: "{{ windows_manage_iis_results | default({}) | combine({'win_iis_website': windows_manage_iis_output}) }}"
+
+- name: Delete site directory structure
+  ansible.windows.win_file:
+    path: "{{ windows_manage_iis_path }}"
+    state: absent
+  register: windows_manage_iis_output
+
+- name: Update Results w/win_file
+  ansible.builtin.set_fact:
+    windows_manage_iis_results: "{{ windows_manage_iis_results | default({}) | combine({'win_file': windows_manage_iis_output}) }}"
+
+- name: Remove IIS Service
+  ansible.windows.win_feature:
+    name: Web-Server
+    state: absent
+  when:
+    - windows_manage_iis_delete_option == 'all'
+  register: windows_manage_iis_output
+
+- name: Update Results w/win_feature
+  ansible.builtin.set_fact:
+    windows_manage_iis_results: "{{ windows_manage_iis_results | default({}) | combine({'win_feature': windows_manage_iis_output}) }}"
+  when:
+    - windows_manage_iis_delete_option == 'all'
+
+- name: Show results
+  ansible.builtin.debug:
+    var: windows_manage_iis_results
