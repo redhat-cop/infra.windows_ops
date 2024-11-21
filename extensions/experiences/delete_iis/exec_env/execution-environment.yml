@@ -1,0 +1,13 @@
+---
+version: 3
+images:
+  base_image:
+    name: quay.io/ansible-product-demos/apd-ee-25:latest
+dependencies:
+  galaxy: requirements.yml
+  ansible_core:
+    package_pip: ansible-core
+  ansible_runner:
+    package_pip: ansible-runner
+  system:
+    - podman

@@ -1,0 +1,22 @@
+---
+- name: Create IIS Server Play
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Create default test message if not provided
+      ansible.builtin.set_fact:
+        test_message: "Welcome to IIS Web Server"
+      when: iis_test_message is not defined
+
+    - name: Set Default vars
+      ansible.builtin.set_fact:
+        test_message_final: "{{ iis_test_message | default(test_message) }}"
+
+    - name: Create IIS Server
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_iis
+      vars:
+        windows_manage_iis_name: "{{ iis_name }}"  # Set by survey
+        windows_manage_iis_path: "{{ iis_path }}"  # Set by survey
+        windows_manage_iis_port: "{{ iis_port }}"  # Set by survey
+        windows_manage_iis_test_message: "{{ test_message_final }}"  # Use conditional message

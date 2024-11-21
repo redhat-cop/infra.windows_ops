@@ -1,0 +1,12 @@
+---
+- name: Delete IIS Server Play
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Delete IIS Server
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_iis
+      vars:
+        windows_manage_iis_name: "{{ iis_name }}"  # Set by survey
+        windows_manage_iis_delete_option: "{{ iis_remove_all }}"  # Set by survey
+        windows_manage_iis_operation: "delete"

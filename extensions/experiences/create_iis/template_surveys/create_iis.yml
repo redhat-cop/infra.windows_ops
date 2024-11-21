@@ -1,0 +1,29 @@
+---
+name: "Create IIS Configuration Survey"
+description: "Survey to configure create IIS options"
+spec:
+  - type: "text"
+    question_name: "Server Name"
+    question_description: "Name of the IIS Web Server"
+    variable: "iis_name"
+    required: true
+
+  - type: "text"
+    question_name: "Server Path"
+    question_description: "Path to the root directory of the IIS Web Server"
+    variable: "iis_path"
+    required: true
+
+  - type: "integer"
+    question_name: "Server Port"
+    question_description: "Network port to listen on"
+    variable: "iis_port"
+    required: true
+    default: "80"
+
+  - type: "text"
+    question_name: "Test Message"
+    question_description: "Test Message to place in index.html"
+    variable: "iis_test_message"
+    required: false
+    default: "Welcome to IIS Web Server"
