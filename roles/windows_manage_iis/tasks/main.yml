@@ -1,0 +1,5 @@
+---
+# tasks file for windows_managed_iis
+
+- name: Create or delete Windows IIS server
+  ansible.builtin.include_tasks: "{{ windows_manage_iis_operation }}.yml"

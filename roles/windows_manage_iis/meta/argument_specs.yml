@@ -1,0 +1,36 @@
+---
+argument_specs:
+  main:
+    version_added: 1.0.0
+    short_description: A role to Create/Delete an IIS Web server.
+    description:
+      - A role to Create/Delete an IIS Web server.
+    options:
+      windows_manage_iis_operation:
+        type: str
+        description: Operation to perform.
+        default: "create"
+        choices: ["create", "delete"]
+      windows_manage_iis_delete_option:
+        type: str
+        description:
+          - used with O(windows_manage_iis_operation=delete).
+          - This option specifies whether to delete all resources including the IIS service, or only the server.
+        default: "server"
+        choices: ["all", "server"]
+      windows_manage_iis_name:
+        type: str
+        description: The name of the Server.
+        required: true
+      windows_manage_iis_port:
+        type: int
+        description: The network port that the Server will listen on.
+        default: 80
+        required: true
+      windows_manage_iis_path:
+        type: str
+        description: The path on disk where the web content will be served from.
+        required: true
+      windows_manage_iis_test_message:
+        type: str
+        description: The test message that will be used in the index.html.
