@@ -19,7 +19,7 @@ spec:
     question_description: "Network port to listen on"
     variable: "iis_port"
     required: true
-    default: "80"
+    default: 80
 
   - type: "text"
     question_name: "Test Message"

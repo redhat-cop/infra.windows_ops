@@ -39,7 +39,7 @@ controller_templates:
       - infra.windows_ops
       - delete_iis
       - run_delete_iis
-    playbook: extensions/experiences/create_iis/playbooks/run_delete_iis.yml
+    playbook: extensions/experiences/delete_iis/playbooks/run_delete_iis.yml
     project: Windows Operations / Project
     survey_enabled: true
     survey_spec: "{{ lookup('file', experience.path.replace('setup.yml', '') + 'template_surveys/delete_iis.yml') | from_yaml }}"
