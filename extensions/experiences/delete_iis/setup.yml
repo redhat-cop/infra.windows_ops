@@ -43,3 +43,5 @@ controller_templates:
     project: Windows Operations / Project
     survey_enabled: true
     survey_spec: "{{ lookup('file', experience.path.replace('setup.yml', '') + 'template_surveys/delete_iis.yml') | from_yaml }}"
+    ask_credential_on_launch: true
+    execution_environment: apd-ee-25-windows

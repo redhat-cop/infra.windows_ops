@@ -26,7 +26,6 @@ argument_specs:
         type: int
         description: The network port that the Server will listen on.
         default: 80
-        required: true
       windows_manage_iis_path:
         type: str
         description: The path on disk where the web content will be served from.
