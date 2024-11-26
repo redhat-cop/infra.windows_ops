@@ -29,7 +29,6 @@ argument_specs:
       windows_manage_iis_path:
         type: str
         description: The path on disk where the web content will be served from.
-        required: true
       windows_manage_iis_test_message:
         type: str
         description: The test message that will be used in the index.html.

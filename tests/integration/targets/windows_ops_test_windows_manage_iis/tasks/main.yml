@@ -5,24 +5,30 @@
     name: infra.windows_ops.windows_manage_iis
   vars:
     windows_manage_iis_operation: create
+    windows_manage_iis_name: "{{ iis_name }}"
+    windows_manage_iis_port: "{{ iis_port }}"
+    windows_manage_iis_path: "{{ iis_path }}"
+    windows_manage_iis_test_message: "{{ iis_test_message }}"
 
 # Verify that IIS Server was created as expected
 - name: Retrieve index.html
   ansible.windows.win_uri:
-    url: "http://{{ ansible_host }}:{{ windows_manage_iis_port }}"
+    url: "http://{{ ansible_host }}:{{ iis_port }}"
     return_content: true
   register: this
-  failed_when: this is failed or windows_manage_iis_test_message not in this.content
+  failed_when: this is failed or iis_test_message not in this.content
 
 - name: Delete IIS Server
   ansible.builtin.include_role:
     name: infra.windows_ops.windows_manage_iis
   vars:
     windows_manage_iis_operation: delete
+    windows_manage_iis_delete_option: all
+    windows_manage_iis_name: "{{ iis_name }}"
 
 # Verify that IIS Server was created as expected
 - name: Retrieve index.html
   ansible.windows.win_uri:
-    url: "http://{{ ansible_host }}:{{ windows_manage_iis_port }}"
+    url: "http://{{ ansible_host }}:{{ iis_port }}"
   register: this
   failed_when: this is not failed
