@@ -32,7 +32,7 @@
     state: started
     port: "{{ windows_manage_iis_port }}"
     physical_path: "{{ windows_manage_iis_path }}"
-  notify: restart iis service
+  notify: Restart iis service
   register: windows_manage_iis_output
 
 - name: Update Results w/win_iis_website
