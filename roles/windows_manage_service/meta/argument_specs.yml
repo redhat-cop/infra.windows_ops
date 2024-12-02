@@ -1,0 +1,31 @@
+---
+argument_specs:
+  main:
+    version_added: 1.0.0
+    short_description: A role to Manage Windows Services.
+    description:
+      - A role to Manage Windows Services.
+    options:
+      windows_manage_service_name:
+        type: str
+        description: The name of the service.
+        required: true
+      windows_manage_service_state:
+        type: str
+        choices:
+          - "absent"
+          - "paused"
+          - "started"
+          - "stopped"
+          - "restarted"
+        required: true
+        description: The state of the service.
+      windows_manage_service_start_mode:
+        type: str
+        choices:
+          - "auto"
+          - "delayed"
+          - "disabled"
+          - "manual"
+        default: "auto"
+        description: The start mode of the service.
