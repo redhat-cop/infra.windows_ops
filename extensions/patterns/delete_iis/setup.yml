@@ -4,7 +4,7 @@
 controller_labels:
   - name: infra.windows_ops
     organization: "{{ organization | default('Default') }}"
-  - name: delete_iis
+  - name: delete_iis_pattern
     organization: "{{ organization | default('Default') }}"
   - name: run_delete_iis
     organization: "{{ organization | default('Default') }}"
@@ -37,11 +37,11 @@ controller_templates:
     ask_inventory_on_launch: true
     labels:
       - infra.windows_ops
-      - delete_iis
+      - delete_iis_pattern
       - run_delete_iis
-    playbook: extensions/patterns/delete_iis/playbooks/run_delete_iis.yml
+    playbook: "{{ pattern.path.replace('setup.yml', '') + 'playbooks/run_delete_iis.yml' }}"
     project: Windows Operations / Project
     survey_enabled: true
-    survey_spec: "{{ lookup('file', experience.path.replace('setup.yml', '') + 'template_surveys/delete_iis.yml') | from_yaml }}"
+    survey_spec: "{{ lookup('file', pattern.path.replace('setup.yml', '') + 'template_surveys/delete_iis.yml') | from_yaml }}"
     ask_credential_on_launch: true
     execution_environment: apd-ee-25-windows

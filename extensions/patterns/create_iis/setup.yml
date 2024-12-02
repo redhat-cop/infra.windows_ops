@@ -4,7 +4,7 @@
 controller_labels:
   - name: infra.windows_ops
     organization: "{{ organization | default('Default') }}"
-  - name: create_iis
+  - name: create_iis_pattern
     organization: "{{ organization | default('Default') }}"
   - name: run_create_iis
     organization: "{{ organization | default('Default') }}"
@@ -37,11 +37,11 @@ controller_templates:
     ask_inventory_on_launch: true
     labels:
       - infra.windows_ops
-      - create_iis
+      - create_iis_pattern
       - run_create_iis
-    playbook: extensions/patterns/create_iis/playbooks/run_create_iis.yml
+    playbook: "{{ pattern.path.replace('setup.yml', '') + 'playbooks/run_create_iis.yml' }}"
     project: Windows Operations / Project
     survey_enabled: true
-    survey_spec: "{{ lookup('file', experience.path.replace('setup.yml', '') + 'template_surveys/create_iis.yml') | from_yaml }}"
+    survey_spec: "{{ lookup('file', pattern.path.replace('setup.yml', '') + 'template_surveys/create_iis.yml') | from_yaml }}"
     ask_credential_on_launch: true
     execution_environment: apd-ee-25-windows
