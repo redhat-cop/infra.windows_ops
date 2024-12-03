@@ -11,6 +11,11 @@
   ansible.builtin.set_fact:
     windows_manage_iis_results: "{{ windows_manage_iis_results | default({}) | combine({'win_feature': windows_manage_iis_output}) }}"
 
+- name: Reboot when Web-Server feature requires it
+  ansible.windows.win_reboot:
+    test_command: 'exit (Get-Service -Name Netlogon).Status -ne "Running"'
+  when: windows_manage_iis_output.reboot_required
+
 - name: Create site directory structure
   ansible.windows.win_file:
     path: "{{ windows_manage_iis_path }}"
