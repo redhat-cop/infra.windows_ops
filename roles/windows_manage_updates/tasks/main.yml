@@ -1,0 +1,39 @@
+---
+# tasks file for windows_manage_updates
+
+- name: Ensure WUA service is running
+  ansible.windows.win_service:
+    name: wuauserv
+    state: started
+    start_mode: manual
+
+- name: Install Windows Updates Block
+  block:
+  - name: Install Windows Updates
+    ansible.windows.win_updates:
+      category_names: "{{ windows_manage_updates_categories | default(omit) }}"
+      state: "{{ windows_manage_updates_state }}"
+    become: yes
+    become_method: ansible.builtin.runas
+    become_user: SYSTEM
+    register: windows_manage_updates_output
+
+  - name: Reboot when required and requested
+    ansible.windows.win_reboot:
+      test_command: '(Get-Service -Name Netlogon).Status -ne "Running"'
+    when:
+      - windows_manage_updates_output.reboot_required
+      - windows_manage_updates_reboot_server
+
+  rescue:
+  - name: Windows update failed?
+    ansible.builtin.debug:
+      msg: "error: {{ windows_manage_updates_output.msg }}"
+    when:
+      - windows_manage_updates_output is failed
+      - windows_manage_updates_output.msg is defined
+
+  always:
+  - name: Report results
+    ansible.builtin.debug:
+      var: windows_manage_updates_output

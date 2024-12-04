@@ -1,0 +1,30 @@
+---
+argument_specs:
+  main:
+    version_added: 1.0.0
+    short_description: A role to Manage Windows Updates.
+    description:
+      - A role to Manage Windows Updates.
+    options:
+      windows_manage_updates_catagories:
+        type: list
+        elements: str
+        default:
+          - "CriticalUpdates"
+          - "SecurityUpdates"
+        description: Which Categories to install?
+      windows_manage_updates_reboot:
+        type: str
+        choices:
+          - "Yes"
+          - "No"
+        default: "Yes"
+        description: If the server needs to reboot, then do so after install.
+      windows_manage_updates_state:
+        type: str
+        choices:
+          - "installed"
+          - "searched"
+          - "downloaded"
+        default: "searched"
+        description: State for the updates, Installed, Searched (list) and Downloaded.
