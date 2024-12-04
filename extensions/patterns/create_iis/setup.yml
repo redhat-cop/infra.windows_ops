@@ -26,7 +26,7 @@ controller_projects:
     scm_clean: 'no'
     scm_delete_on_update: 'no'
     scm_type: git
-    scm_update_on_launch: 'no'
+    scm_update_on_launch: 'yes'
     scm_url: https://github.com/redhat-cop/infra.windows_ops.git
 
 
@@ -39,7 +39,7 @@ controller_templates:
       - infra.windows_ops
       - create_iis_pattern
       - run_create_iis
-    playbook: "{{ pattern.path.replace('setup.yml', '') + 'playbooks/run_create_iis.yml' }}"
+    playbook: "extensions/patterns/create_iis/playbooks/run_create_iis.yml"
     project: Windows Operations / Project
     survey_enabled: true
     survey_spec: "{{ lookup('file', pattern.path.replace('setup.yml', '') + 'template_surveys/create_iis.yml') | from_yaml }}"
