@@ -1,0 +1,12 @@
+---
+- name: Manage Windows Updates Play
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Manage Windows Updates
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_updates
+      vars:
+        windows_manage_updates_categories: "{{ updates_categories }}"  # Set by survey
+        windows_manage_updates_reboot: "{{ updates_reboot }}"  # Set by survey
+        windows_manage_updates_state: "{{ updates_state }}"  # Set by survey

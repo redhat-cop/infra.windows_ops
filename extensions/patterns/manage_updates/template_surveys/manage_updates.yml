@@ -1,0 +1,42 @@
+---
+name: "Manage Updates Configuration Survey"
+description: "Survey to configure Windows Updates options"
+spec:
+  - type: "multiselect"
+    question_name: "Categories"
+    question_description: "Which Categories to install?"
+    variable: "updates_categories"
+    choices:
+      - "Application"
+      - "Connectors"
+      - "CriticalUpdates"
+      - "DefinitionUpdates"
+      - "DeveloperKits"
+      - "FeaturePacks Guidance"
+      - "SecurityUpdates"
+      - "ServicePacks"
+      - "Tools"
+      - "UpdateRollups"
+      - "Updates"
+    default:
+      - "CriticalUpdates"
+      - "SecurityUpdates"
+
+  - type: "multiplechoice"
+    question_name: "Reboot after install?"
+    question_description: "If the server needs to reboot, then do so after install"
+    variable: "updates_reboot"
+    choices:
+      - "Yes"
+      - "No"
+    default: Yes
+
+  - type: "multiplechoice"
+    question_name: "Install updates, download or just search for updates?"
+    question_description: "By default we will just list what updates would be applied"
+    variable: "updates_state"
+    choices:
+      - "installed"
+      - "searched"
+      - "downloaded"
+    default: "searched"
