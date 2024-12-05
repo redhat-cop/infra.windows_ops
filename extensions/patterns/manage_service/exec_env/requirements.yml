@@ -3,4 +3,4 @@ collections:
   # - name: ansible.experience_demo
   - name: https://github.com/redhat-cop/infra.windows_ops.git
     type: git
-    version: main
+    version: pattern
