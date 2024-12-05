@@ -1,0 +1,47 @@
+---
+# Labels
+#
+controller_labels:
+  - name: infra.windows_ops
+    organization: "{{ organization | default('Default') }}"
+  - name: manage_service_pattern
+    organization: "{{ organization | default('Default') }}"
+  - name: run_manage_service
+    organization: "{{ organization | default('Default') }}"
+
+# Execution Environments
+#
+controller_execution_environments:
+  - name: apd-ee-25-windows
+    description: Allow running Windows experience demo. Based on apd-ee-25.
+    image: quay.io/p3ck/apd-ee-25-experience:latest
+    pull: always
+
+# Projects
+#
+controller_projects:
+  - name: Windows Operations / Project
+    organization: Default
+    scm_branch: main
+    scm_clean: 'no'
+    scm_delete_on_update: 'no'
+    scm_type: git
+    scm_update_on_launch: 'yes'
+    scm_url: https://github.com/redhat-cop/infra.windows_ops.git
+
+
+# Job Templates
+#
+controller_templates:
+  - name: Windows Operations / Manage Service
+    ask_inventory_on_launch: true
+    labels:
+      - infra.windows_ops
+      - manage_service_pattern
+      - run_manage_service
+    playbook: "extensions/patterns/manage_service/playbooks/run_manage_service.yml' }}"
+    project: Windows Operations / Project
+    survey_enabled: true
+    survey_spec: "{{ lookup('file', pattern.path.replace('setup.yml', '') + 'template_surveys/manage_service.yml') | from_yaml }}"
+    ask_credential_on_launch: true
+    execution_environment: apd-ee-25-windows
