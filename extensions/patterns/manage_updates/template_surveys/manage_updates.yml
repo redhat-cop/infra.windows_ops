@@ -21,6 +21,7 @@ spec:
     default:
       - "CriticalUpdates"
       - "SecurityUpdates"
+    required: true
 
   - type: "multiplechoice"
     question_name: "Reboot after install?"
@@ -30,6 +31,7 @@ spec:
       - "Yes"
       - "No"
     default: Yes
+    required: false
 
   - type: "multiplechoice"
     question_name: "Install updates, download or just search for updates?"
@@ -40,3 +42,4 @@ spec:
       - "searched"
       - "downloaded"
     default: "searched"
+    required: true
