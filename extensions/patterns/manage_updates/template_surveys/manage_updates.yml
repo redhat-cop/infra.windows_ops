@@ -18,9 +18,7 @@ spec:
       - "Tools"
       - "UpdateRollups"
       - "Updates"
-    default:
-      - "CriticalUpdates"
-      - "SecurityUpdates"
+    default: "CriticalUpdates\nSecurityUpdates"
     required: true
 
   - type: "multiplechoice"
