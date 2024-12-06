@@ -28,7 +28,7 @@ spec:
     choices:
       - "Yes"
       - "No"
-    default: Yes
+    default: "Yes"
     required: false
 
   - type: "multiplechoice"
