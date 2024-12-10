@@ -13,7 +13,6 @@
 
 - name: Reboot when Web-Server feature requires it
   ansible.windows.win_reboot:
-    test_command: '(Get-Service -Name Netlogon).Status -ne "Running"'
   when: windows_manage_iis_output.reboot_required
 
 - name: Create site directory structure
