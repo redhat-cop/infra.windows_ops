@@ -25,10 +25,17 @@
   ansible.builtin.set_fact:
     windows_manage_iis_results: "{{ windows_manage_iis_results | default({}) | combine({'win_file': windows_manage_iis_output}) }}"
 
-- name: Delete Default Site
+- name: Check for existing site
+  ansible.windows.win_powershell:
+    script: |
+      Get-Website
+  register: powershell_result
+
+- name: Delete existing Site
   community.windows.win_iis_website:
-    name: "Default Web Site"
+    name: "{{ item.name }}"
     state: absent
+  loop: "{{ powershell_result.output }}"
 
 - name: Create IIS site
   community.windows.win_iis_website:
