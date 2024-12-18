@@ -20,7 +20,6 @@
 
   - name: Reboot when required and requested
     ansible.windows.win_reboot:
-      test_command: '(Get-Service -Name Netlogon).Status -ne "Running"'
     when:
       - windows_manage_updates_output.reboot_required
       - windows_manage_updates_reboot_server
