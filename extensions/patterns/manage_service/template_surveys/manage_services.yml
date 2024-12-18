@@ -24,7 +24,7 @@ spec:
     question_description: "Set the startup mode for the Service"
     required: false
     variable: "service_start_mode"
-    type: "multplechoice"
+    type: "multiplechoice"
     choices:
       - "auto"
       - "delayed"

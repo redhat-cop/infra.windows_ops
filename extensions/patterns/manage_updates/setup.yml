@@ -39,7 +39,7 @@ controller_templates:
       - infra.windows_ops
       - manage_updates_pattern
       - run_manage_updates
-    playbook: "extensions/patterns/manage_updates/playbooks/run_manage_updates.yml' }}"
+    playbook: "extensions/patterns/manage_updates/playbooks/run_manage_updates.yml"
     project: Windows Operations / Project
     survey_enabled: true
     survey_spec: "{{ lookup('file', pattern.path.replace('setup.yml', '') + 'template_surveys/manage_updates.yml') | from_yaml }}"
