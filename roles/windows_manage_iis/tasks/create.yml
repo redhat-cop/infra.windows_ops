@@ -32,17 +32,19 @@
   register: powershell_result
 
 - name: Delete existing Site
-  community.windows.win_iis_website:
+  microsoft.iis.website:
     name: "{{ item.name }}"
     state: absent
   loop: "{{ powershell_result.output }}"
 
 - name: Create IIS site
-  community.windows.win_iis_website:
+  microsoft.iis.website:
     name: "{{ windows_manage_iis_name }}"
-    state: started
-    port: "{{ windows_manage_iis_port }}"
     physical_path: "{{ windows_manage_iis_path }}"
+    state: started
+    bindings:
+      set:
+        - port: "{{ windows_manage_iis_port }}"
   notify: Restart iis service
   register: windows_manage_iis_output
 

@@ -15,8 +15,9 @@ rules:
   commas:
     max-spaces-after: -1
     level: error
-  comments: disable
-  comments-indentation: disable
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: false
   document-start: disable
   empty-lines:
     max: 3
@@ -31,3 +32,6 @@ rules:
     type: unix
   trailing-spaces: disable
   truthy: disable
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true
