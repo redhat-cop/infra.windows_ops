@@ -16,6 +16,7 @@ tags:
   - infrastructure
 dependencies:
   ansible.windows: '*'
+  microsoft.iis: '*'
   community.windows: '*'
 build_ignore:
   - '.tox'

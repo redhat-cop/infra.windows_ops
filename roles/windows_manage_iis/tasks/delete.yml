@@ -29,7 +29,7 @@
     windows_manage_iis_results: "{{ windows_manage_iis_results | default({}) | combine({'win_firewall_rule': windows_manage_iis_output}) }}"
 
 - name: Delete IIS site
-  community.windows.win_iis_website:
+  microsoft.iis.website:
     name: "{{ windows_manage_iis_name }}"
     state: absent
   notify: Restart iis service
