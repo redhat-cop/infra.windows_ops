@@ -6,7 +6,7 @@ argument_specs:
     description:
       - A role to Manage Windows Updates.
     options:
-      windows_manage_updates_catagories:
+      windows_manage_updates_categories:
         type: list
         elements: str
         default:
