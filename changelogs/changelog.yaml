@@ -22,3 +22,9 @@ releases:
         name: windows_manage_updates
         namespace: null
     release_date: '2025-05-05'
+  1.0.1:
+    changes:
+      release_summary: Minor update to fix minimal dependency versions.
+    fragments:
+    - 1.0.1.yml
+    release_date: '2025-05-05'
