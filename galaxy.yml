@@ -15,9 +15,9 @@ tags:
   - windows
   - infrastructure
 dependencies:
-  ansible.windows: '*'
-  microsoft.iis: '*'
-  community.windows: '*'
+  ansible.windows: '>=3.0.0'
+  microsoft.iis: '>=1.0.2'
+  community.windows: '>=3.0.0'
 build_ignore:
   - '.tox'
   - '.git'
