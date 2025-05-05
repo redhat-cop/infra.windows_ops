@@ -4,6 +4,14 @@ Infra.Windows\_ops Release Notes
 
 .. contents:: Topics
 
+v1.0.1
+======
+
+Release Summary
+---------------
+
+Minor update to fix minimal dependency versions.
+
 v1.0.0
 ======
 
