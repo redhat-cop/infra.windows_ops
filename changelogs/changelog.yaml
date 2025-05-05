@@ -1,3 +1,24 @@
-# changelog.yaml
----
-releases: {}
+ancestor: null
+releases:
+  1.0.0:
+    changes:
+      bugfixes:
+      - Minor doc updates and spelling mistakes
+      - Switch to microsoft.iis collection for managing IIS.
+      release_summary: This is the first release of the ``infra.windows_ops`` collection.
+    fragments:
+    - 1.0.0.yml
+    - 20250409-switch_from_community.yml
+    - 20250502-doc_updates.yml
+    objects:
+      role:
+      - description: A role to Create/Delete an IIS Web server.
+        name: windows_manage_iis
+        namespace: null
+      - description: A role to Manage Windows Services.
+        name: windows_manage_service
+        namespace: null
+      - description: A role to Manage Windows Updates.
+        name: windows_manage_updates
+        namespace: null
+    release_date: '2025-05-05'
