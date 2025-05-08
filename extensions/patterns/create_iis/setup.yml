@@ -21,6 +21,10 @@ controller_execution_environments:
 #
 controller_projects:
   - name: Windows Operations / Project
+    description: >
+      This project provides the foundation for automating the creation of iis web server configurations.
+      It organizes all necessary resources, including playbooks, job templates, and surveys, to ensure
+      seamless deployment of iis web server.
     organization: Default
     scm_branch: main
     scm_clean: 'no'
@@ -35,6 +39,8 @@ controller_projects:
 #
 controller_templates:
   - name: Windows Operations / Create IIS
+    description: >
+      This job template creates iis web server configurations, applying operational data as required.
     ask_inventory_on_launch: true
     labels:
       - infra.windows_ops

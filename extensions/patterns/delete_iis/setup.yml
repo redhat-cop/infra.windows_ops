@@ -21,6 +21,10 @@ controller_execution_environments:
 #
 controller_projects:
   - name: Windows Operations / Project
+    description: >
+      This project provides the foundation for automating the deletion of iis web server configurations.
+      It organizes all necessary resources, including playbooks, job templates, and surveys, to ensure
+      seamless removal of an iis web server.
     organization: Default
     scm_branch: main
     scm_clean: 'no'
@@ -35,6 +39,8 @@ controller_projects:
 #
 controller_templates:
   - name: Windows Operations / Delete IIS
+    description: >
+      This job template deletes an iis web server configuration, applying operational data as required.
     ask_inventory_on_launch: true
     labels:
       - infra.windows_ops
