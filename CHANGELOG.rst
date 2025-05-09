@@ -4,6 +4,19 @@ Infra.Windows\_ops Release Notes
 
 .. contents:: Topics
 
+v1.0.2
+======
+
+Release Summary
+---------------
+
+This is release 1.0.2 of ``infra.windows_ops``, released on 2025-05-09.
+
+Bugfixes
+--------
+
+- Added documentation in patterns
+
 v1.0.1
 ======
 

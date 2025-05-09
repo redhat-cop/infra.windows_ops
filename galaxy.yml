@@ -1,7 +1,7 @@
 ---
 namespace: infra
 name: windows_ops
-version: 1.0.1
+version: 1.0.2
 authors:
   - Ansible (https://github.com/ansible)
 description: A collection of content (roles, playbooks, etc) for Ansible Automation Platform on Windows.
