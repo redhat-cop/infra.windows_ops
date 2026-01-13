@@ -1,0 +1,43 @@
+{
+  "compliance_report": {
+    "metadata": {
+      "report_type": "Windows Server DISA STIG Compliance",
+      "target_system": "{{ inventory_hostname }}",
+      "execution_mode": "{{ windows_manage_stig_execution_mode }}",
+      "baseline": "{{ windows_manage_stig_baseline }}",
+      "start_time": "{{ windows_manage_stig_start_time }}",
+      "end_time": "{{ windows_manage_stig_end_time }}",
+      "generated_by": "infra.windows_ops.windows_manage_stig",
+      "version": "1.0"
+    },
+    "summary": {
+      "total_controls": {{ windows_manage_stig_total_controls }},
+      "compliant_controls": {{ windows_manage_stig_compliant_controls }},
+      "non_compliant_controls": {{ windows_manage_stig_non_compliant_controls }},
+      "skipped_controls": {{ windows_manage_stig_skipped_controls }},
+      "compliance_percentage": {{ windows_manage_stig_compliance_percentage }},
+      "compliance_threshold": {{ windows_manage_stig_compliance_threshold }},
+      "overall_status": "{{ 'COMPLIANT' if windows_manage_stig_compliance_percentage | float >= windows_manage_stig_compliance_threshold else 'NON-COMPLIANT' }}"
+    },
+    "controls": [
+{% for result in windows_manage_stig_results %}
+      {
+        "rule_id": "{{ result.rule_id }}",
+        "title": "{{ result.title }}",
+        "status": "{{ 'COMPLIANT' if not result.result.changed else 'NON-COMPLIANT' }}",
+        "expected_value": "{{ result.expected }}",
+        "actual_value": "{{ result.result.msg | default('Configuration applied') if result.result.changed else 'Already compliant' }}",
+        "changed": {{ result.result.changed | lower }},
+        "category": "{{ result.rule_id | regex_replace('^V-', '') | regex_replace('[0-9]+$', '') }}",
+        "severity": "{% if 'cat1' in result.result.ansible_loop_var | default('') %}HIGH{% elif 'cat2' in result.result.ansible_loop_var | default('') %}MEDIUM{% else %}LOW{% endif %}"
+      }{% if not loop.last %},{% endif %}
+{% endfor %}
+    ],
+    "skipped_rules": {{ windows_manage_stig_skip_rules | to_nice_json }},
+    "configuration": {
+      "categories_applied": {{ windows_manage_stig_categories | to_nice_json }},
+      "check_mode": {{ windows_manage_stig_check_mode | lower }},
+      "apply_fixes": {{ windows_manage_stig_apply_fixes | lower }}
+    }
+  }
+}

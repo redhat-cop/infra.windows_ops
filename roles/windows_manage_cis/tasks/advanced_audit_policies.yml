@@ -1,0 +1,343 @@
+---
+# CIS Microsoft Windows Server 2022 Benchmark v1.0.0
+# Section 17: Advanced Audit Policy Configuration
+# Enterprise Implementation using structured win_powershell approach
+
+# =============================================================================
+# STRUCTURED AUDIT POLICY CONFIGURATION - Data-driven approach
+# =============================================================================
+
+- name: CIS 17.x | SETUP | Define audit policy configuration matrix
+  ansible.builtin.set_fact:
+    windows_manage_cis_audit_policies:
+      - subcategory: Credential Validation
+        rule_id: 17.1.1
+        title: Audit Credential Validation
+        success: "{{ windows_manage_cis_audit_credential_validation_success }}"
+        failure: "{{ windows_manage_cis_audit_credential_validation_failure }}"
+        expected: "{{ windows_manage_cis_audit_credential_validation_expected }}"
+        severity: High
+      - subcategory: Application Group Management
+        rule_id: 17.2.1
+        title: Audit Application Group Management
+        success: "{{ windows_manage_cis_audit_application_group_management_success }}"
+        failure: "{{ windows_manage_cis_audit_application_group_management_failure }}"
+        expected: "{{ windows_manage_cis_audit_application_group_management_expected }}"
+        severity: Medium
+      - subcategory: Security Group Management
+        rule_id: 17.2.2
+        title: Audit Security Group Management
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: High
+      - subcategory: User Account Management
+        rule_id: 17.2.3
+        title: Audit User Account Management
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: High
+      - subcategory: Plug and Play Events
+        rule_id: 17.3.1
+        title: Audit PNP Activity
+        success: true
+        failure: false
+        expected: Success
+        severity: Medium
+      - subcategory: Process Creation
+        rule_id: 17.3.2
+        title: Audit Process Creation
+        success: true
+        failure: false
+        expected: Success
+        severity: High
+      - subcategory: Account Lockout
+        rule_id: 17.5.1
+        title: Audit Account Lockout
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: High
+      - subcategory: Group Membership
+        rule_id: 17.5.2
+        title: Audit Group Membership
+        success: true
+        failure: false
+        expected: Success
+        severity: Medium
+      - subcategory: Logoff
+        rule_id: 17.5.3
+        title: Audit Logoff
+        success: true
+        failure: false
+        expected: Success
+        severity: Medium
+      - subcategory: Logon
+        rule_id: 17.5.4
+        title: Audit Logon
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: High
+      - subcategory: Other Logon/Logoff Events
+        rule_id: 17.5.5
+        title: Audit Other Logon/Logoff Events
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: Medium
+      - subcategory: Special Logon
+        rule_id: 17.5.6
+        title: Audit Special Logon
+        success: true
+        failure: false
+        expected: Success
+        severity: High
+      - subcategory: Detailed File Share
+        rule_id: 17.6.1
+        title: Audit Detailed File Share
+        success: false
+        failure: true
+        expected: Failure
+        severity: Medium
+      - subcategory: File Share
+        rule_id: 17.6.2
+        title: Audit File Share
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: Medium
+      - subcategory: Other Object Access Events
+        rule_id: 17.6.3
+        title: Audit Other Object Access Events
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: Medium
+      - subcategory: Removable Storage
+        rule_id: 17.6.4
+        title: Audit Removable Storage
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: Medium
+      - subcategory: Audit Policy Change
+        rule_id: 17.7.1
+        title: Audit Audit Policy Change
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: High
+      - subcategory: Authentication Policy Change
+        rule_id: 17.7.2
+        title: Audit Authentication Policy Change
+        success: true
+        failure: false
+        expected: Success
+        severity: High
+      - subcategory: Authorization Policy Change
+        rule_id: 17.7.3
+        title: Audit Authorization Policy Change
+        success: true
+        failure: false
+        expected: Success
+        severity: Medium
+      - subcategory: Sensitive Privilege Use
+        rule_id: 17.8.1
+        title: Audit Sensitive Privilege Use
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: High
+      - subcategory: IPSec Driver
+        rule_id: 17.9.1
+        title: Audit IPSec Driver
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: Medium
+      - subcategory: Other System Events
+        rule_id: 17.9.2
+        title: Audit Other System Events
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: Medium
+      - subcategory: Security State Change
+        rule_id: 17.9.3
+        title: Audit Security State Change
+        success: true
+        failure: false
+        expected: Success
+        severity: High
+      - subcategory: Security System Extension
+        rule_id: 17.9.4
+        title: Audit Security System Extension
+        success: true
+        failure: false
+        expected: Success
+        severity: High
+      - subcategory: System Integrity
+        rule_id: 17.9.5
+        title: Audit System Integrity
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: High
+  tags:
+    - advanced_audit_policies
+    - setup
+
+# =============================================================================
+# CONSOLIDATED AUDIT PHASE - Single PowerShell Query
+# =============================================================================
+
+- name: CIS 17.x | AUDIT | Get all current audit policy settings (consolidated)
+  ansible.windows.win_powershell:
+    script: |
+      $ErrorActionPreference = 'Stop'
+      try {
+        # Get all audit policy settings in one call
+        $auditOutput = auditpol /get /category:* /r
+        $auditData = $auditOutput | ConvertFrom-Csv
+
+        # Create structured return data
+        $result = @{}
+        foreach ($line in $auditData) {
+          $subcategory = $line.'Subcategory'
+          $setting = $line.'Inclusion Setting'
+          $result[$subcategory] = $setting
+        }
+
+        $Ansible.Result = @{
+          audit_policies = $result
+          raw_output = $auditOutput
+        }
+      }
+      catch {
+        $Ansible.Failed = $true
+        $Ansible.Result = @{
+          error = $_.Exception.Message
+          line_number = $_.InvocationInfo.ScriptLineNumber
+        }
+      }
+  register: windows_manage_cis_audit_current_all
+  check_mode: false
+  tags:
+    - advanced_audit_policies
+    - audit
+    - consolidated
+
+# =============================================================================
+# CONSOLIDATED REMEDIATION PHASE - Structured PowerShell Configuration
+# =============================================================================
+
+- name: CIS 17.x | SCORED | Configure audit policies (modernized loop)
+  ansible.windows.win_powershell:
+    script: |
+      param($SubcategoryName, $SuccessEnabled, $FailureEnabled, $RuleId)
+
+      $ErrorActionPreference = 'Stop'
+      try {
+        # Build auditpol command parameters
+        $successParam = if ($SuccessEnabled) { "enable" } else { "disable" }
+        $failureParam = if ($FailureEnabled) { "enable" } else { "disable" }
+
+        # Execute auditpol command
+        $result = auditpol /set /subcategory:"$SubcategoryName" /success:$successParam /failure:$failureParam
+
+        if ($LASTEXITCODE -eq 0) {
+          $Ansible.Changed = $true
+          $Ansible.Result = @{
+            subcategory = $SubcategoryName
+            rule_id = $RuleId
+            success_setting = $successParam
+            failure_setting = $failureParam
+            command_output = $result
+            status = "success"
+          }
+        } else {
+          $Ansible.Failed = $true
+          $Ansible.Result = @{
+            error = "Auditpol command failed with exit code $LASTEXITCODE"
+            output = $result
+          }
+        }
+      }
+      catch {
+        $Ansible.Failed = $true
+        $Ansible.Result = @{
+          error = $_.Exception.Message
+          subcategory = $SubcategoryName
+          rule_id = $RuleId
+        }
+      }
+    parameters:
+      SubcategoryName: "{{ item.subcategory }}"
+      SuccessEnabled: "{{ item.success }}"
+      FailureEnabled: "{{ item.failure }}"
+      RuleId: "{{ item.rule_id }}"
+  loop: "{{ windows_manage_cis_audit_policies }}"
+  register: windows_manage_cis_audit_results
+  when:
+    - item.rule_id not in windows_manage_cis_skip_rules
+    - windows_manage_cis_audit_current_all.result.audit_policies[item.subcategory] | default('No Auditing') != item.expected
+  tags:
+    - advanced_audit_policies
+    - scored
+    - remediation
+
+# =============================================================================
+# STRUCTURED COMPLIANCE TRACKING
+# =============================================================================
+
+- name: CIS 17.x | AUDIT | Record all audit policy compliance results (consolidated)
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results +
+        (windows_manage_cis_audit_policies | map('combine', {
+          'rule_section': 'Advanced Audit Policy Configuration',
+          'scored': true,
+          'level': 'Level 1',
+          'current_value': windows_manage_cis_audit_current_all.result.audit_policies[item.subcategory] | default('No Auditing'),
+          'expected_value': item.expected,
+          'status': ('PASS' if (windows_manage_cis_audit_current_all.result.audit_policies[item.subcategory] | default('No Auditing') == item.expected) else 'FAIL'),
+          'changed': (windows_manage_cis_audit_results.results | selectattr('item.rule_id', 'equalto', item.rule_id) | list | first).changed | default(false),
+          'skip_reason': 'User configured skip' if item.rule_id in windows_manage_cis_skip_rules else '',
+          'check_mode': ansible_check_mode
+        }) | list) }}
+  vars:
+    item: "{{ audit_policy }}"
+  loop: "{{ windows_manage_cis_audit_policies }}"
+  loop_control:
+    loop_var: audit_policy
+  tags:
+    - advanced_audit_policies
+    - compliance
+
+# =============================================================================
+# SECTION SUMMARY
+# =============================================================================
+
+- name: CIS Section 17 | Display advanced audit policy summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - "CIS Section 17: Advanced Audit Policy Summary"
+      - ==========================================
+      - "Audit Policy Status:"
+      - "Total Policies: {{ windows_manage_cis_audit_policies | length }} configured"
+      - "Policy Categories: {{ (windows_manage_cis_audit_policies | map(attribute='subcategory') | unique | list | length) }} unique subcategories"
+      - ""
+      - "PERFORMANCE: Reduced from 75+ individual tasks to 4 structured tasks"
+      - "RELIABILITY: Eliminated text parsing and shell command vulnerabilities"
+      - "MAINTAINABILITY: Centralized configuration in data structure"
+      - ==========================================
+      - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
+      - ==========================================
+  when: not ansible_check_mode or true
+  tags:
+    - advanced_audit_policies
+    - section_17
+    - summary

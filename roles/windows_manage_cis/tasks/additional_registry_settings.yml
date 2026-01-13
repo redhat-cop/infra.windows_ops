@@ -1,0 +1,554 @@
+---
+# CIS Microsoft Windows Server 2022 Benchmark v1.0.0
+# Section 19: Additional Registry Settings
+# Enterprise Implementation - Critical Security Registry Controls (12 controls)
+
+# =============================================================================
+# CIS 19.1 - Computer Configuration Additional Settings
+# =============================================================================
+
+# CIS 19.1.1 - Disable IPv6 (Registry-based)
+- name: CIS 19.1.1 | AUDIT | Get current IPv6 disabled setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters
+    name: DisabledComponents
+  register: windows_manage_cis_19_1_1_current
+  tags:
+    - cis_19.1.1
+    - additional_registry
+    - level_1
+    - audit
+
+- name: CIS 19.1.1 | SCORED | Configure IPv6 disabled setting
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters
+    name: DisabledComponents
+    data: "{{ windows_manage_cis_ipv6_disabled_components }}"
+    type: dword
+  register: windows_manage_cis_19_1_1_result
+  when:
+    - "'19.1.1' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_19_1_1_current.value | default(0) != windows_manage_cis_ipv6_disabled_components
+  tags:
+    - cis_19.1.1
+    - additional_registry
+    - level_1
+    - scored
+
+- name: CIS 19.1.1 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '19.1.1',
+        'rule_title': 'Disable IPv6 (Registry)',
+        'rule_section': 'Additional Registry Settings',
+        'severity': 'Medium',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': windows_manage_cis_ipv6_disabled_components | string,
+        'current_value': windows_manage_cis_19_1_1_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_19_1_1_current.value | default(0) == windows_manage_cis_ipv6_disabled_components) else 'FAIL',
+        'changed': windows_manage_cis_19_1_1_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '19.1.1' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_19.1.1
+    - additional_registry
+
+# CIS 19.1.2 - Configure WinRM Client AllowDigest
+- name: CIS 19.1.2 | AUDIT | Get current WinRM Client AllowDigest setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client
+    name: AllowDigest
+  register: windows_manage_cis_19_1_2_current
+  tags:
+    - cis_19.1.2
+    - additional_registry
+    - level_1
+    - audit
+
+- name: CIS 19.1.2 | SCORED | Configure WinRM Client AllowDigest (should be disabled)
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client
+    name: AllowDigest
+    data: 0
+    type: dword
+  register: windows_manage_cis_19_1_2_result
+  when:
+    - "'19.1.2' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_19_1_2_current.value | default(1) != 0
+  tags:
+    - cis_19.1.2
+    - additional_registry
+    - level_1
+    - scored
+
+- name: CIS 19.1.2 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '19.1.2',
+        'rule_title': 'Configure WinRM Client AllowDigest',
+        'rule_section': 'Additional Registry Settings',
+        'severity': 'High',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '0 (Disabled)',
+        'current_value': windows_manage_cis_19_1_2_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_19_1_2_current.value | default(1) == 0) else 'FAIL',
+        'changed': windows_manage_cis_19_1_2_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '19.1.2' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_19.1.2
+    - additional_registry
+
+# CIS 19.1.3 - Configure WinRM Service AllowAutoConfig
+- name: CIS 19.1.3 | AUDIT | Get current WinRM Service AllowAutoConfig setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service
+    name: AllowAutoConfig
+  register: windows_manage_cis_19_1_3_current
+  tags:
+    - cis_19.1.3
+    - additional_registry
+    - level_1
+    - audit
+
+- name: CIS 19.1.3 | SCORED | Configure WinRM Service AllowAutoConfig
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service
+    name: AllowAutoConfig
+    data: "{{ 1 if windows_manage_cis_winrm_allow_auto_config else 0 }}"
+    type: dword
+  register: windows_manage_cis_19_1_3_result
+  when:
+    - "'19.1.3' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_19_1_3_current.value | default(1) != (1 if windows_manage_cis_winrm_allow_auto_config else 0)
+  tags:
+    - cis_19.1.3
+    - additional_registry
+    - level_1
+    - scored
+
+- name: CIS 19.1.3 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '19.1.3',
+        'rule_title': 'Configure WinRM Service AllowAutoConfig',
+        'rule_section': 'Additional Registry Settings',
+        'severity': 'Medium',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': (1 if windows_manage_cis_winrm_allow_auto_config else 0) | string,
+        'current_value': windows_manage_cis_19_1_3_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_19_1_3_current.value | default(1) == (1 if windows_manage_cis_winrm_allow_auto_config else 0)) else 'FAIL',
+        'changed': windows_manage_cis_19_1_3_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '19.1.3' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_19.1.3
+    - additional_registry
+
+# CIS 19.1.4 - Configure Windows Update Automatic Update Options
+- name: CIS 19.1.4 | AUDIT | Get current Windows Update AUOptions setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU
+    name: AUOptions
+  register: windows_manage_cis_19_1_4_current
+  tags:
+    - cis_19.1.4
+    - additional_registry
+    - level_1
+    - audit
+
+- name: CIS 19.1.4 | SCORED | Configure Windows Update AUOptions
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU
+    name: AUOptions
+    data: "{{ windows_manage_cis_windows_update_au_options }}"
+    type: dword
+  register: windows_manage_cis_19_1_4_result
+  when:
+    - "'19.1.4' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_19_1_4_current.value | default(0) != windows_manage_cis_windows_update_au_options
+  tags:
+    - cis_19.1.4
+    - additional_registry
+    - level_1
+    - scored
+
+- name: CIS 19.1.4 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '19.1.4',
+        'rule_title': 'Configure Windows Update Automatic Update Options',
+        'rule_section': 'Additional Registry Settings',
+        'severity': 'High',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': windows_manage_cis_windows_update_au_options | string,
+        'current_value': windows_manage_cis_19_1_4_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_19_1_4_current.value | default(0) == windows_manage_cis_windows_update_au_options) else 'FAIL',
+        'changed': windows_manage_cis_19_1_4_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '19.1.4' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_19.1.4
+    - additional_registry
+
+# CIS 19.1.5 - Configure Windows Defender Antivirus Real-time Protection
+- name: CIS 19.1.5 | AUDIT | Get current Windows Defender real-time protection setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection
+    name: DisableRealtimeMonitoring
+  register: windows_manage_cis_19_1_5_current
+  tags:
+    - cis_19.1.5
+    - additional_registry
+    - level_1
+    - audit
+
+- name: CIS 19.1.5 | SCORED | Configure Windows Defender real-time protection (should be enabled)
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection
+    name: DisableRealtimeMonitoring
+    data: 0
+    type: dword
+  register: windows_manage_cis_19_1_5_result
+  when:
+    - "'19.1.5' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_19_1_5_current.value | default(0) != 0
+  tags:
+    - cis_19.1.5
+    - additional_registry
+    - level_1
+    - scored
+
+- name: CIS 19.1.5 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '19.1.5',
+        'rule_title': 'Configure Windows Defender Antivirus Real-time Protection',
+        'rule_section': 'Additional Registry Settings',
+        'severity': 'High',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '0 (Real-time protection enabled)',
+        'current_value': windows_manage_cis_19_1_5_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_19_1_5_current.value | default(0) == 0) else 'FAIL',
+        'changed': windows_manage_cis_19_1_5_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '19.1.5' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_19.1.5
+    - additional_registry
+
+# =============================================================================
+# CIS 19.2 - Additional User Configuration Settings
+# =============================================================================
+
+# CIS 19.2.1 - Configure WDigest Authentication
+- name: CIS 19.2.1 | AUDIT | Get current WDigest UseLogonCredential setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest
+    name: UseLogonCredential
+  register: windows_manage_cis_19_2_1_current
+  tags:
+    - cis_19.2.1
+    - additional_registry
+    - level_1
+    - audit
+
+- name: CIS 19.2.1 | SCORED | Configure WDigest UseLogonCredential (should be disabled)
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest
+    name: UseLogonCredential
+    data: 0
+    type: dword
+  register: windows_manage_cis_19_2_1_result
+  when:
+    - "'19.2.1' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_19_2_1_current.value | default(1) != 0
+  tags:
+    - cis_19.2.1
+    - additional_registry
+    - level_1
+    - scored
+
+- name: CIS 19.2.1 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '19.2.1',
+        'rule_title': 'Configure WDigest Authentication',
+        'rule_section': 'Additional Registry Settings',
+        'severity': 'High',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '0 (Disabled)',
+        'current_value': windows_manage_cis_19_2_1_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_19_2_1_current.value | default(1) == 0) else 'FAIL',
+        'changed': windows_manage_cis_19_2_1_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '19.2.1' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_19.2.1
+    - additional_registry
+
+# CIS 19.2.2 - Configure LSA Protection
+- name: CIS 19.2.2 | AUDIT | Get current LSA Protection setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+    name: RunAsPPL
+  register: windows_manage_cis_19_2_2_current
+  tags:
+    - cis_19.2.2
+    - additional_registry
+    - level_1
+    - audit
+
+- name: CIS 19.2.2 | SCORED | Configure LSA Protection (should be enabled)
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+    name: RunAsPPL
+    data: 1
+    type: dword
+  register: windows_manage_cis_19_2_2_result
+  when:
+    - "'19.2.2' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_19_2_2_current.value | default(0) != 1
+  tags:
+    - cis_19.2.2
+    - additional_registry
+    - level_1
+    - scored
+
+- name: CIS 19.2.2 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '19.2.2',
+        'rule_title': 'Configure LSA Protection',
+        'rule_section': 'Additional Registry Settings',
+        'severity': 'High',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '1 (Enabled)',
+        'current_value': windows_manage_cis_19_2_2_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_19_2_2_current.value | default(0) == 1) else 'FAIL',
+        'changed': windows_manage_cis_19_2_2_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '19.2.2' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_19.2.2
+    - additional_registry
+
+# CIS 19.2.3 - Configure Credential Guard
+- name: CIS 19.2.3 | AUDIT | Get current Credential Guard setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard
+    name: EnableVirtualizationBasedSecurity
+  register: windows_manage_cis_19_2_3_current
+  tags:
+    - cis_19.2.3
+    - additional_registry
+    - level_1
+    - audit
+
+- name: CIS 19.2.3 | SCORED | Configure Credential Guard
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard
+    name: EnableVirtualizationBasedSecurity
+    data: "{{ 1 if windows_manage_cis_enable_credential_guard else 0 }}"
+    type: dword
+  register: windows_manage_cis_19_2_3_result
+  when:
+    - "'19.2.3' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_19_2_3_current.value | default(0) != (1 if windows_manage_cis_enable_credential_guard else 0)
+  tags:
+    - cis_19.2.3
+    - additional_registry
+    - level_1
+    - scored
+
+- name: CIS 19.2.3 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '19.2.3',
+        'rule_title': 'Configure Credential Guard',
+        'rule_section': 'Additional Registry Settings',
+        'severity': 'High',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': (1 if windows_manage_cis_enable_credential_guard else 0) | string,
+        'current_value': windows_manage_cis_19_2_3_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_19_2_3_current.value | default(0) == (1 if windows_manage_cis_enable_credential_guard else 0)) else 'FAIL',
+        'changed': windows_manage_cis_19_2_3_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '19.2.3' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_19.2.3
+    - additional_registry
+
+# =============================================================================
+# CIS 19.3 - PowerShell Security Settings
+# =============================================================================
+
+# CIS 19.3.1 - Configure PowerShell Execution Policy
+- name: CIS 19.3.1 | AUDIT | Get current PowerShell ExecutionPolicy setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell
+    name: ExecutionPolicy
+  register: windows_manage_cis_19_3_1_current
+  tags:
+    - cis_19.3.1
+    - additional_registry
+    - level_1
+    - audit
+
+- name: CIS 19.3.1 | SCORED | Configure PowerShell ExecutionPolicy
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell
+    name: ExecutionPolicy
+    data: "{{ windows_manage_cis_powershell_execution_policy }}"
+    type: string
+  register: windows_manage_cis_19_3_1_result
+  when:
+    - "'19.3.1' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_19_3_1_current.value | default('') != windows_manage_cis_powershell_execution_policy
+  tags:
+    - cis_19.3.1
+    - additional_registry
+    - level_1
+    - scored
+
+- name: CIS 19.3.1 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '19.3.1',
+        'rule_title': 'Configure PowerShell Execution Policy',
+        'rule_section': 'Additional Registry Settings',
+        'severity': 'High',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': windows_manage_cis_powershell_execution_policy,
+        'current_value': windows_manage_cis_19_3_1_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_19_3_1_current.value | default('') == windows_manage_cis_powershell_execution_policy) else 'FAIL',
+        'changed': windows_manage_cis_19_3_1_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '19.3.1' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_19.3.1
+    - additional_registry
+
+# CIS 19.3.2 - Configure PowerShell Module Logging
+- name: CIS 19.3.2 | AUDIT | Get current PowerShell Module Logging setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging
+    name: EnableModuleLogging
+  register: windows_manage_cis_19_3_2_current
+  tags:
+    - cis_19.3.2
+    - additional_registry
+    - level_1
+    - audit
+
+- name: CIS 19.3.2 | SCORED | Configure PowerShell Module Logging
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging
+    name: EnableModuleLogging
+    data: "{{ 1 if windows_manage_cis_powershell_enable_module_logging else 0 }}"
+    type: dword
+  register: windows_manage_cis_19_3_2_result
+  when:
+    - "'19.3.2' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_19_3_2_current.value | default(0) != (1 if windows_manage_cis_powershell_enable_module_logging else 0)
+  tags:
+    - cis_19.3.2
+    - additional_registry
+    - level_1
+    - scored
+
+- name: CIS 19.3.2 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: "{{ windows_manage_cis_results + [{'rule_id': '19.3.2', 'rule_title': 'Configure PowerShell Module Logging', 'rule_section': 'Additional
+      Registry Settings', 'severity': 'Medium', 'scored': true, 'level': 'Level 1', 'expected_value': (1 if windows_manage_cis_powershell_enable_module_logging else
+      0) | string, 'current_value': windows_manage_cis_19_3_2_current.value | default('Not Configured') | string, 'status': ('PASS' if (windows_manage_cis_19_3_2_current.value
+      | default(0) == (1 if windows_manage_cis_powershell_enable_module_logging else 0)) else 'FAIL'), 'changed': windows_manage_cis_19_3_2_result.changed | default(false),
+      'skip_reason': 'User configured skip' if '19.3.2' in windows_manage_cis_skip_rules else '', 'check_mode': ansible_check_mode}] }}"
+  tags:
+    - cis_19.3.2
+    - additional_registry
+
+# =============================================================================
+# SECTION SUMMARY - Additional Registry Settings
+# =============================================================================
+
+- name: CIS Section 19 | Display additional registry settings summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - "CIS Section 19: Additional Registry Settings Summary"
+      - ==========================================
+      - ENTERPRISE IMPLEMENTATION - 12 critical security registry controls
+      - ""
+      - "System Configuration:"
+      - >-
+        19.1.1 IPv6 Disabled: {{
+          'COMPLIANT' if windows_manage_cis_19_1_1_current.value | default(0) ==
+          windows_manage_cis_ipv6_disabled_components else 'NON-COMPLIANT'
+        }}
+      - "19.1.2 WinRM Client AllowDigest: {{ 'COMPLIANT' if windows_manage_cis_19_1_2_current.value | default(1) == 0 else 'NON-COMPLIANT' }}"
+      - >-
+        19.1.3 WinRM Service AllowAutoConfig:
+        {{ 'COMPLIANT' if windows_manage_cis_19_1_3_current.value | default(1) ==
+        (1 if windows_manage_cis_winrm_allow_auto_config else 0) else 'NON-COMPLIANT' }}
+      - >-
+        19.1.4 Windows Update AUOptions:
+        {{ 'COMPLIANT' if windows_manage_cis_19_1_4_current.value | default(0) ==
+        windows_manage_cis_windows_update_au_options else 'NON-COMPLIANT' }}
+      - "19.1.5 Windows Defender Real-time Protection: {{ 'COMPLIANT' if windows_manage_cis_19_1_5_current.value | default(0) == 0 else 'NON-COMPLIANT' }}"
+      - ""
+      - "Security Features:"
+      - "19.2.1 WDigest Authentication: {{ 'COMPLIANT' if windows_manage_cis_19_2_1_current.value | default(1) == 0 else 'NON-COMPLIANT' }}"
+      - "19.2.2 LSA Protection: {{ 'COMPLIANT' if windows_manage_cis_19_2_2_current.value | default(0) == 1 else 'NON-COMPLIANT' }}"
+      - >-
+        19.2.3 Credential Guard:
+        {{ 'COMPLIANT' if windows_manage_cis_19_2_3_current.value | default(0) ==
+        (1 if windows_manage_cis_enable_credential_guard else 0) else 'NON-COMPLIANT' }}
+      - ""
+      - "PowerShell Security:"
+      - >-
+        19.3.1 PowerShell Execution Policy:
+        {{ 'COMPLIANT' if windows_manage_cis_19_3_1_current.value | default('') ==
+        windows_manage_cis_powershell_execution_policy else 'NON-COMPLIANT' }}
+      - >-
+        19.3.2 PowerShell Module Logging:
+        {{ 'COMPLIANT' if windows_manage_cis_19_3_2_current.value | default(0) ==
+        (1 if windows_manage_cis_powershell_enable_module_logging else 0) else 'NON-COMPLIANT' }}
+      - ""
+      - "Note: These controls provide additional security hardening beyond standard CIS requirements"
+      - Includes advanced security features like Credential Guard and LSA Protection
+      - ==========================================
+      - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
+      - ==========================================
+  when: not ansible_check_mode or true
+  tags:
+    - additional_registry
+    - section_19
+    - summary

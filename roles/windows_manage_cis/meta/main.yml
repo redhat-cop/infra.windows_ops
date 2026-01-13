@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  author: Red Hat Ansible Content Team
+  description: Windows Server CIS benchmark compliance role
+  company: Red Hat, Inc.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.18"
+  platforms:
+    - name: Windows
+      versions:
+        - "2019"
+        - "2022"
+  galaxy_tags:
+    - windows
+    - security
+    - compliance
+    - cis
+    - hardening
+
+dependencies: []

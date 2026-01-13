@@ -1,0 +1,246 @@
+---
+# CIS Windows Server Benchmark - System Validation
+# Ensures target system compatibility and prerequisites
+
+# =============================================================================
+# SYSTEM INFORMATION GATHERING
+# =============================================================================
+
+- name: CIS | VALIDATE | Gather Windows system information
+  ansible.windows.win_shell: |
+    $info = Get-ComputerInfo
+    @{
+      'ProductName' = $info.WindowsProductName
+      'Version' = $info.WindowsVersion
+      'Build' = $info.WindowsBuildLabEx
+      'Edition' = $info.WindowsEditionId
+      'Architecture' = $info.CsProcessorArchitecture
+      'DomainRole' = $info.CsDomainRole
+      'TotalMemoryGB' = [Math]::Round($info.TotalPhysicalMemory / 1GB, 2)
+    } | ConvertTo-Json
+  register: windows_manage_cis_system_info_raw
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: CIS | VALIDATE | Parse system information
+  ansible.builtin.set_fact:
+    windows_manage_cis_system_info: "{{ windows_manage_cis_system_info_raw.stdout | from_json }}"
+
+- name: CIS | VALIDATE | Display target system information
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - Target System Validation
+      - ==========================================
+      - "Product: {{ windows_manage_cis_system_info.ProductName }}"
+      - "Version: {{ windows_manage_cis_system_info.Version }}"
+      - "Build: {{ windows_manage_cis_system_info.Build }}"
+      - "Edition: {{ windows_manage_cis_system_info.Edition }}"
+      - "Architecture: {{ windows_manage_cis_system_info.Architecture }}"
+      - "Domain Role: {{ windows_manage_cis_system_info.DomainRole }}"
+      - "Memory: {{ windows_manage_cis_system_info.TotalMemoryGB }} GB"
+      - ==========================================
+
+# =============================================================================
+# WINDOWS VERSION VALIDATION
+# =============================================================================
+
+- name: CIS | VALIDATE | Extract Windows Server version
+  ansible.builtin.set_fact:
+    windows_manage_cis_detected_version: >-
+      {%- if '2022' in windows_manage_cis_system_info.ProductName -%}
+        2022
+      {%- elif '2019' in windows_manage_cis_system_info.ProductName -%}
+        2019
+      {%- elif '2016' in windows_manage_cis_system_info.ProductName -%}
+        2016
+      {%- else -%}
+        unknown
+      {%- endif -%}
+
+- name: CIS | VALIDATE | Check Windows Server version compatibility
+  ansible.builtin.assert:
+    that:
+      - windows_manage_cis_detected_version in windows_manage_cis_supported_versions
+    fail_msg: |
+      Unsupported Windows Server version detected!
+
+      Detected Version: {{ windows_manage_cis_detected_version }}
+      Product Name: {{ windows_manage_cis_system_info.ProductName }}
+
+      Supported Versions: {{ windows_manage_cis_supported_versions | join(', ') }}
+
+      This CIS benchmark role is certified for:
+      {{ windows_manage_cis_benchmark_name }} {{ windows_manage_cis_benchmark_version }}
+
+      Please use the appropriate CIS role for your Windows version.
+    success_msg: |
+      Windows Server version validation passed
+      Detected: {{ windows_manage_cis_detected_version }}
+      CIS Benchmark: {{ windows_manage_cis_benchmark_name }} {{ windows_manage_cis_benchmark_version }}
+
+# =============================================================================
+# ARCHITECTURE AND PREREQUISITES VALIDATION
+# =============================================================================
+
+- name: CIS | VALIDATE | Check system architecture
+  ansible.builtin.assert:
+    that:
+      - windows_manage_cis_system_info.Architecture in ['AMD64', 'x64'] or windows_manage_cis_system_info.Architecture == None
+    fail_msg: |
+      Unsupported system architecture: {{ windows_manage_cis_system_info.Architecture }}
+      This CIS benchmark role supports x64 architecture only.
+    success_msg: System architecture validation passed
+
+- name: CIS | VALIDATE | Check minimum memory requirements
+  ansible.builtin.assert:
+    that:
+      - windows_manage_cis_system_info.TotalMemoryGB | float >= 2.0 or windows_manage_cis_system_info.TotalMemoryGB == 0
+    fail_msg: |
+      Insufficient memory detected: {{ windows_manage_cis_system_info.TotalMemoryGB }} GB
+      Minimum required: 2 GB for reliable CIS policy implementation
+    success_msg: Memory requirements validation passed ({{ windows_manage_cis_system_info.TotalMemoryGB }} GB or memory check bypassed)
+
+# =============================================================================
+# POWERSHELL AND MODULE VALIDATION
+# =============================================================================
+
+- name: CIS | VALIDATE | Check PowerShell version
+  ansible.windows.win_shell: |
+    $PSVersionTable.PSVersion.Major
+  register: windows_manage_cis_ps_version
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: CIS | VALIDATE | Verify PowerShell version compatibility
+  ansible.builtin.assert:
+    that:
+      - windows_manage_cis_ps_version.stdout | trim | int >= 5
+    fail_msg: |
+      PowerShell version too old: {{ windows_manage_cis_ps_version.stdout | trim }}
+      Required: PowerShell 5.0 or later for CIS policy management
+    success_msg: PowerShell version validation passed
+
+# =============================================================================
+# PRIVILEGE AND ACCESS VALIDATION
+# =============================================================================
+
+- name: CIS | VALIDATE | Check administrative privileges
+  ansible.windows.win_shell: |
+    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+  register: windows_manage_cis_admin_check
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: CIS | VALIDATE | Verify administrative access
+  ansible.builtin.assert:
+    that:
+      - windows_manage_cis_admin_check.stdout | trim | bool
+    fail_msg: |
+      Insufficient privileges detected!
+      The CIS compliance role requires local administrative privileges to:
+      - Modify local security policies
+      - Configure user rights assignments
+      - Manage system services
+      - Modify registry settings
+
+      Please ensure the Ansible user has local administrator rights.
+    success_msg: Administrative privileges validation passed
+
+# =============================================================================
+# SECURITY POLICY MODULE VALIDATION
+# =============================================================================
+
+- name: CIS | VALIDATE | Test secedit access
+  ansible.windows.win_shell: |
+    try {
+      $tempFile = [System.IO.Path]::GetTempFileName()
+      secedit /export /cfg $tempFile /areas SECURITYPOLICY | Out-Null
+      if (Test-Path $tempFile) {
+        Remove-Item $tempFile -Force
+        "Success"
+      } else {
+        "Failed: Cannot export security policy"
+      }
+    } catch {
+      "Failed: $($_.Exception.Message)"
+    }
+  register: windows_manage_cis_lsp_test
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: CIS | VALIDATE | Verify Local Security Policy access
+  ansible.builtin.assert:
+    that:
+      - "'Success' in windows_manage_cis_lsp_test.stdout"
+    fail_msg: |
+      Cannot access Local Security Policy!
+      Error: {{ windows_manage_cis_lsp_test.stdout }}
+
+      This may indicate:
+      - Insufficient privileges
+      - Group Policy restrictions
+      - Corrupted security database
+
+      CIS compliance requires read/write access to Local Security Policy.
+    success_msg: Local Security Policy access validation passed
+
+# =============================================================================
+# DOMAIN CONTROLLER DETECTION AND WARNING
+# =============================================================================
+
+- name: CIS | VALIDATE | Check if system is a Domain Controller
+  ansible.builtin.set_fact:
+    windows_manage_cis_is_domain_controller: >-
+      {{ windows_manage_cis_system_info.DomainRole | int in [4, 5] }}
+
+- name: CIS | VALIDATE | Domain Controller compatibility warning
+  ansible.builtin.debug:
+    msg:
+      - "WARNING: DOMAIN CONTROLLER DETECTED"
+      - ""
+      - This system appears to be a Domain Controller.
+      - Some CIS controls may have different requirements or may not apply.
+      - ""
+      - Please review the CIS benchmark documentation for Domain Controller
+      - specific guidance before proceeding with automated remediation.
+      - ""
+      - Consider using Domain Controller specific CIS benchmarks.
+  when: windows_manage_cis_is_domain_controller | bool
+
+# =============================================================================
+# SYSTEM READINESS SUMMARY
+# =============================================================================
+
+- name: CIS | VALIDATE | Set system validation facts
+  ansible.builtin.set_fact:
+    windows_manage_cis_system_validated: true
+    windows_manage_cis_validation_summary:
+      product_name: "{{ windows_manage_cis_system_info.ProductName }}"
+      windows_version: "{{ windows_manage_cis_detected_version }}"
+      architecture: "{{ windows_manage_cis_system_info.Architecture }}"
+      memory_gb: "{{ windows_manage_cis_system_info.TotalMemoryGB }}"
+      powershell_version: "{{ windows_manage_cis_ps_version.stdout | trim }}"
+      admin_privileges: "{{ windows_manage_cis_admin_check.stdout | trim | bool }}"
+      is_domain_controller: "{{ windows_manage_cis_is_domain_controller }}"
+      benchmark_compatibility: "{{ windows_manage_cis_benchmark_name }} {{ windows_manage_cis_benchmark_version }}"
+      validation_timestamp: "{{ ansible_date_time.iso8601 }}"
+
+- name: CIS | VALIDATE | Display system readiness summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - System Validation Complete
+      - ==========================================
+      - System is ready for CIS benchmark implementation
+      - "Target: {{ windows_manage_cis_validation_summary.product_name }}"
+      - "Benchmark: {{ windows_manage_cis_validation_summary.benchmark_compatibility }}"
+      - "Execution Mode: {{ 'CHECK ONLY' if ansible_check_mode else 'APPLY CHANGES' }}"
+      - "Domain Controller: {{ 'Yes (WARNING)' if windows_manage_cis_is_domain_controller else 'No' }}"
+      - "Validated: {{ windows_manage_cis_validation_summary.validation_timestamp }}"
+      - ==========================================

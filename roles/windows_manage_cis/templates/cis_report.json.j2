@@ -1,0 +1,45 @@
+{
+  "compliance_report": {
+    "metadata": {
+      "report_type": "Windows Server CIS Benchmark Compliance",
+      "target_system": "{{ inventory_hostname }}",
+      "execution_mode": "{{ windows_manage_cis_execution_mode }}",
+      "baseline": "{{ windows_manage_cis_baseline }}",
+      "cis_level": "{{ windows_manage_cis_level }}",
+      "start_time": "{{ windows_manage_cis_start_time }}",
+      "end_time": "{{ windows_manage_cis_end_time }}",
+      "generated_by": "infra.windows_ops.windows_manage_cis",
+      "version": "1.0"
+    },
+    "summary": {
+      "total_controls": {{ windows_manage_cis_total_controls }},
+      "compliant_controls": {{ windows_manage_cis_compliant_controls }},
+      "non_compliant_controls": {{ windows_manage_cis_non_compliant_controls }},
+      "skipped_controls": {{ windows_manage_cis_skipped_controls }},
+      "compliance_percentage": {{ windows_manage_cis_compliance_percentage }},
+      "compliance_threshold": {{ windows_manage_cis_compliance_threshold }},
+      "overall_status": "{{ 'COMPLIANT' if windows_manage_cis_compliance_percentage | float >= windows_manage_cis_compliance_threshold else 'NON-COMPLIANT' }}"
+    },
+    "controls": [
+{% for result in windows_manage_cis_results %}
+      {
+        "rule_id": "{{ result.rule_id }}",
+        "title": "{{ result.title }}",
+        "status": "{{ 'COMPLIANT' if not result.result.changed else 'NON-COMPLIANT' }}",
+        "expected_value": "{{ result.expected }}",
+        "actual_value": "{{ result.result.msg | default('Configuration applied') if result.result.changed else 'Already compliant' }}",
+        "changed": {{ result.result.changed | lower }},
+        "cis_level": "{{ result.level | default('Level 1') }}",
+        "category": "{{ result.rule_id.split('.')[0] if '.' in result.rule_id else 'General' }}"
+      }{% if not loop.last %},{% endif %}
+{% endfor %}
+    ],
+    "skipped_rules": {{ windows_manage_cis_skip_rules | to_nice_json }},
+    "configuration": {
+      "categories_applied": {{ windows_manage_cis_categories | to_nice_json }},
+      "cis_level": "{{ windows_manage_cis_level }}",
+      "check_mode": {{ windows_manage_cis_check_mode | lower }},
+      "apply_fixes": {{ windows_manage_cis_apply_fixes | lower }}
+    }
+  }
+}

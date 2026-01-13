@@ -1,0 +1,364 @@
+---
+# Registry Settings - CIS Benchmark Controls for Windows Server
+
+- name: 18.1.1.1 - Ensure 'Turn off help experience improvement program' is set to 'Enabled'
+  ansible.windows.win_regedit:
+    path: HKLM:\Software\Policies\Microsoft\Assistance\Client\1.0
+    name: NoImplicitFeedback
+    data: "{{ 0 if windows_manage_cis_allow_online_tips else 1 }}"
+    type: dword
+  register: windows_manage_cis_18_1_1_1_result
+  when: "'18.1.1.1' not in windows_manage_cis_skip_rules"
+  check_mode: "{{ windows_manage_cis_check_mode }}"
+  tags:
+    - 18.1.1.1
+    - registry_settings
+    - level_1
+    - cis
+
+- name: 18.1.1.1 - Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{
+        windows_manage_cis_results + [{
+          'rule_id': '18.1.1.1',
+          'title': 'Turn off help experience improvement program',
+          'result': windows_manage_cis_18_1_1_1_result,
+          'expected': windows_manage_cis_allow_online_tips,
+          'level': 'Level 1'
+        }]
+      }}
+  when: "'18.1.1.1' not in windows_manage_cis_skip_rules"
+
+- name: 18.1.1.2 - Ensure 'Turn off the Windows Ink workspace' is set to 'Enabled'
+  ansible.windows.win_regedit:
+    path: HKLM:\Software\Policies\Microsoft\WindowsInkWorkspace
+    name: AllowWindowsInkWorkspace
+    data: "{{ 1 if windows_manage_cis_allow_windows_ink_workspace else 0 }}"
+    type: dword
+  register: windows_manage_cis_18_1_1_2_result
+  when: "'18.1.1.2' not in windows_manage_cis_skip_rules"
+  check_mode: "{{ windows_manage_cis_check_mode }}"
+  tags:
+    - 18.1.1.2
+    - registry_settings
+    - level_1
+    - cis
+
+- name: 18.1.1.2 - Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{
+        windows_manage_cis_results + [{
+          'rule_id': '18.1.1.2',
+          'title': 'Turn off the Windows Ink workspace',
+          'result': windows_manage_cis_18_1_1_2_result,
+          'expected': windows_manage_cis_allow_windows_ink_workspace,
+          'level': 'Level 1'
+        }]
+      }}
+  when: "'18.1.1.2' not in windows_manage_cis_skip_rules"
+
+- name: 18.4.3.1 - Ensure 'MSS (AutoAdminLogon) Enable Automatic Logon' is set to 'Disabled'
+  ansible.windows.win_regedit:
+    path: HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Winlogon
+    name: AutoAdminLogon
+    data: "{{ 1 if windows_manage_cis_mss_autoadminlogon else 0 }}"
+    type: string
+  register: windows_manage_cis_18_4_3_1_result
+  when: "'18.4.3.1' not in windows_manage_cis_skip_rules"
+  check_mode: "{{ windows_manage_cis_check_mode }}"
+  tags:
+    - 18.4.3.1
+    - registry_settings
+    - level_1
+    - cis
+
+- name: 18.4.3.1 - Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{
+        windows_manage_cis_results + [{
+          'rule_id': '18.4.3.1',
+          'title': 'MSS (AutoAdminLogon) Enable Automatic Logon',
+          'result': windows_manage_cis_18_4_3_1_result,
+          'expected': windows_manage_cis_mss_autoadminlogon,
+          'level': 'Level 1'
+        }]
+      }}
+  when: "'18.4.3.1' not in windows_manage_cis_skip_rules"
+
+- name: 18.4.3.2 - Ensure 'MSS (DisableIPSourceRouting) IP source routing protection level' is configured
+  ansible.windows.win_regedit:
+    path: HKLM:\System\CurrentControlSet\Services\Tcpip\Parameters
+    name: DisableIPSourceRouting
+    data: "{{ windows_manage_cis_mss_disableipsourcerouting }}"
+    type: dword
+  register: windows_manage_cis_18_4_3_2_result
+  when: "'18.4.3.2' not in windows_manage_cis_skip_rules"
+  check_mode: "{{ windows_manage_cis_check_mode }}"
+  tags:
+    - 18.4.3.2
+    - registry_settings
+    - level_1
+    - cis
+
+- name: 18.4.3.2 - Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{
+        windows_manage_cis_results + [{
+          'rule_id': '18.4.3.2',
+          'title': 'MSS (DisableIPSourceRouting) IP source routing protection level',
+          'result': windows_manage_cis_18_4_3_2_result,
+          'expected': windows_manage_cis_mss_disableipsourcerouting,
+          'level': 'Level 1'
+        }]
+      }}
+  when: "'18.4.3.2' not in windows_manage_cis_skip_rules"
+
+- name: 18.4.3.3 - Ensure 'MSS (EnableICMPRedirect) Allow ICMP redirects to override OSPF' is set to 'Disabled'
+  ansible.windows.win_regedit:
+    path: HKLM:\System\CurrentControlSet\Services\Tcpip\Parameters
+    name: EnableICMPRedirect
+    data: "{{ 1 if windows_manage_cis_mss_enableicmpredirect else 0 }}"
+    type: dword
+  register: windows_manage_cis_18_4_3_3_result
+  when: "'18.4.3.3' not in windows_manage_cis_skip_rules"
+  check_mode: "{{ windows_manage_cis_check_mode }}"
+  tags:
+    - 18.4.3.3
+    - registry_settings
+    - level_1
+    - cis
+
+- name: 18.4.3.3 - Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{
+        windows_manage_cis_results + [{
+          'rule_id': '18.4.3.3',
+          'title': 'MSS (EnableICMPRedirect) Allow ICMP redirects to override OSPF',
+          'result': windows_manage_cis_18_4_3_3_result,
+          'expected': windows_manage_cis_mss_enableicmpredirect,
+          'level': 'Level 1'
+        }]
+      }}
+  when: "'18.4.3.3' not in windows_manage_cis_skip_rules"
+
+- name: 18.4.3.4 - Configure 'MSS (KeepAliveTime) How often keep-alive packets are sent'
+  ansible.windows.win_regedit:
+    path: HKLM:\System\CurrentControlSet\Services\Tcpip\Parameters
+    name: KeepAliveTime
+    data: "{{ windows_manage_cis_mss_keepalivetime }}"
+    type: dword
+  register: windows_manage_cis_18_4_3_4_result
+  when: "'18.4.3.4' not in windows_manage_cis_skip_rules"
+  check_mode: "{{ windows_manage_cis_check_mode }}"
+  tags:
+    - 18.4.3.4
+    - registry_settings
+    - level_2
+    - cis
+
+- name: 18.4.3.4 - Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{
+        windows_manage_cis_results + [{
+          'rule_id': '18.4.3.4',
+          'title': 'MSS (KeepAliveTime) How often keep-alive packets are sent',
+          'result': windows_manage_cis_18_4_3_4_result,
+          'expected': windows_manage_cis_mss_keepalivetime,
+          'level': 'Level 2'
+        }]
+      }}
+  when: "'18.4.3.4' not in windows_manage_cis_skip_rules"
+
+- name: 18.4.3.5 - Ensure 'MSS (NoDefaultExempt) Enable NoDefaultExempt' is set to 'Enabled'
+  ansible.windows.win_regedit:
+    path: HKLM:\System\CurrentControlSet\Services\IPSEC
+    name: NoDefaultExempt
+    data: "{{ 1 if windows_manage_cis_mss_nodefaultexempt else 0 }}"
+    type: dword
+  register: windows_manage_cis_18_4_3_5_result
+  when: "'18.4.3.5' not in windows_manage_cis_skip_rules"
+  check_mode: "{{ windows_manage_cis_check_mode }}"
+  tags:
+    - 18.4.3.5
+    - registry_settings
+    - level_1
+    - cis
+
+- name: 18.4.3.5 - Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{
+        windows_manage_cis_results + [{
+          'rule_id': '18.4.3.5',
+          'title': 'MSS (NoDefaultExempt) Enable NoDefaultExempt',
+          'result': windows_manage_cis_18_4_3_5_result,
+          'expected': windows_manage_cis_mss_nodefaultexempt,
+          'level': 'Level 1'
+        }]
+      }}
+  when: "'18.4.3.5' not in windows_manage_cis_skip_rules"
+
+- name: 18.4.3.6 - Ensure 'MSS (PerformRouterDiscovery) Allow IRDP to detect and configure Default Gateway' is set to 'Disabled'
+  ansible.windows.win_regedit:
+    path: HKLM:\System\CurrentControlSet\Services\Tcpip\Parameters
+    name: PerformRouterDiscovery
+    data: "{{ 1 if windows_manage_cis_mss_performrouterdiscovery else 0 }}"
+    type: dword
+  register: windows_manage_cis_18_4_3_6_result
+  when: "'18.4.3.6' not in windows_manage_cis_skip_rules"
+  check_mode: "{{ windows_manage_cis_check_mode }}"
+  tags:
+    - 18.4.3.6
+    - registry_settings
+    - level_1
+    - cis
+
+- name: 18.4.3.6 - Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{
+        windows_manage_cis_results + [{
+          'rule_id': '18.4.3.6',
+          'title': 'MSS (PerformRouterDiscovery) Allow IRDP to detect and configure Default Gateway',
+          'result': windows_manage_cis_18_4_3_6_result,
+          'expected': windows_manage_cis_mss_performrouterdiscovery,
+          'level': 'Level 1'
+        }]
+      }}
+  when: "'18.4.3.6' not in windows_manage_cis_skip_rules"
+
+- name: 18.4.3.7 - Ensure 'MSS (SafeDllSearchMode) Enable Safe DLL search mode' is set to 'Enabled'
+  ansible.windows.win_regedit:
+    path: HKLM:\System\CurrentControlSet\Control\Session Manager
+    name: SafeDllSearchMode
+    data: "{{ 1 if windows_manage_cis_mss_safedllsearchmode else 0 }}"
+    type: dword
+  register: windows_manage_cis_18_4_3_7_result
+  when: "'18.4.3.7' not in windows_manage_cis_skip_rules"
+  check_mode: "{{ windows_manage_cis_check_mode }}"
+  tags:
+    - 18.4.3.7
+    - registry_settings
+    - level_1
+    - cis
+
+- name: 18.4.3.7 - Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{
+        windows_manage_cis_results + [{
+          'rule_id': '18.4.3.7',
+          'title': 'MSS (SafeDllSearchMode) Enable Safe DLL search mode',
+          'result': windows_manage_cis_18_4_3_7_result,
+          'expected': windows_manage_cis_mss_safedllsearchmode,
+          'level': 'Level 1'
+        }]
+      }}
+  when: "'18.4.3.7' not in windows_manage_cis_skip_rules"
+
+- name: 18.5.4.1 - Ensure 'Turn off multicast name resolution' is set to 'Enabled'
+  ansible.windows.win_regedit:
+    path: HKLM:\Software\Policies\Microsoft\Windows NT\DNSClient
+    name: EnableMulticast
+    data: 0
+    type: dword
+  register: windows_manage_cis_18_5_4_1_result
+  when: "'18.5.4.1' not in windows_manage_cis_skip_rules"
+  check_mode: "{{ windows_manage_cis_check_mode }}"
+  tags:
+    - 18.5.4.1
+    - registry_settings
+    - level_1
+    - cis
+
+- name: 18.5.4.1 - Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{
+        windows_manage_cis_results + [{
+          'rule_id': '18.5.4.1',
+          'title': 'Turn off multicast name resolution',
+          'result': windows_manage_cis_18_5_4_1_result,
+          'expected': 'Disabled',
+          'level': 'Level 1'
+        }]
+      }}
+  when: "'18.5.4.1' not in windows_manage_cis_skip_rules"
+
+- name: 18.5.8.1 - Ensure 'Enable insecure guest logons' is set to 'Disabled'
+  ansible.windows.win_regedit:
+    path: HKLM:\Software\Policies\Microsoft\Windows\LanmanWorkstation
+    name: AllowInsecureGuestAuth
+    data: "{{ 1 if windows_manage_cis_insecure_logons_to_smb_servers else 0 }}"
+    type: dword
+  register: windows_manage_cis_18_5_8_1_result
+  when: "'18.5.8.1' not in windows_manage_cis_skip_rules"
+  check_mode: "{{ windows_manage_cis_check_mode }}"
+  tags:
+    - 18.5.8.1
+    - registry_settings
+    - level_1
+    - cis
+
+- name: 18.5.8.1 - Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{
+        windows_manage_cis_results + [{
+          'rule_id': '18.5.8.1',
+          'title': 'Enable insecure guest logons',
+          'result': windows_manage_cis_18_5_8_1_result,
+          'expected': windows_manage_cis_insecure_logons_to_smb_servers,
+          'level': 'Level 1'
+        }]
+      }}
+  when: "'18.5.8.1' not in windows_manage_cis_skip_rules"
+
+- name: 18.5.19.2.1 - Ensure 'Turn off Microsoft Peer-to-Peer Networking Services' is set to 'Enabled'
+  ansible.windows.win_regedit:
+    path: HKLM:\Software\Policies\Microsoft\Peernet
+    name: Disabled
+    data: 1
+    type: dword
+  register: windows_manage_cis_18_5_19_2_1_result
+  when: "'18.5.19.2.1' not in windows_manage_cis_skip_rules"
+  check_mode: "{{ windows_manage_cis_check_mode }}"
+  tags:
+    - 18.5.19.2.1
+    - registry_settings
+    - level_1
+    - cis
+
+- name: 18.5.19.2.1 - Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{
+        windows_manage_cis_results + [{
+          'rule_id': '18.5.19.2.1',
+          'title': 'Turn off Microsoft Peer-to-Peer Networking Services',
+          'result': windows_manage_cis_18_5_19_2_1_result,
+          'expected': 'Enabled',
+          'level': 'Level 1'
+        }]
+      }}
+  when: "'18.5.19.2.1' not in windows_manage_cis_skip_rules"
+
+- name: Display registry settings configuration results
+  ansible.builtin.debug:
+    msg:
+      - Registry Settings Configuration Completed
+      - "Help Experience Improvement: {{ 'Disabled' if not windows_manage_cis_allow_online_tips else 'Enabled' }}"
+      - "Windows Ink Workspace: {{ 'Enabled' if windows_manage_cis_allow_windows_ink_workspace else 'Disabled' }}"
+      - "Auto Admin Logon: {{ 'Enabled' if windows_manage_cis_mss_autoadminlogon else 'Disabled' }}"
+      - "IP Source Routing Protection: {{ windows_manage_cis_mss_disableipsourcerouting }}"
+      - "Safe DLL Search Mode: {{ 'Enabled' if windows_manage_cis_mss_safedllsearchmode else 'Disabled' }}"
+      - "Insecure Guest Logons: {{ 'Enabled' if windows_manage_cis_insecure_logons_to_smb_servers else 'Disabled' }}"
+  tags:
+    - registry_settings
+    - cis

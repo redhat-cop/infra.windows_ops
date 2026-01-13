@@ -29,13 +29,13 @@
   ansible.windows.win_powershell:
     script: |
       Get-Website
-  register: powershell_result
+  register: windows_manage_iis_powershell_result
 
 - name: Delete existing Site
   microsoft.iis.website:
     name: "{{ item.name }}"
     state: absent
-  loop: "{{ powershell_result.output }}"
+  loop: "{{ windows_manage_iis_powershell_result.output }}"
 
 - name: Create IIS site
   microsoft.iis.website:

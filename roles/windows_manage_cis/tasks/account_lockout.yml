@@ -1,0 +1,248 @@
+---
+# CIS Microsoft Windows Server 2022 Benchmark v1.0.0
+# Section 1.2: Account Lockout Policy
+# Enterprise Implementation
+
+# =============================================================================
+# CIS 1.2.1 - Account lockout duration
+# =============================================================================
+
+- name: CIS 1.2.1 | AUDIT | Get current account lockout duration setting
+  community.windows.win_security_policy:
+    section: System Access
+    key: LockoutDuration
+    value: "{{ windows_manage_cis_account_lockout_duration }}"
+  register: windows_manage_cis_1_2_1_current
+  check_mode: true
+  tags:
+    - cis_1.2.1
+    - account_lockout
+    - level_1
+    - audit
+
+- name: CIS 1.2.1 | SCORED | Set account lockout duration {{ windows_manage_cis_account_lockout_duration }}
+  community.windows.win_security_policy:
+    section: System Access
+    key: LockoutDuration
+    value: "{{ windows_manage_cis_account_lockout_duration }}"
+  register: windows_manage_cis_1_2_1_result
+  when:
+    - "'1.2.1' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_1_2_1_current.value | string != windows_manage_cis_account_lockout_duration | string
+    - windows_manage_cis_account_lockout_duration | int >= 15
+  tags:
+    - cis_1.2.1
+    - account_lockout
+    - level_1
+    - scored
+
+- name: CIS 1.2.1 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '1.2.1',
+        'rule_title': 'Account lockout duration',
+        'rule_section': 'Account Lockout Policy',
+        'severity': 'Medium',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': windows_manage_cis_account_lockout_duration,
+        'current_value': windows_manage_cis_1_2_1_current.value | default('Not Configured'),
+        'status': 'PASS' if (windows_manage_cis_1_2_1_current.value | string == windows_manage_cis_account_lockout_duration | string) else 'FAIL',
+        'changed': windows_manage_cis_1_2_1_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '1.2.1' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+    windows_manage_cis_failed_controls: >-
+      {{ windows_manage_cis_failed_controls + ['1.2.1']
+         if (windows_manage_cis_1_2_1_current.value | string != windows_manage_cis_account_lockout_duration | string and
+             '1.2.1' not in windows_manage_cis_skip_rules)
+         else windows_manage_cis_failed_controls }}
+    windows_manage_cis_skipped_controls: >-
+      {{ windows_manage_cis_skipped_controls + ['1.2.1']
+         if '1.2.1' in windows_manage_cis_skip_rules
+         else windows_manage_cis_skipped_controls }}
+  tags:
+    - cis_1.2.1
+    - account_lockout
+
+# =============================================================================
+# CIS 1.2.2 - Account lockout threshold
+# =============================================================================
+
+- name: CIS 1.2.2 | AUDIT | Get current account lockout threshold setting
+  community.windows.win_security_policy:
+    section: System Access
+    key: LockoutBadCount
+    value: "{{ windows_manage_cis_account_lockout_threshold }}"
+  register: windows_manage_cis_1_2_2_current
+  check_mode: true
+  tags:
+    - cis_1.2.2
+    - account_lockout
+    - level_1
+    - audit
+
+- name: CIS 1.2.2 | SCORED | Set account lockout threshold {{ windows_manage_cis_account_lockout_threshold }}
+  community.windows.win_security_policy:
+    section: System Access
+    key: LockoutBadCount
+    value: "{{ windows_manage_cis_account_lockout_threshold }}"
+  register: windows_manage_cis_1_2_2_result
+  when:
+    - "'1.2.2' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_1_2_2_current.value | string != windows_manage_cis_account_lockout_threshold | string
+    - windows_manage_cis_account_lockout_threshold | int > 0
+    - windows_manage_cis_account_lockout_threshold | int <= 5
+  tags:
+    - cis_1.2.2
+    - account_lockout
+    - level_1
+    - scored
+
+- name: CIS 1.2.2 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '1.2.2',
+        'rule_title': 'Account lockout threshold',
+        'rule_section': 'Account Lockout Policy',
+        'severity': 'High',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': windows_manage_cis_account_lockout_threshold,
+        'current_value': windows_manage_cis_1_2_2_current.value | default('Not Configured'),
+        'status': 'PASS' if (windows_manage_cis_1_2_2_current.value | string == windows_manage_cis_account_lockout_threshold | string) else 'FAIL',
+        'changed': windows_manage_cis_1_2_2_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '1.2.2' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+    windows_manage_cis_failed_controls: >-
+      {{ windows_manage_cis_failed_controls + ['1.2.2']
+         if (windows_manage_cis_1_2_2_current.value | string != windows_manage_cis_account_lockout_threshold | string and
+             '1.2.2' not in windows_manage_cis_skip_rules)
+         else windows_manage_cis_failed_controls }}
+    windows_manage_cis_skipped_controls: >-
+      {{ windows_manage_cis_skipped_controls + ['1.2.2']
+         if '1.2.2' in windows_manage_cis_skip_rules
+         else windows_manage_cis_skipped_controls }}
+  tags:
+    - cis_1.2.2
+    - account_lockout
+
+# =============================================================================
+# CIS 1.2.3 - Reset account lockout counter after
+# =============================================================================
+
+- name: CIS 1.2.3 | AUDIT | Get current reset account lockout counter setting
+  community.windows.win_security_policy:
+    section: System Access
+    key: ResetLockoutCount
+    value: "{{ windows_manage_cis_reset_account_lockout_counter }}"
+  register: windows_manage_cis_1_2_3_current
+  check_mode: true
+  tags:
+    - cis_1.2.3
+    - account_lockout
+    - level_1
+    - audit
+
+- name: CIS 1.2.3 | SCORED | Set reset account lockout counter {{ windows_manage_cis_reset_account_lockout_counter }}
+  community.windows.win_security_policy:
+    section: System Access
+    key: ResetLockoutCount
+    value: "{{ windows_manage_cis_reset_account_lockout_counter }}"
+  register: windows_manage_cis_1_2_3_result
+  when:
+    - "'1.2.3' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_1_2_3_current.value | string != windows_manage_cis_reset_account_lockout_counter | string
+    - windows_manage_cis_reset_account_lockout_counter | int >= 15
+  tags:
+    - cis_1.2.3
+    - account_lockout
+    - level_1
+    - scored
+
+- name: CIS 1.2.3 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '1.2.3',
+        'rule_title': 'Reset account lockout counter after',
+        'rule_section': 'Account Lockout Policy',
+        'severity': 'Medium',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': windows_manage_cis_reset_account_lockout_counter,
+        'current_value': windows_manage_cis_1_2_3_current.value | default('Not Configured'),
+        'status': 'PASS' if (windows_manage_cis_1_2_3_current.value | string == windows_manage_cis_reset_account_lockout_counter | string) else 'FAIL',
+        'changed': windows_manage_cis_1_2_3_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '1.2.3' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+    windows_manage_cis_failed_controls: >-
+      {{ windows_manage_cis_failed_controls + ['1.2.3']
+         if (windows_manage_cis_1_2_3_current.value | string != windows_manage_cis_reset_account_lockout_counter | string and
+             '1.2.3' not in windows_manage_cis_skip_rules)
+         else windows_manage_cis_failed_controls }}
+    windows_manage_cis_skipped_controls: >-
+      {{ windows_manage_cis_skipped_controls + ['1.2.3']
+         if '1.2.3' in windows_manage_cis_skip_rules
+         else windows_manage_cis_skipped_controls }}
+  tags:
+    - cis_1.2.3
+    - account_lockout
+
+# =============================================================================
+# SECTION SUMMARY
+# =============================================================================
+
+- name: CIS Section 1.2 | Display account lockout policy configuration summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - "CIS Section 1.2: Account Lockout Policy Summary"
+      - ==========================================
+      - >-
+        1.2.1 Account Lockout Duration: {{ windows_manage_cis_account_lockout_duration }} minutes
+        ({{ 'COMPLIANT' if windows_manage_cis_1_2_1_current.value | string ==
+        windows_manage_cis_account_lockout_duration | string else 'NON-COMPLIANT' }})
+      - >-
+        1.2.2 Account Lockout Threshold: {{ windows_manage_cis_account_lockout_threshold }} attempts
+        ({{ 'COMPLIANT' if windows_manage_cis_1_2_2_current.value | string ==
+        windows_manage_cis_account_lockout_threshold | string else 'NON-COMPLIANT' }})
+      - >-
+        1.2.3 Reset Account Lockout Counter: {{ windows_manage_cis_reset_account_lockout_counter }} minutes
+        ({{ 'COMPLIANT' if windows_manage_cis_1_2_3_current.value | string ==
+        windows_manage_cis_reset_account_lockout_counter | string else 'NON-COMPLIANT' }})
+      - ==========================================
+      - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
+      - ==========================================
+  tags:
+    - account_lockout
+    - section_1
+    - summary
+
+# =============================================================================
+# CONSOLIDATED TASK - Configure all account lockout policies in one operation
+# =============================================================================
+
+- name: CIS Section 1.2 | CONSOLIDATED | Configure account lockout policies
+  community.windows.win_security_policy:
+    section: System Access
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  loop:
+    - key: LockoutDuration
+      value: "{{ windows_manage_cis_account_lockout_duration }}"
+    - key: LockoutBadCount
+      value: "{{ windows_manage_cis_account_lockout_threshold }}"
+    - key: ResetLockoutCount
+      value: "{{ windows_manage_cis_reset_account_lockout_counter }}"
+  when:
+    - item.key == 'LockoutDuration' and '1.2.1' not in windows_manage_cis_skip_rules
+    - item.key == 'LockoutBadCount' and '1.2.2' not in windows_manage_cis_skip_rules
+    - item.key == 'ResetLockoutCount' and '1.2.3' not in windows_manage_cis_skip_rules
+  tags:
+    - account_lockout
+    - consolidated

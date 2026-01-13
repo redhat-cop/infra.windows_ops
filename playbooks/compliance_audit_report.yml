@@ -1,0 +1,37 @@
+---
+# Playbook: Generate audit-ready compliance reports
+# Collection: infra.windows_ops
+# Generate detailed compliance reports for auditing
+
+- name: Generate audit-ready compliance report
+  hosts: "{{ target_hosts | default('all') }}"
+  gather_facts: true
+  vars:
+    # STIG report settings
+    windows_manage_stig_generate_report: true
+    windows_manage_stig_report_format: "html"
+    windows_manage_stig_report_path: "/tmp/stig_audit_report"
+
+    # CIS report settings
+    windows_manage_cis_generate_report: true
+    windows_manage_cis_report_format: "html"
+    windows_manage_cis_report_path: "/tmp/cis_audit_report"
+
+  tasks:
+    - name: Generate STIG compliance audit report
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_stig
+      when: windows_manage_stig_audit | default(true)
+
+    - name: Generate CIS compliance audit report
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_cis
+      when: windows_manage_cis_audit | default(true)
+
+    - name: Display audit report summary
+      ansible.builtin.debug:
+        msg:
+          - "Audit-ready compliance reports generated"
+          - "STIG Report: {{ windows_manage_stig_report_path if (windows_manage_stig_audit | default(true)) else 'Not generated' }}"
+          - "CIS Report: {{ windows_manage_cis_report_path if (windows_manage_cis_audit | default(true)) else 'Not generated' }}"
+          - "Reports include detailed control status with expected vs actual values"

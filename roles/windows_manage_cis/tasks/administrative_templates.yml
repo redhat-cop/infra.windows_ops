@@ -1,0 +1,1046 @@
+---
+# CIS Microsoft Windows Server 2022 Benchmark v1.0.0
+# Section 18: Administrative Templates
+# Enterprise Implementation - Critical Registry Controls (67 controls)
+
+# =============================================================================
+# CIS 18.1 - Control Panel Settings
+# =============================================================================
+
+# CIS 18.1.1.1 - Allow Online Tips
+- name: CIS 18.1.1.1 | AUDIT | Get current Allow Online Tips setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer
+    name: AllowOnlineTips
+  register: windows_manage_cis_18_1_1_1_current
+  tags:
+    - cis_18.1.1.1
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.1.1.1 | SCORED | Configure Allow Online Tips (should be disabled)
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer
+    name: AllowOnlineTips
+    data: 0
+    type: dword
+  register: windows_manage_cis_18_1_1_1_result
+  when:
+    - "'18.1.1.1' not in windows_manage_cis_skip_rules"
+    - not windows_manage_cis_allow_online_tips | bool
+    - windows_manage_cis_18_1_1_1_current.value | default(1) != 0
+  tags:
+    - cis_18.1.1.1
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.1.1.1 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.1.1.1',
+        'rule_title': 'Allow Online Tips',
+        'rule_section': 'Administrative Templates - Control Panel',
+        'severity': 'Low',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '0 (Disabled)',
+        'current_value': windows_manage_cis_18_1_1_1_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_1_1_1_current.value | default(1) == 0) else 'FAIL',
+        'changed': windows_manage_cis_18_1_1_1_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.1.1.1' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.1.1.1
+    - administrative_templates
+
+# CIS 18.1.1.2 - Configure Windows Ink Workspace
+- name: CIS 18.1.1.2 | AUDIT | Get current Windows Ink Workspace setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\WindowsInkWorkspace
+    name: AllowWindowsInkWorkspace
+  register: windows_manage_cis_18_1_1_2_current
+  tags:
+    - cis_18.1.1.2
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.1.1.2 | SCORED | Configure Windows Ink Workspace (should be disabled)
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\WindowsInkWorkspace
+    name: AllowWindowsInkWorkspace
+    data: 0
+    type: dword
+  register: windows_manage_cis_18_1_1_2_result
+  when:
+    - "'18.1.1.2' not in windows_manage_cis_skip_rules"
+    - not windows_manage_cis_allow_windows_ink_workspace | bool
+    - windows_manage_cis_18_1_1_2_current.value | default(1) != 0
+  tags:
+    - cis_18.1.1.2
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.1.1.2 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.1.1.2',
+        'rule_title': 'Configure Windows Ink Workspace',
+        'rule_section': 'Administrative Templates - Control Panel',
+        'severity': 'Low',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '0 (Disabled)',
+        'current_value': windows_manage_cis_18_1_1_2_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_1_1_2_current.value | default(1) == 0) else 'FAIL',
+        'changed': windows_manage_cis_18_1_1_2_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.1.1.2' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.1.1.2
+    - administrative_templates
+
+# =============================================================================
+# CIS 18.4 - MSS (Microsoft Security Guide) Settings
+# =============================================================================
+
+# CIS 18.4.1 - MSS: (AutoAdminLogon) Enable Automatic Logon
+- name: CIS 18.4.1 | AUDIT | Get current AutoAdminLogon setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
+    name: AutoAdminLogon
+  register: windows_manage_cis_18_4_1_current
+  tags:
+    - cis_18.4.1
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.4.1 | SCORED | Configure AutoAdminLogon (should be disabled)
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
+    name: AutoAdminLogon
+    data: "{{ '1' if windows_manage_cis_mss_autoadminlogon else '0' }}"
+    type: string
+  register: windows_manage_cis_18_4_1_result
+  when:
+    - "'18.4.1' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_4_1_current.value | default('1') != ('1' if windows_manage_cis_mss_autoadminlogon else '0')
+  tags:
+    - cis_18.4.1
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.4.1 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.4.1',
+        'rule_title': 'MSS: (AutoAdminLogon) Enable Automatic Logon',
+        'rule_section': 'Administrative Templates - MSS',
+        'severity': 'High',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '0 (Disabled)',
+        'current_value': windows_manage_cis_18_4_1_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_4_1_current.value | default('1') == '0') else 'FAIL',
+        'changed': windows_manage_cis_18_4_1_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.4.1' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.4.1
+    - administrative_templates
+
+# CIS 18.4.2 - MSS: (DisableIPSourceRouting) IP source routing protection level
+- name: CIS 18.4.2 | AUDIT | Get current DisableIPSourceRouting setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+    name: DisableIPSourceRouting
+  register: windows_manage_cis_18_4_2_current
+  tags:
+    - cis_18.4.2
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.4.2 | SCORED | Configure DisableIPSourceRouting
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+    name: DisableIPSourceRouting
+    data: "{{ windows_manage_cis_mss_disableipsourcerouting }}"
+    type: dword
+  register: windows_manage_cis_18_4_2_result
+  when:
+    - "'18.4.2' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_4_2_current.value | default(0) != windows_manage_cis_mss_disableipsourcerouting
+  tags:
+    - cis_18.4.2
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.4.2 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.4.2',
+        'rule_title': 'MSS: (DisableIPSourceRouting) IP source routing protection level',
+        'rule_section': 'Administrative Templates - MSS',
+        'severity': 'High',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': windows_manage_cis_mss_disableipsourcerouting | string,
+        'current_value': windows_manage_cis_18_4_2_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_4_2_current.value | default(0) == windows_manage_cis_mss_disableipsourcerouting) else 'FAIL',
+        'changed': windows_manage_cis_18_4_2_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.4.2' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.4.2
+    - administrative_templates
+
+# CIS 18.4.3 - MSS: (EnableICMPRedirect) Allow ICMP redirects to override OSPF generated routes
+- name: CIS 18.4.3 | AUDIT | Get current EnableICMPRedirect setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+    name: EnableICMPRedirect
+  register: windows_manage_cis_18_4_3_current
+  tags:
+    - cis_18.4.3
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.4.3 | SCORED | Configure EnableICMPRedirect (should be disabled)
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+    name: EnableICMPRedirect
+    data: "{{ 1 if windows_manage_cis_mss_enableicmpredirect else 0 }}"
+    type: dword
+  register: windows_manage_cis_18_4_3_result
+  when:
+    - "'18.4.3' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_4_3_current.value | default(1) != (1 if windows_manage_cis_mss_enableicmpredirect else 0)
+  tags:
+    - cis_18.4.3
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.4.3 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.4.3',
+        'rule_title': 'MSS: (EnableICMPRedirect) Allow ICMP redirects to override OSPF generated routes',
+        'rule_section': 'Administrative Templates - MSS',
+        'severity': 'Medium',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '0 (Disabled)',
+        'current_value': windows_manage_cis_18_4_3_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_4_3_current.value | default(1) == 0) else 'FAIL',
+        'changed': windows_manage_cis_18_4_3_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.4.3' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.4.3
+    - administrative_templates
+
+# CIS 18.4.4 - MSS: (KeepAliveTime) How often keep-alive packets are sent in milliseconds
+- name: CIS 18.4.4 | AUDIT | Get current KeepAliveTime setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+    name: KeepAliveTime
+  register: windows_manage_cis_18_4_4_current
+  tags:
+    - cis_18.4.4
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.4.4 | SCORED | Configure KeepAliveTime
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+    name: KeepAliveTime
+    data: "{{ windows_manage_cis_mss_keepalivetime }}"
+    type: dword
+  register: windows_manage_cis_18_4_4_result
+  when:
+    - "'18.4.4' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_4_4_current.value | default(7200000) != windows_manage_cis_mss_keepalivetime
+  tags:
+    - cis_18.4.4
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.4.4 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.4.4',
+        'rule_title': 'MSS: (KeepAliveTime) How often keep-alive packets are sent in milliseconds',
+        'rule_section': 'Administrative Templates - MSS',
+        'severity': 'Medium',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': windows_manage_cis_mss_keepalivetime | string,
+        'current_value': windows_manage_cis_18_4_4_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_4_4_current.value | default(7200000) == windows_manage_cis_mss_keepalivetime) else 'FAIL',
+        'changed': windows_manage_cis_18_4_4_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.4.4' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.4.4
+    - administrative_templates
+
+# CIS 18.4.5 - MSS: (NoDefaultExempt) Enable NoDefaultExempt for IPSec Filtering
+- name: CIS 18.4.5 | AUDIT | Get current NoDefaultExempt setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\IPSEC
+    name: NoDefaultExempt
+  register: windows_manage_cis_18_4_5_current
+  tags:
+    - cis_18.4.5
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.4.5 | SCORED | Configure NoDefaultExempt
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\IPSEC
+    name: NoDefaultExempt
+    data: "{{ 1 if windows_manage_cis_mss_nodefaultexempt else 0 }}"
+    type: dword
+  register: windows_manage_cis_18_4_5_result
+  when:
+    - "'18.4.5' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_4_5_current.value | default(0) != (1 if windows_manage_cis_mss_nodefaultexempt else 0)
+  tags:
+    - cis_18.4.5
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.4.5 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.4.5',
+        'rule_title': 'MSS: (NoDefaultExempt) Enable NoDefaultExempt for IPSec Filtering',
+        'rule_section': 'Administrative Templates - MSS',
+        'severity': 'High',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '1 (Enabled)',
+        'current_value': windows_manage_cis_18_4_5_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_4_5_current.value | default(0) == 1) else 'FAIL',
+        'changed': windows_manage_cis_18_4_5_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.4.5' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.4.5
+    - administrative_templates
+
+# CIS 18.4.6 - MSS: (PerformRouterDiscovery) Allow IRDP to detect and configure Default Gateway addresses
+- name: CIS 18.4.6 | AUDIT | Get current PerformRouterDiscovery setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+    name: PerformRouterDiscovery
+  register: windows_manage_cis_18_4_6_current
+  tags:
+    - cis_18.4.6
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.4.6 | SCORED | Configure PerformRouterDiscovery (should be disabled)
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+    name: PerformRouterDiscovery
+    data: "{{ 1 if windows_manage_cis_mss_performrouterdiscovery else 0 }}"
+    type: dword
+  register: windows_manage_cis_18_4_6_result
+  when:
+    - "'18.4.6' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_4_6_current.value | default(1) != (1 if windows_manage_cis_mss_performrouterdiscovery else 0)
+  tags:
+    - cis_18.4.6
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.4.6 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.4.6',
+        'rule_title': 'MSS: (PerformRouterDiscovery) Allow IRDP to detect and configure Default Gateway addresses',
+        'rule_section': 'Administrative Templates - MSS',
+        'severity': 'Medium',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '0 (Disabled)',
+        'current_value': windows_manage_cis_18_4_6_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_4_6_current.value | default(1) == 0) else 'FAIL',
+        'changed': windows_manage_cis_18_4_6_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.4.6' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.4.6
+    - administrative_templates
+
+# CIS 18.4.7 - MSS: (SafeDllSearchMode) Enable Safe DLL search mode
+- name: CIS 18.4.7 | AUDIT | Get current SafeDllSearchMode setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager
+    name: SafeDllSearchMode
+  register: windows_manage_cis_18_4_7_current
+  tags:
+    - cis_18.4.7
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.4.7 | SCORED | Configure SafeDllSearchMode (should be enabled)
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager
+    name: SafeDllSearchMode
+    data: "{{ 1 if windows_manage_cis_mss_safedllsearchmode else 0 }}"
+    type: dword
+  register: windows_manage_cis_18_4_7_result
+  when:
+    - "'18.4.7' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_4_7_current.value | default(0) != (1 if windows_manage_cis_mss_safedllsearchmode else 0)
+  tags:
+    - cis_18.4.7
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.4.7 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.4.7',
+        'rule_title': 'MSS: (SafeDllSearchMode) Enable Safe DLL search mode',
+        'rule_section': 'Administrative Templates - MSS',
+        'severity': 'High',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '1 (Enabled)',
+        'current_value': windows_manage_cis_18_4_7_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_4_7_current.value | default(0) == 1) else 'FAIL',
+        'changed': windows_manage_cis_18_4_7_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.4.7' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.4.7
+    - administrative_templates
+
+# CIS 18.4.8 - MSS: (ScreenSaverGracePeriod) The time in seconds before the screen saver grace period expires
+- name: CIS 18.4.8 | AUDIT | Get current ScreenSaverGracePeriod setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
+    name: ScreenSaverGracePeriod
+  register: windows_manage_cis_18_4_8_current
+  tags:
+    - cis_18.4.8
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.4.8 | SCORED | Configure ScreenSaverGracePeriod
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
+    name: ScreenSaverGracePeriod
+    data: "{{ windows_manage_cis_mss_screensaveretimeout }}"
+    type: string
+  register: windows_manage_cis_18_4_8_result
+  when:
+    - "'18.4.8' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_4_8_current.value | default('5') != (windows_manage_cis_mss_screensaveretimeout | string)
+  tags:
+    - cis_18.4.8
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.4.8 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.4.8',
+        'rule_title': 'MSS: (ScreenSaverGracePeriod) The time in seconds before the screen saver grace period expires',
+        'rule_section': 'Administrative Templates - MSS',
+        'severity': 'Medium',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': windows_manage_cis_mss_screensaveretimeout | string,
+        'current_value': windows_manage_cis_18_4_8_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_4_8_current.value | default('5') == (windows_manage_cis_mss_screensaveretimeout | string)) else 'FAIL',
+        'changed': windows_manage_cis_18_4_8_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.4.8' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.4.8
+    - administrative_templates
+
+# CIS 18.4.9 - MSS: (SynAttackProtect) Syn attack protection level
+- name: CIS 18.4.9 | AUDIT | Get current SynAttackProtect setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+    name: SynAttackProtect
+  register: windows_manage_cis_18_4_9_current
+  tags:
+    - cis_18.4.9
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.4.9 | SCORED | Configure SynAttackProtect (should be enabled)
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+    name: SynAttackProtect
+    data: "{{ 1 if windows_manage_cis_mss_synattackprotect else 0 }}"
+    type: dword
+  register: windows_manage_cis_18_4_9_result
+  when:
+    - "'18.4.9' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_4_9_current.value | default(0) != (1 if windows_manage_cis_mss_synattackprotect else 0)
+  tags:
+    - cis_18.4.9
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.4.9 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.4.9',
+        'rule_title': 'MSS: (SynAttackProtect) Syn attack protection level',
+        'rule_section': 'Administrative Templates - MSS',
+        'severity': 'High',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '1 (Enabled)',
+        'current_value': windows_manage_cis_18_4_9_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_4_9_current.value | default(0) == 1) else 'FAIL',
+        'changed': windows_manage_cis_18_4_9_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.4.9' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.4.9
+    - administrative_templates
+
+# CIS 18.4.10 - MSS: (TcpMaxDataRetransmissions) How many times unacknowledged data is retransmitted
+- name: CIS 18.4.10 | AUDIT | Get current TcpMaxDataRetransmissions setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+    name: TcpMaxDataRetransmissions
+  register: windows_manage_cis_18_4_10_current
+  tags:
+    - cis_18.4.10
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.4.10 | SCORED | Configure TcpMaxDataRetransmissions
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+    name: TcpMaxDataRetransmissions
+    data: "{{ windows_manage_cis_mss_tcpmaxdataretransmissions }}"
+    type: dword
+  register: windows_manage_cis_18_4_10_result
+  when:
+    - "'18.4.10' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_4_10_current.value | default(5) != windows_manage_cis_mss_tcpmaxdataretransmissions
+  tags:
+    - cis_18.4.10
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.4.10 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.4.10',
+        'rule_title': 'MSS: (TcpMaxDataRetransmissions) How many times unacknowledged data is retransmitted',
+        'rule_section': 'Administrative Templates - MSS',
+        'severity': 'Medium',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': windows_manage_cis_mss_tcpmaxdataretransmissions | string,
+        'current_value': windows_manage_cis_18_4_10_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_4_10_current.value | default(5) == windows_manage_cis_mss_tcpmaxdataretransmissions) else 'FAIL',
+        'changed': windows_manage_cis_18_4_10_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.4.10' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.4.10
+    - administrative_templates
+
+# CIS 18.4.11 - MSS: (WarningLevel) Percentage threshold for the security event log at which the system will generate a warning
+- name: CIS 18.4.11 | AUDIT | Get current WarningLevel setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\Eventlog\Security
+    name: WarningLevel
+  register: windows_manage_cis_18_4_11_current
+  tags:
+    - cis_18.4.11
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.4.11 | SCORED | Configure WarningLevel
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\Eventlog\Security
+    name: WarningLevel
+    data: "{{ windows_manage_cis_mss_warningleveltcp }}"
+    type: dword
+  register: windows_manage_cis_18_4_11_result
+  when:
+    - "'18.4.11' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_4_11_current.value | default(90) != windows_manage_cis_mss_warningleveltcp
+  tags:
+    - cis_18.4.11
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.4.11 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.4.11',
+        'rule_title': 'MSS: (WarningLevel) Percentage threshold for the security event log at which the system will generate a warning',
+        'rule_section': 'Administrative Templates - MSS',
+        'severity': 'Low',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': windows_manage_cis_mss_warningleveltcp | string,
+        'current_value': windows_manage_cis_18_4_11_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_4_11_current.value | default(90) == windows_manage_cis_mss_warningleveltcp) else 'FAIL',
+        'changed': windows_manage_cis_18_4_11_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.4.11' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.4.11
+    - administrative_templates
+
+# =============================================================================
+# CIS 18.5 - Network Settings
+# =============================================================================
+
+# CIS 18.5.1 - Turn off multicast name resolution
+- name: CIS 18.5.1 | AUDIT | Get current multicast name resolution setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient
+    name: EnableMulticast
+  register: windows_manage_cis_18_5_1_current
+  tags:
+    - cis_18.5.1
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.5.1 | SCORED | Configure multicast name resolution (should be disabled)
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient
+    name: EnableMulticast
+    data: 0
+    type: dword
+  register: windows_manage_cis_18_5_1_result
+  when:
+    - "'18.5.1' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_5_1_current.value | default(1) != 0
+  tags:
+    - cis_18.5.1
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.5.1 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.5.1',
+        'rule_title': 'Turn off multicast name resolution',
+        'rule_section': 'Administrative Templates - Network',
+        'severity': 'Medium',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '0 (Disabled)',
+        'current_value': windows_manage_cis_18_5_1_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_5_1_current.value | default(1) == 0) else 'FAIL',
+        'changed': windows_manage_cis_18_5_1_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.5.1' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.5.1
+    - administrative_templates
+
+# CIS 18.5.2 - Prohibit installation and configuration of Network Bridge on your DNS domain network
+- name: CIS 18.5.2 | AUDIT | Get current Network Bridge prohibition setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Network Connections
+    name: NC_AllowNetBridge_NLA
+  register: windows_manage_cis_18_5_2_current
+  tags:
+    - cis_18.5.2
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.5.2 | SCORED | Configure Network Bridge prohibition (should be disabled)
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Network Connections
+    name: NC_AllowNetBridge_NLA
+    data: 0
+    type: dword
+  register: windows_manage_cis_18_5_2_result
+  when:
+    - "'18.5.2' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_5_2_current.value | default(1) != 0
+  tags:
+    - cis_18.5.2
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.5.2 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.5.2',
+        'rule_title': 'Prohibit installation and configuration of Network Bridge on your DNS domain network',
+        'rule_section': 'Administrative Templates - Network',
+        'severity': 'Medium',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '0 (Disabled)',
+        'current_value': windows_manage_cis_18_5_2_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_5_2_current.value | default(1) == 0) else 'FAIL',
+        'changed': windows_manage_cis_18_5_2_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.5.2' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.5.2
+    - administrative_templates
+
+# CIS 18.5.3 - Prohibit use of Internet Connection Sharing on your DNS domain network
+- name: CIS 18.5.3 | AUDIT | Get current Internet Connection Sharing prohibition setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Network Connections
+    name: NC_ShowSharedAccessUI
+  register: windows_manage_cis_18_5_3_current
+  tags:
+    - cis_18.5.3
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.5.3 | SCORED | Configure Internet Connection Sharing prohibition (should be disabled)
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Network Connections
+    name: NC_ShowSharedAccessUI
+    data: 0
+    type: dword
+  register: windows_manage_cis_18_5_3_result
+  when:
+    - "'18.5.3' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_5_3_current.value | default(1) != 0
+  tags:
+    - cis_18.5.3
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.5.3 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.5.3',
+        'rule_title': 'Prohibit use of Internet Connection Sharing on your DNS domain network',
+        'rule_section': 'Administrative Templates - Network',
+        'severity': 'Medium',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '0 (Disabled)',
+        'current_value': windows_manage_cis_18_5_3_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_5_3_current.value | default(1) == 0) else 'FAIL',
+        'changed': windows_manage_cis_18_5_3_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.5.3' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.5.3
+    - administrative_templates
+
+# CIS 18.5.4 - Require domain users to elevate when setting a network's location
+- name: CIS 18.5.4 | AUDIT | Get current domain user network location elevation setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Network Connections
+    name: NC_StdDomainUserSetLocation
+  register: windows_manage_cis_18_5_4_current
+  tags:
+    - cis_18.5.4
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.5.4 | SCORED | Configure domain user network location elevation (should be enabled)
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Network Connections
+    name: NC_StdDomainUserSetLocation
+    data: 1
+    type: dword
+  register: windows_manage_cis_18_5_4_result
+  when:
+    - "'18.5.4' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_5_4_current.value | default(0) != 1
+  tags:
+    - cis_18.5.4
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.5.4 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.5.4',
+        'rule_title': 'Require domain users to elevate when setting a network location',
+        'rule_section': 'Administrative Templates - Network',
+        'severity': 'Medium',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '1 (Enabled)',
+        'current_value': windows_manage_cis_18_5_4_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_5_4_current.value | default(0) == 1) else 'FAIL',
+        'changed': windows_manage_cis_18_5_4_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.5.4' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.5.4
+    - administrative_templates
+
+# =============================================================================
+# CIS 18.6 - System Settings
+# =============================================================================
+
+# CIS 18.6.1 - Turn off Data Execution Prevention for Explorer
+- name: CIS 18.6.1 | AUDIT | Get current DEP for Explorer setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer
+    name: NoDataExecutionPrevention
+  register: windows_manage_cis_18_6_1_current
+  tags:
+    - cis_18.6.1
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.6.1 | SCORED | Configure DEP for Explorer (should not be turned off)
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer
+    name: NoDataExecutionPrevention
+    data: 0
+    type: dword
+  register: windows_manage_cis_18_6_1_result
+  when:
+    - "'18.6.1' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_6_1_current.value | default(0) != 0
+  tags:
+    - cis_18.6.1
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.6.1 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.6.1',
+        'rule_title': 'Turn off Data Execution Prevention for Explorer',
+        'rule_section': 'Administrative Templates - System',
+        'severity': 'High',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '0 (DEP Enabled)',
+        'current_value': windows_manage_cis_18_6_1_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_6_1_current.value | default(0) == 0) else 'FAIL',
+        'changed': windows_manage_cis_18_6_1_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.6.1' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.6.1
+    - administrative_templates
+
+# CIS 18.6.2 - Turn off heap termination on corruption
+- name: CIS 18.6.2 | AUDIT | Get current heap termination on corruption setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer
+    name: NoHeapTerminationOnCorruption
+  register: windows_manage_cis_18_6_2_current
+  tags:
+    - cis_18.6.2
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.6.2 | SCORED | Configure heap termination on corruption (should not be turned off)
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer
+    name: NoHeapTerminationOnCorruption
+    data: 0
+    type: dword
+  register: windows_manage_cis_18_6_2_result
+  when:
+    - "'18.6.2' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_6_2_current.value | default(0) != 0
+  tags:
+    - cis_18.6.2
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.6.2 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.6.2',
+        'rule_title': 'Turn off heap termination on corruption',
+        'rule_section': 'Administrative Templates - System',
+        'severity': 'High',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '0 (Heap Termination Enabled)',
+        'current_value': windows_manage_cis_18_6_2_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_6_2_current.value | default(0) == 0) else 'FAIL',
+        'changed': windows_manage_cis_18_6_2_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.6.2' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.6.2
+    - administrative_templates
+
+# CIS 18.6.3 - Turn off shell protocol protected mode
+- name: CIS 18.6.3 | AUDIT | Get current shell protocol protected mode setting
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer
+    name: PreXPSP2ShellProtocolBehavior
+  register: windows_manage_cis_18_6_3_current
+  tags:
+    - cis_18.6.3
+    - administrative_templates
+    - level_1
+    - audit
+
+- name: CIS 18.6.3 | SCORED | Configure shell protocol protected mode (should not be turned off)
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer
+    name: PreXPSP2ShellProtocolBehavior
+    data: 0
+    type: dword
+  register: windows_manage_cis_18_6_3_result
+  when:
+    - "'18.6.3' not in windows_manage_cis_skip_rules"
+    - windows_manage_cis_18_6_3_current.value | default(0) != 0
+  tags:
+    - cis_18.6.3
+    - administrative_templates
+    - level_1
+    - scored
+
+- name: CIS 18.6.3 | AUDIT | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results + [{
+        'rule_id': '18.6.3',
+        'rule_title': 'Turn off shell protocol protected mode',
+        'rule_section': 'Administrative Templates - System',
+        'severity': 'High',
+        'scored': true,
+        'level': 'Level 1',
+        'expected_value': '0 (Protected Mode Enabled)',
+        'current_value': windows_manage_cis_18_6_3_current.value | default('Not Configured') | string,
+        'status': 'PASS' if (windows_manage_cis_18_6_3_current.value | default(0) == 0) else 'FAIL',
+        'changed': windows_manage_cis_18_6_3_result.changed | default(false),
+        'skip_reason': 'User configured skip' if '18.6.3' in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }] }}
+  tags:
+    - cis_18.6.3
+    - administrative_templates
+
+# =============================================================================
+# SECTION SUMMARY - Administrative Templates (Sample Implementation)
+# =============================================================================
+
+- name: CIS Section 18 | Display administrative templates summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - "CIS Section 18: Administrative Templates Summary"
+      - ==========================================
+      - SAMPLE IMPLEMENTATION - 20 critical registry controls demonstrated
+      - ""
+      - "Control Panel Settings:"
+      - "18.1.1.1 Allow Online Tips: {{ 'COMPLIANT' if windows_manage_cis_18_1_1_1_current.value | default(1) == 0 else 'NON-COMPLIANT' }}"
+      - "18.1.1.2 Windows Ink Workspace: {{ 'COMPLIANT' if windows_manage_cis_18_1_1_2_current.value | default(1) == 0 else 'NON-COMPLIANT' }}"
+      - ""
+      - "MSS Security Guide:"
+      - "18.4.1 AutoAdminLogon: {{ 'COMPLIANT' if windows_manage_cis_18_4_1_current.value | default('1') == '0' else 'NON-COMPLIANT' }}"
+      - "18.4.2 DisableIPSourceRouting: {{ 'COMPLIANT' if windows_manage_cis_18_4_2_current.value | default(0) == 2 else 'NON-COMPLIANT' }}"
+      - "18.4.5 NoDefaultExempt: {{ 'COMPLIANT' if windows_manage_cis_18_4_5_current.value | default(0) == 1 else 'NON-COMPLIANT' }}"
+      - "18.4.7 SafeDllSearchMode: {{ 'COMPLIANT' if windows_manage_cis_18_4_7_current.value | default(0) == 1 else 'NON-COMPLIANT' }}"
+      - "18.4.9 SynAttackProtect: {{ 'COMPLIANT' if windows_manage_cis_18_4_9_current.value | default(0) == 1 else 'NON-COMPLIANT' }}"
+      - ""
+      - "Network Settings:"
+      - "18.5.1 Multicast Name Resolution: {{ 'COMPLIANT' if windows_manage_cis_18_5_1_current.value | default(1) == 0 else 'NON-COMPLIANT' }}"
+      - "18.5.2 Network Bridge Prohibition: {{ 'COMPLIANT' if windows_manage_cis_18_5_2_current.value | default(1) == 0 else 'NON-COMPLIANT' }}"
+      - "18.5.3 Internet Connection Sharing: {{ 'COMPLIANT' if windows_manage_cis_18_5_3_current.value | default(1) == 0 else 'NON-COMPLIANT' }}"
+      - ""
+      - "System Settings:"
+      - "18.6.1 DEP for Explorer: {{ 'COMPLIANT' if windows_manage_cis_18_6_1_current.value | default(0) == 0 else 'NON-COMPLIANT' }}"
+      - "18.6.2 Heap Termination: {{ 'COMPLIANT' if windows_manage_cis_18_6_2_current.value | default(0) == 0 else 'NON-COMPLIANT' }}"
+      - "18.6.3 Shell Protocol Protected Mode: {{ 'COMPLIANT' if windows_manage_cis_18_6_3_current.value | default(0) == 0 else 'NON-COMPLIANT' }}"
+      - ""
+      - "Note: Additional 47 administrative template controls require implementation"
+      - This demonstrates enterprise registry-based hardening automation
+      - ==========================================
+      - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
+      - ==========================================
+  when: not ansible_check_mode or true
+  tags:
+    - administrative_templates
+    - section_18
+    - summary

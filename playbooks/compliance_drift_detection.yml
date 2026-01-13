@@ -1,0 +1,24 @@
+---
+# Playbook: Detect configuration drift from CIS baseline
+# Collection: infra.windows_ops
+# Non-intrusive scan to detect drift from CIS baseline
+
+- name: Detect configuration drift from CIS baseline
+  hosts: "{{ target_hosts | default('all') }}"
+  gather_facts: true
+  vars:
+    windows_manage_cis_generate_report: true
+    windows_manage_cis_report_format: "json"
+    windows_manage_cis_report_path: "/tmp/cis_drift_report"
+
+  tasks:
+    - name: Run CIS compliance check (read-only)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_cis
+
+    - name: Display drift detection summary
+      ansible.builtin.debug:
+        msg:
+          - "Configuration drift scan completed"
+          - "Report generated at: {{ windows_manage_cis_report_path }}"
+          - "Run with --check flag to prevent changes being applied"

@@ -1,0 +1,174 @@
+---
+# =============================================================================
+# Windows Server DISA STIG Compliance Role - Main Task Execution
+# Enterprise-grade automation for government security standards
+# =============================================================================
+
+# =============================================================================
+# ROLE INITIALIZATION AND FACT GATHERING
+# =============================================================================
+
+- name: STIG | Gather system facts for compliance validation
+  ansible.builtin.setup:
+  tags: always
+
+- name: STIG | Initialize role execution metadata
+  ansible.builtin.set_fact:
+    windows_manage_stig_execution_start: "{{ ansible_date_time.iso8601 }}"
+    windows_manage_stig_execution_id: "{{ ansible_date_time.epoch }}"
+    windows_manage_stig_results: []
+    windows_manage_stig_total_controls: 0
+    windows_manage_stig_passed_controls: 0
+    windows_manage_stig_failed_controls_count: 0
+    windows_manage_stig_compliance_score: 0
+
+- name: STIG | Display role execution banner
+  ansible.builtin.debug:
+    msg:
+      - ==========================================================
+      - Microsoft Windows Server DISA STIG Compliance
+      - ==========================================================
+      - "Benchmark: {{ windows_manage_stig_benchmark_name }}"
+      - "Version: {{ windows_manage_stig_benchmark_version }}"
+      - "Profile: {{ windows_manage_stig_profile }}"
+      - "Classification: {{ windows_manage_stig_classification }}"
+      - "Target System: {{ inventory_hostname }}"
+      - "Execution Mode: {{ 'CHECK ONLY' if ansible_check_mode else 'APPLY CHANGES' }}"
+      - "Execution ID: {{ windows_manage_stig_execution_id }}"
+      - "Started: {{ windows_manage_stig_execution_start }}"
+      - ==========================================================
+
+# =============================================================================
+# SYSTEM VALIDATION AND PREREQUISITES
+# =============================================================================
+
+- name: STIG | Validate system compatibility and prerequisites
+  ansible.builtin.include_tasks: validate_system.yml
+  tags: always
+
+# =============================================================================
+# STIG CONTROL IMPLEMENTATION BY CATEGORY
+# =============================================================================
+
+- name: STIG | Apply account policies controls (Password & Lockout)
+  ansible.builtin.include_tasks: account_policies.yml
+  when:
+    - "'account_policies' in windows_manage_stig_categories"
+    - windows_manage_stig_only_rules | length == 0 or (windows_manage_stig_only_rules | select('match', '^V-25424[0-6]$') | list | length > 0)
+  tags:
+    - stig_v254240_v254246
+    - account_policies
+    - stig
+
+- name: STIG | Apply audit policies controls (Security Auditing)
+  ansible.builtin.include_tasks: audit_policies.yml
+  when:
+    - "'audit_policies' in windows_manage_stig_categories"
+    - windows_manage_stig_only_rules | length == 0 or (windows_manage_stig_only_rules | select('match', '^V-25424[7-8].*|V-25425[0-8]$') | list | length > 0)
+  tags:
+    - stig_v254247_v254258
+    - audit_policies
+    - stig
+
+- name: STIG | Apply user rights assignment controls
+  ansible.builtin.include_tasks: user_rights_assignment.yml
+  when:
+    - "'user_rights' in windows_manage_stig_categories"
+    - >-
+      windows_manage_stig_only_rules | length == 0 or
+      (windows_manage_stig_only_rules | select('match', '^V-25445[1-9].*|V-254[4-5][0-9][0-9]$') |
+      list | length > 0)
+  tags:
+    - stig_v254451_v254500
+    - user_rights
+    - stig
+
+- name: STIG | Apply security options controls
+  ansible.builtin.include_tasks: security_options.yml
+  when:
+    - "'security_options' in windows_manage_stig_categories"
+    - >-
+      windows_manage_stig_only_rules | length == 0 or
+      (windows_manage_stig_only_rules | select('match', '^V-25425[9].*|V-254[2-3][0-9][0-9]$') |
+      list | length > 0)
+  tags:
+    - stig_v254259_v254350
+    - security_options
+    - stig
+
+- name: STIG | Apply registry settings controls
+  ansible.builtin.include_tasks: registry_settings.yml
+  when:
+    - "'registry_settings' in windows_manage_stig_categories"
+    - >-
+      windows_manage_stig_only_rules | length == 0 or
+      (windows_manage_stig_only_rules | select('match', '^V-25435[1-9].*|V-254[3-4][0-9][0-9]$') |
+      list | length > 0)
+  tags:
+    - stig_v254351_v254400
+    - registry_settings
+    - stig
+
+- name: STIG | Apply system services controls
+  ansible.builtin.include_tasks: system_services.yml
+  when:
+    - "'system_services' in windows_manage_stig_categories"
+    - >-
+      windows_manage_stig_only_rules | length == 0 or
+      (windows_manage_stig_only_rules | select('match', '^V-25440[1-9].*|V-254[4][0-9][0-9]$') |
+      list | length > 0)
+  tags:
+    - stig_v254401_v254450
+    - system_services
+    - stig
+
+# =============================================================================
+# COMPLIANCE REPORT GENERATION
+# =============================================================================
+
+- name: STIG | Calculate control totals from results
+  ansible.builtin.set_fact:
+    windows_manage_stig_total_controls: "{{ windows_manage_stig_results | length }}"
+    windows_manage_stig_passed_controls: "{{ (windows_manage_stig_results | selectattr('status', 'equalto', 'PASS') | list | length) }}"
+    windows_manage_stig_failed_controls_count: "{{ (windows_manage_stig_results | selectattr('status', 'equalto', 'FAIL') | list | length) }}"
+
+- name: STIG | Calculate final compliance metrics
+  ansible.builtin.set_fact:
+    windows_manage_stig_compliance_score: >-
+      {{
+        ((windows_manage_stig_passed_controls | int) * 100 /
+        (windows_manage_stig_total_controls | int)) | round(1)
+        if windows_manage_stig_total_controls | int > 0 else 0
+      }}
+
+- name: STIG | Display execution summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================================
+      - DISA STIG Execution Summary
+      - ==========================================================
+      - "Total Controls Evaluated: {{ windows_manage_stig_total_controls }}"
+      - "Controls Passed: {{ windows_manage_stig_passed_controls }}"
+      - "Controls Failed: {{ windows_manage_stig_failed_controls_count }}"
+      - "Compliance Score: {{ windows_manage_stig_compliance_score }}%"
+      - "Execution Mode: {{ 'Audit Only' if ansible_check_mode else 'Remediation Applied' }}"
+      - ==========================================================
+
+- name: STIG | Generate compliance report
+  ansible.builtin.include_tasks: generate_report.yml
+  when: windows_manage_stig_generate_report | bool
+  tags:
+    - reporting
+    - always
+
+- name: STIG | Fail on non-compliance if required
+  ansible.builtin.fail:
+    msg: |
+      STIG compliance threshold not met!
+      Required: {{ windows_manage_stig_compliance_threshold }}%
+      Achieved: {{ windows_manage_stig_compliance_score }}%
+
+      Please review the compliance report for detailed findings.
+  when:
+    - windows_manage_stig_fail_on_non_compliance | bool
+    - windows_manage_stig_compliance_score | float < windows_manage_stig_compliance_threshold | float

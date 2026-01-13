@@ -1,0 +1,253 @@
+---
+# =============================================================================
+# Windows Server DISA STIG - System Validation
+# Ensures target system compatibility and prerequisites
+# =============================================================================
+
+# =============================================================================
+# SYSTEM INFORMATION GATHERING
+# =============================================================================
+
+- name: STIG | VALIDATE | Gather Windows system information
+  ansible.windows.win_shell: |
+    $info = Get-ComputerInfo
+    @{
+      'ProductName' = $info.WindowsProductName
+      'Version' = $info.WindowsVersion
+      'Build' = $info.WindowsBuildLabEx
+      'Edition' = $info.WindowsEditionId
+      'Architecture' = $info.CsProcessorArchitecture
+      'DomainRole' = $info.CsDomainRole
+      'TotalMemoryGB' = [Math]::Round($info.TotalPhysicalMemory / 1GB, 2)
+    } | ConvertTo-Json
+  register: windows_manage_stig_system_info_raw
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: STIG | VALIDATE | Parse system information
+  ansible.builtin.set_fact:
+    windows_manage_stig_system_info: "{{ windows_manage_stig_system_info_raw.stdout | from_json }}"
+
+- name: STIG | VALIDATE | Display target system information
+  ansible.builtin.debug:
+    msg:
+      - ===========================================
+      - DISA STIG Target System Validation
+      - ===========================================
+      - "Product: {{ windows_manage_stig_system_info.ProductName }}"
+      - "Version: {{ windows_manage_stig_system_info.Version }}"
+      - "Build: {{ windows_manage_stig_system_info.Build }}"
+      - "Edition: {{ windows_manage_stig_system_info.Edition }}"
+      - "Architecture: {{ windows_manage_stig_system_info.Architecture }}"
+      - "Domain Role: {{ windows_manage_stig_system_info.DomainRole }}"
+      - "Memory: {{ windows_manage_stig_system_info.TotalMemoryGB }} GB"
+      - ===========================================
+
+# =============================================================================
+# WINDOWS VERSION VALIDATION
+# =============================================================================
+
+- name: STIG | VALIDATE | Extract Windows Server version for STIG compatibility
+  ansible.builtin.set_fact:
+    windows_manage_stig_detected_version: >-
+      {%- if '2022' in windows_manage_stig_system_info.ProductName -%}
+        2022
+      {%- elif '2019' in windows_manage_stig_system_info.ProductName -%}
+        2019
+      {%- elif '2016' in windows_manage_stig_system_info.ProductName -%}
+        2016
+      {%- else -%}
+        unknown
+      {%- endif -%}
+
+- name: STIG | VALIDATE | Check Windows Server version against DISA STIG support matrix
+  ansible.builtin.assert:
+    that:
+      - windows_manage_stig_detected_version in windows_manage_stig_supported_versions
+    fail_msg: |
+      Unsupported Windows Server version for DISA STIG automation!
+
+      Detected Version: {{ windows_manage_stig_detected_version }}
+      Product Name: {{ windows_manage_stig_system_info.ProductName }}
+
+      Supported Versions: {{ windows_manage_stig_supported_versions | join(', ') }}
+
+      This DISA STIG role is certified for:
+      {{ windows_manage_stig_benchmark_name }} {{ windows_manage_stig_benchmark_version }}
+
+      Please ensure you are using the correct STIG version for your Windows release.
+    success_msg: |
+      Windows Server version validation passed for DISA STIG
+      Detected: {{ windows_manage_stig_detected_version }}
+      STIG Benchmark: {{ windows_manage_stig_benchmark_name }} {{ windows_manage_stig_benchmark_version }}
+
+# =============================================================================
+# ARCHITECTURE AND PREREQUISITES VALIDATION
+# =============================================================================
+
+- name: STIG | VALIDATE | Check system architecture compliance
+  ansible.builtin.assert:
+    that:
+      - windows_manage_stig_system_info.Architecture in ['AMD64', 'x64'] or windows_manage_stig_system_info.Architecture == None
+    fail_msg: |
+      Unsupported system architecture: {{ windows_manage_stig_system_info.Architecture }}
+      DISA STIG requirements mandate x64 architecture for Windows Server systems.
+    success_msg: System architecture validation passed for DISA STIG
+
+- name: STIG | VALIDATE | Check minimum memory requirements for STIG implementation
+  ansible.builtin.assert:
+    that:
+      - windows_manage_stig_system_info.TotalMemoryGB | float >= 2.0 or windows_manage_stig_system_info.TotalMemoryGB == 0
+    fail_msg: |
+      Insufficient memory detected: {{ windows_manage_stig_system_info.TotalMemoryGB }} GB
+      DISA STIG implementation requires minimum 2 GB RAM for reliable policy enforcement
+    success_msg: Memory requirements validation passed ({{ windows_manage_stig_system_info.TotalMemoryGB }} GB or memory check bypassed)
+
+# =============================================================================
+# POWERSHELL AND SECURITY MODULE VALIDATION
+# =============================================================================
+
+- name: STIG | VALIDATE | Check PowerShell version for STIG automation compatibility
+  ansible.windows.win_shell: |
+    $PSVersionTable.PSVersion.Major
+  register: windows_manage_stig_ps_version
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: STIG | VALIDATE | Verify PowerShell version meets DISA STIG automation requirements
+  ansible.builtin.assert:
+    that:
+      - windows_manage_stig_ps_version.stdout | trim | int >= 5
+    fail_msg: |
+      PowerShell version insufficient for DISA STIG automation: {{ windows_manage_stig_ps_version.stdout | trim }}
+      Required: PowerShell 5.0 or later for security policy management and compliance validation
+    success_msg: PowerShell version validation passed for DISA STIG
+
+# =============================================================================
+# PRIVILEGE AND SECURITY ACCESS VALIDATION
+# =============================================================================
+
+- name: STIG | VALIDATE | Check administrative privileges for STIG enforcement
+  ansible.windows.win_shell: |
+    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+  register: windows_manage_stig_admin_check
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: STIG | VALIDATE | Verify administrative access for DISA STIG implementation
+  ansible.builtin.assert:
+    that:
+      - windows_manage_stig_admin_check.stdout | trim | bool
+    fail_msg: |
+      Insufficient privileges for DISA STIG enforcement!
+      The DISA STIG compliance role requires local administrative privileges to:
+      - Modify local security policies per DISA requirements
+      - Configure user rights assignments as mandated by STIG
+      - Manage system services according to DISA guidelines
+      - Modify registry settings for government security compliance
+
+      Please ensure the Ansible user has local administrator rights.
+    success_msg: Administrative privileges validation passed for DISA STIG
+
+# =============================================================================
+# SECURITY POLICY ENGINE VALIDATION
+# =============================================================================
+
+- name: STIG | VALIDATE | Test Local Security Policy access for DISA compliance
+  ansible.windows.win_shell: |
+    try {
+      $tempFile = [System.IO.Path]::GetTempFileName()
+      secedit /export /cfg $tempFile /areas SECURITYPOLICY | Out-Null
+      if (Test-Path $tempFile) {
+        Remove-Item $tempFile -Force
+        "Success"
+      } else {
+        "Failed: Cannot export security policy"
+      }
+    } catch {
+      "Failed: $($_.Exception.Message)"
+    }
+  register: windows_manage_stig_lsp_test
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: STIG | VALIDATE | Verify Local Security Policy access for STIG controls
+  ansible.builtin.assert:
+    that:
+      - "'Success' in windows_manage_stig_lsp_test.stdout"
+    fail_msg: |
+      Cannot access Local Security Policy for DISA STIG implementation!
+      Error: {{ windows_manage_stig_lsp_test.stdout }}
+
+      This may indicate:
+      - Insufficient privileges for security policy modification
+      - Group Policy restrictions preventing local policy changes
+      - Corrupted security database requiring system attention
+
+      DISA STIG compliance requires full access to Local Security Policy.
+    success_msg: Local Security Policy access validation passed for DISA STIG
+
+# =============================================================================
+# GOVERNMENT SECURITY CLASSIFICATION VALIDATION
+# =============================================================================
+
+- name: STIG | VALIDATE | Check if system is a Domain Controller (STIG implications)
+  ansible.builtin.set_fact:
+    windows_manage_stig_is_domain_controller: >-
+      {{ windows_manage_stig_system_info.DomainRole | int in [4, 5] }}
+
+- name: STIG | VALIDATE | Domain Controller DISA STIG compatibility notice
+  ansible.builtin.debug:
+    msg:
+      - "NOTICE: DOMAIN CONTROLLER DETECTED - SPECIAL DISA STIG CONSIDERATIONS"
+      - ""
+      - This system appears to be a Domain Controller.
+      - Some DISA STIG controls have different requirements for Domain Controllers.
+      - ""
+      - "Key considerations for government environments:"
+      - "- Additional STIG controls may apply (Active Directory STIG)"
+      - "- Some controls may be managed via Group Policy"
+      - "- Forest/Domain functional levels affect security settings"
+      - ""
+      - Ensure you have reviewed DISA STIG guidance for Domain Controllers
+      - before proceeding with automated remediation.
+  when: windows_manage_stig_is_domain_controller | bool
+
+# =============================================================================
+# SYSTEM READINESS SUMMARY FOR DISA STIG
+# =============================================================================
+
+- name: STIG | VALIDATE | Set system validation facts for DISA STIG compliance
+  ansible.builtin.set_fact:
+    windows_manage_stig_system_validated: true
+    windows_manage_stig_validation_summary:
+      product_name: "{{ windows_manage_stig_system_info.ProductName }}"
+      windows_version: "{{ windows_manage_stig_detected_version }}"
+      architecture: "{{ windows_manage_stig_system_info.Architecture }}"
+      memory_gb: "{{ windows_manage_stig_system_info.TotalMemoryGB }}"
+      powershell_version: "{{ windows_manage_stig_ps_version.stdout | trim }}"
+      admin_privileges: "{{ windows_manage_stig_admin_check.stdout | trim | bool }}"
+      is_domain_controller: "{{ windows_manage_stig_is_domain_controller }}"
+      stig_benchmark: "{{ windows_manage_stig_benchmark_name }} {{ windows_manage_stig_benchmark_version }}"
+      classification: "{{ windows_manage_stig_classification }}"
+      validation_timestamp: "{{ ansible_date_time.iso8601 }}"
+
+- name: STIG | VALIDATE | Display system readiness summary for DISA STIG
+  ansible.builtin.debug:
+    msg:
+      - ===========================================
+      - DISA STIG System Validation Complete
+      - ===========================================
+      - System is ready for DISA STIG implementation
+      - "Target: {{ windows_manage_stig_validation_summary.product_name }}"
+      - "STIG Benchmark: {{ windows_manage_stig_validation_summary.stig_benchmark }}"
+      - "Classification: {{ windows_manage_stig_validation_summary.classification }}"
+      - "Execution Mode: {{ 'AUDIT ONLY' if ansible_check_mode else 'REMEDIATION ENABLED' }}"
+      - "Domain Controller: {{ 'Yes (See Notice Above)' if windows_manage_stig_is_domain_controller else 'No' }}"
+      - "Validated: {{ windows_manage_stig_validation_summary.validation_timestamp }}"
+      - ===========================================
