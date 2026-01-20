@@ -1,6 +1,0 @@
----
-major_changes:
-  - |
-    windows_manage_stig - Added new role for DISA STIG Windows Server 2022 V1R3 compliance automation.
-    Implements government security standards with 60+ STIG controls covering password policies, account lockout,
-    audit policies, user rights, registry settings, and system services, and enterprise metadata tracking with JSON/HTML reporting.

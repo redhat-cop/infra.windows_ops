@@ -4,6 +4,20 @@ Infra.Windows\_ops Release Notes
 
 .. contents:: Topics
 
+v1.2.0
+======
+
+Major Changes
+-------------
+
+- windows_manage_cis - Added new role for CIS Microsoft Windows Server 2022 Benchmark v1.0.0 compliance automation.
+  Supports Level 1 and Level 2 profiles with 96+ security controls across password policies, account lockout,
+  user rights assignment, security options, audit policies, Windows Firewall, and system services.
+  Includes check mode for drift detection and comprehensive JSON/HTML reporting.
+- windows_manage_stig - Added new role for DISA STIG Windows Server 2022 V1R3 compliance automation.
+  Implements government security standards with 60+ STIG controls covering password policies, account lockout,
+  audit policies, user rights, registry settings, and system services, and enterprise metadata tracking with JSON/HTML reporting.
+
 v1.0.2
 ======
 
