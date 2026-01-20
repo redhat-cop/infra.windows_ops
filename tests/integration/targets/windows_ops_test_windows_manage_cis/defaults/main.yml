@@ -1,0 +1,7 @@
+---
+# Test defaults for windows_manage_cis role
+test_cis_output_dir: 'C:\temp\cis_test_output'
+
+# Role-specific test variables
+windows_manage_cis_generate_report: true
+windows_manage_cis_report_format: "json"

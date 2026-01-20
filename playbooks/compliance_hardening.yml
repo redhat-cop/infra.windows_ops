@@ -1,0 +1,17 @@
+---
+# Playbook: Apply DISA STIG hardening
+# Collection: infra.windows_ops
+# Apply DISA STIG baseline to Windows servers
+
+- name: Apply Windows Server DISA STIG hardening
+  hosts: "{{ target_hosts | default('all') }}"
+  gather_facts: true
+  vars:
+    windows_manage_stig_generate_report: true
+    windows_manage_stig_report_format: "html"
+    windows_manage_stig_report_path: "/tmp/stig_hardening_report"
+
+  tasks:
+    - name: Apply DISA STIG hardening role
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_stig

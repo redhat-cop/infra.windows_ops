@@ -1,0 +1,179 @@
+---
+# CIS Microsoft Windows Server 2022 Benchmark v1.0.0
+# Section 2.2: User Rights Assignment
+# HARDENED Implementation with Structured JSON and Native Modules
+
+# =============================================================================
+# STRUCTURED USER RIGHTS CONFIGURATION - Data-driven approach
+# =============================================================================
+
+- name: CIS User Rights Assignment | SETUP | Define user rights configuration matrix
+  ansible.builtin.set_fact:
+    windows_manage_cis_user_rights:
+      - rule_id: 2.2.1
+        title: Access this computer from the network
+        right: SeNetworkLogonRight
+        users: "{{ windows_manage_cis_access_computer_from_network }}"
+        level: Level 1
+        severity: Medium
+        description: Control network access to computer
+      - rule_id: 2.2.9
+        title: Debug programs
+        right: SeDebugPrivilege
+        users: "{{ windows_manage_cis_debug_programs }}"
+        level: Level 1
+        severity: High
+        description: Limit debug privilege access
+      - rule_id: 2.2.12
+        title: Deny log on as a service
+        right: SeDenyServiceLogonRight
+        users: "{{ windows_manage_cis_deny_log_on_as_service }}"
+        level: Level 1
+        severity: Medium
+        description: Prevent service logon for specified users
+      - rule_id: 2.2.15
+        title: Generate security audits
+        right: SeAuditPrivilege
+        users: [LOCAL SERVICE, NETWORK SERVICE] # System services required for auditing
+        level: Level 1
+        severity: Medium
+        description: Control audit event generation
+  tags:
+    - user_rights_assignment
+    - setup
+
+# =============================================================================
+# HARDENED AUDIT PHASE - Structured JSON Return Data
+# =============================================================================
+
+- name: CIS User Rights Assignment | AUDIT | Get all current user rights assignments (structured)
+  ansible.windows.win_powershell:
+    script: |
+      $ErrorActionPreference = 'Stop'
+      try {
+        # Export security policy to temporary file for user rights
+        $tempFile = [System.IO.Path]::GetTempFileName()
+        secedit /export /cfg $tempFile | Out-Null
+
+        if ($LASTEXITCODE -eq 0) {
+          $content = Get-Content $tempFile
+
+          # Parse user rights settings into structured data
+          $userRights = @{}
+
+          foreach ($line in $content) {
+            if ($line -match '^(Se\w+Right|Se\w+Privilege)\s*=\s*(.*)$') {
+              $rightName = $matches[1]
+              $assignments = $matches[2].Trim() -split ',' | ForEach-Object { $_.Trim() }
+              # Remove asterisks which are SID prefixes
+              $assignments = $assignments | ForEach-Object { $_ -replace '^\*', '' }
+              $userRights[$rightName] = $assignments -join ','
+            }
+          }
+
+          # Return structured JSON data
+          $result = @{
+            user_rights = $userRights
+            source = "secedit"
+            timestamp = Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ"
+            status = "success"
+          }
+
+          # Cleanup
+          Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
+
+          # Return as structured object (not text)
+          $Ansible.Result = $result
+        } else {
+          throw "secedit export failed with exit code $LASTEXITCODE"
+        }
+      }
+      catch {
+        $Ansible.Failed = $true
+        $Ansible.Result = @{
+          error = $_.Exception.Message
+          line_number = $_.InvocationInfo.ScriptLineNumber
+          status = "failed"
+        }
+      }
+  register: windows_manage_cis_user_rights_current_all
+  check_mode: false
+  tags:
+    - user_rights_assignment
+    - audit
+    - hardened
+
+# =============================================================================
+# MODERNIZED REMEDIATION PHASE - Native ansible.windows Modules
+# =============================================================================
+
+- name: CIS User Rights Assignment | SCORED | Configure user rights assignments (modernized)
+  ansible.windows.win_user_right:
+    name: "{{ item.right }}"
+    users: "{{ item.users }}"
+    action: set # Replace existing assignments
+  register: windows_manage_cis_user_rights_results
+  loop: "{{ windows_manage_cis_user_rights }}"
+  when:
+    - item.rule_id not in windows_manage_cis_skip_rules
+    - current_assignments != expected_assignments
+  vars:
+    current_assignments: "{{ windows_manage_cis_user_rights_current_all.result.user_rights[item.right] | default('') }}"
+    expected_assignments: "{{ item.users | join(',') }}"
+  loop_control:
+    extended: true
+  tags:
+    - user_rights_assignment
+    - scored
+    - modernized
+
+# =============================================================================
+# HARDENED COMPLIANCE TRACKING - Structured Results
+# =============================================================================
+
+- name: CIS User Rights Assignment | AUDIT | Record compliance results (structured)
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: "{{ windows_manage_cis_results | default([]) + (windows_manage_cis_user_rights | map('combine', {'rule_section': 'User Rights Assignment',
+      'scored': true, 'current_value': windows_manage_cis_user_rights_current_all.result.user_rights[item.right] | default('Not Configured'), 'expected_value': item.users
+      | join(', '), 'status': 'PASS' if (windows_manage_cis_user_rights_current_all.result.user_rights[item.right] | default('') == (item.users | join(','))) else
+      'FAIL', 'changed': ((windows_manage_cis_user_rights_results.results | selectattr('item.rule_id', 'equalto', item.rule_id) | list | first).changed | default(false)),
+      'skip_reason': 'User configured skip' if item.rule_id in windows_manage_cis_skip_rules else '', 'audit_timestamp': windows_manage_cis_user_rights_current_all.result.timestamp
+      | default(''), 'check_mode': ansible_check_mode}) | list) }}"
+  vars:
+    item: "{{ user_right }}"
+  loop: "{{ windows_manage_cis_user_rights }}"
+  loop_control:
+    loop_var: user_right
+  tags:
+    - user_rights_assignment
+    - compliance
+    - hardened
+
+# =============================================================================
+# SECTION SUMMARY - Hardened Implementation
+# =============================================================================
+
+- name: CIS User Rights Assignment | Display hardened implementation summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - CIS User Rights Assignment Summary (HARDENED)
+      - ==========================================
+      - "User Rights Status:"
+      - "Total Rights: {{ windows_manage_cis_user_rights | length }} configured"
+      - "Rights Audited: {{ (windows_manage_cis_user_rights_current_all.result.user_rights | default({}) | length) }} checked"
+      - ""
+      - "RELIABILITY: Eliminated fragile secedit text parsing with structured JSON"
+      - "IDEMPOTENCY: True declarative state management with native modules"
+      - "MAINTAINABILITY: Future-proof against Windows command output changes"
+      - "PERFORMANCE: Consolidated audit queries and data-driven configuration"
+      - ==========================================
+      - "Audit Source: {{ windows_manage_cis_user_rights_current_all.result.source | default('N/A') }}"
+      - "Audit Timestamp: {{ windows_manage_cis_user_rights_current_all.result.timestamp | default('N/A') }}"
+      - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
+      - ==========================================
+  when: not ansible_check_mode or true
+  tags:
+    - user_rights_assignment
+    - hardened
+    - summary

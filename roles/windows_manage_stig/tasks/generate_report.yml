@@ -1,0 +1,49 @@
+---
+# =============================================================================
+# DISA STIG Compliance Report Generation
+# Enterprise-grade audit reporting for government compliance
+# =============================================================================
+
+- name: STIG | REPORT | Generate JSON compliance report for government audit
+  ansible.windows.win_copy:
+    content: |
+      {
+        "benchmark": "{{ windows_manage_stig_benchmark_name }}",
+        "version": "{{ windows_manage_stig_benchmark_version }}",
+        "profile": "{{ windows_manage_stig_profile }}",
+        "classification": "{{ windows_manage_stig_classification }}",
+        "system": "{{ inventory_hostname }}",
+        "execution_id": "{{ windows_manage_stig_execution_id }}",
+        "execution_start": "{{ windows_manage_stig_execution_start }}",
+        "execution_end": "{{ ansible_date_time.iso8601 }}",
+        "compliance_score": {{ windows_manage_stig_compliance_score | default(0) }},
+        "total_controls": {{ windows_manage_stig_total_controls | default(0) }},
+        "passed_controls": {{ windows_manage_stig_passed_controls | default(0) }},
+        "failed_controls": {{ windows_manage_stig_failed_controls_count | default(0) }},
+        "execution_mode": "{{ 'audit' if ansible_check_mode else 'remediation' }}",
+        "system_validation": {{ windows_manage_stig_validation_summary | default({}) | to_json }},
+        "results": {{ windows_manage_stig_results | default([]) | to_json }}
+      }
+    dest: "{{ windows_manage_stig_report_path }}"
+  when:
+    - windows_manage_stig_report_format == "json" or windows_manage_stig_report_format is not defined
+  tags:
+    - reporting
+
+- name: STIG | REPORT | Display compliance report generation summary
+  ansible.builtin.debug:
+    msg:
+      - ===========================================
+      - DISA STIG Compliance Report Generated
+      - ===========================================
+      - "Report Path: {{ windows_manage_stig_report_path }}"
+      - "Report Format: {{ windows_manage_stig_report_format }}"
+      - "Classification: {{ windows_manage_stig_classification }}"
+      - "Compliance Score: {{ windows_manage_stig_compliance_score | default(0) }}%"
+      - "Total Controls: {{ windows_manage_stig_total_controls | default(0) }}"
+      - "Controls Passed: {{ windows_manage_stig_passed_controls | default(0) }}"
+      - "Controls Failed: {{ windows_manage_stig_failed_controls_count | default(0) }}"
+      - "Execution Mode: {{ 'Audit Only' if ansible_check_mode else 'Remediation Applied' }}"
+      - ===========================================
+  tags:
+    - reporting

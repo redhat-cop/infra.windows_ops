@@ -1,2 +1,7 @@
 .ansible
 infra-windows_ops-*.tar.gz
+
+# Inventory files
+generate_inventory
+inventory.winrm
+inventory.winrm.tpl

@@ -1,0 +1,169 @@
+---
+# =============================================================================
+# Windows Server DISA STIG Compliance Role - Default Variables
+# Enterprise-grade automation for government security standards
+# =============================================================================
+
+# =============================================================================
+# BENCHMARK METADATA AND IDENTIFICATION
+# =============================================================================
+
+# DISA STIG Benchmark Information
+windows_manage_stig_benchmark_name: Microsoft Windows Server 2022 Security Technical Implementation Guide
+windows_manage_stig_benchmark_version: V1R3
+windows_manage_stig_profile: STIG
+windows_manage_stig_classification: UNCLASSIFIED
+
+# Supported Windows Server versions for STIG compliance
+windows_manage_stig_supported_versions:
+  - "2022"
+  - "2019"
+
+# =============================================================================
+# ROLE EXECUTION CONTROL
+# =============================================================================
+
+# Control execution behavior
+windows_manage_stig_generate_report: true
+windows_manage_stig_fail_on_non_compliance: false
+windows_manage_stig_compliance_threshold: 95 # Percentage
+
+# Selective control execution
+windows_manage_stig_skip_rules: [] # List of V-XXXXXX rules to skip
+windows_manage_stig_only_rules: [] # List of V-XXXXXX rules to run (if specified, only these run)
+
+# Control categories to execute
+windows_manage_stig_categories:
+  - account_policies
+  - audit_policies
+  - user_rights
+  - security_options
+  - registry_settings
+  - system_services
+
+# =============================================================================
+# COMPLIANCE REPORTING CONFIGURATION
+# =============================================================================
+
+# Report generation settings
+windows_manage_stig_report_format: json # json, html, yaml
+windows_manage_stig_report_path: C:\temp\stig_compliance_report.json
+
+# =============================================================================
+# STIG V-254238 through V-254244 - PASSWORD POLICY CONFIGURATION
+# =============================================================================
+
+# STIG V-254238 - Password history (24+ passwords required)
+# Recommendation: Enforce 24 or more passwords remembered
+windows_manage_stig_password_history_size: 24
+
+# STIG V-254239 - Maximum password age (60 days maximum)
+# Recommendation: 60 days or less for government systems
+windows_manage_stig_maximum_password_age: 60
+
+# STIG V-254240 - Minimum password age (1+ days required)
+# Recommendation: 1 day minimum to prevent rapid password cycling
+windows_manage_stig_minimum_password_age: 1
+
+# STIG V-254241 - Minimum password length (14+ characters required)
+# Recommendation: 14 characters minimum for government systems
+windows_manage_stig_minimum_password_length: 14
+
+# STIG V-254242 - Password complexity (must be enabled)
+# Requirement: Password must meet complexity requirements
+windows_manage_stig_password_complexity_enabled: true
+
+# STIG V-254243 - Reversible encryption (must be disabled)
+# Requirement: Store passwords using reversible encryption disabled
+windows_manage_stig_password_reversible_encryption: false
+
+# =============================================================================
+# STIG V-254244 through V-254246 - ACCOUNT LOCKOUT POLICY
+# =============================================================================
+
+# STIG V-254244 - Account lockout duration (15+ minutes required)
+# Recommendation: 15 minutes or indefinite lockout
+windows_manage_stig_account_lockout_duration: 15
+
+# STIG V-254245 - Account lockout threshold (3 or fewer attempts)
+# Requirement: 3 or fewer invalid logon attempts
+windows_manage_stig_account_lockout_threshold: 3
+
+# STIG V-254246 - Reset lockout counter (15+ minutes required)
+# Requirement: 15 minutes or more to reset counter
+windows_manage_stig_reset_account_lockout_counter: 15
+
+# =============================================================================
+# STIG V-254247 through V-254258 - AUDIT POLICY CONFIGURATION
+# =============================================================================
+
+# STIG V-254247 - Audit account logon events
+windows_manage_stig_audit_account_logon_events: Success and Failure
+
+# STIG V-254248 - Audit account management
+windows_manage_stig_audit_account_management: Success and Failure
+
+# STIG V-254250 - Audit directory service access
+windows_manage_stig_audit_directory_service_access: Success and Failure
+
+# STIG V-254251 - Audit logon events
+windows_manage_stig_audit_logon_events: Success and Failure
+
+# STIG V-254252 - Audit object access
+windows_manage_stig_audit_object_access: Failure
+
+# STIG V-254253 - Audit policy change
+windows_manage_stig_audit_policy_change: Success and Failure
+
+# STIG V-254254 - Audit privilege use
+windows_manage_stig_audit_privilege_use: Failure
+
+# STIG V-254256 - Audit system events
+windows_manage_stig_audit_system_events: Success and Failure
+
+# =============================================================================
+# STIG V-254259 through V-254350 - SECURITY OPTIONS
+# =============================================================================
+
+# =============================================================================
+# STIG V-254401 through V-254450 - SYSTEM SERVICES
+# =============================================================================
+
+# =============================================================================
+# STIG V-254451 through V-254500 - USER RIGHTS ASSIGNMENT
+# =============================================================================
+
+# STIG V-254451 - Act as part of the operating system (should be empty)
+windows_manage_stig_act_as_part_of_operating_system: []
+# STIG V-254452 - Add workstations to domain
+windows_manage_stig_add_workstations_to_domain: [Administrators]
+# STIG V-254453 - Adjust memory quotas for a process
+windows_manage_stig_adjust_memory_quotas: [Administrators, LOCAL SERVICE, NETWORK SERVICE]
+# STIG V-254454 - Allow log on locally
+windows_manage_stig_allow_log_on_locally: [Administrators]
+# STIG V-254455 - Back up files and directories
+windows_manage_stig_back_up_files_and_directories: [Administrators]
+# STIG V-254456 - Change the system time
+windows_manage_stig_change_system_time: [Administrators, LOCAL SERVICE]
+# STIG V-254457 - Create a pagefile
+windows_manage_stig_create_pagefile: [Administrators]
+# STIG V-254458 - Debug programs (should be empty)
+windows_manage_stig_debug_programs: []
+# STIG V-254459 - Deny log on as a batch job
+windows_manage_stig_deny_log_on_as_batch_job: [Guests]
+# STIG V-254460 - Deny log on as a service
+windows_manage_stig_deny_log_on_as_service: [Guests]
+# STIG V-254461 - Deny log on locally
+windows_manage_stig_deny_log_on_locally: [Guests]
+
+# =============================================================================
+# SYSTEM SERVICES CONFIGURATION VARIABLES
+# =============================================================================
+
+# Service requirements - Configure based on server role
+windows_manage_stig_print_spooler_required: false
+windows_manage_stig_remote_desktop_required: false
+windows_manage_stig_iis_required: false
+windows_manage_stig_search_required: false
+windows_manage_stig_dns_server_required: false
+windows_manage_stig_dhcp_server_required: false

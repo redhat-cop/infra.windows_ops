@@ -1,0 +1,233 @@
+---
+# Windows Server CIS Benchmark Compliance Role - Main Tasks
+# Role: windows_manage_cis
+# Collection: infra.windows_ops
+# CIS Benchmark: Microsoft Windows Server 2022 Benchmark v1.0.0
+# Enterprise Grade - Suitable for Audit and Compliance
+
+# =============================================================================
+# ROLE INITIALIZATION AND VALIDATION
+# =============================================================================
+
+- name: CIS | Gather facts for role execution
+  ansible.builtin.setup:
+  tags: always
+
+- name: CIS | Initialize role execution metadata
+  ansible.builtin.set_fact:
+    windows_manage_cis_execution_start: "{{ ansible_date_time.iso8601 }}"
+    windows_manage_cis_execution_id: "{{ ansible_date_time.epoch }}"
+    windows_manage_cis_results: []
+    windows_manage_cis_failed_controls: []
+    windows_manage_cis_skipped_controls: []
+  tags: always
+
+- name: CIS | Display benchmark identification
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - Windows Server CIS Benchmark Compliance
+      - ==========================================
+      - "Benchmark: {{ windows_manage_cis_benchmark_name }}"
+      - "Version: {{ windows_manage_cis_benchmark_version }}"
+      - "Profile: {{ windows_manage_cis_profile }}"
+      - "Target System: {{ inventory_hostname }}"
+      - "Execution Mode: {{ 'CHECK ONLY' if ansible_check_mode else 'APPLY CHANGES' }}"
+      - "Execution ID: {{ windows_manage_cis_execution_id }}"
+      - ==========================================
+  tags: always
+
+- name: CIS | Validate Windows Server version compatibility
+  ansible.builtin.include_tasks: validate_system.yml
+  tags: always
+
+# =============================================================================
+# CIS CONTROL EXECUTION BY CATEGORY
+# =============================================================================
+
+- name: CIS | Section 1.1 - Password Policies
+  ansible.builtin.include_tasks: password_policies.yml
+  when:
+    - "'password_policies' in windows_manage_cis_categories"
+    - >-
+      windows_manage_cis_only_rules | length == 0 or
+      windows_manage_cis_only_rules | intersect(['1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.1.5', '1.1.6']) | length > 0
+  tags:
+    - password_policies
+    - section_1
+    - cis
+
+- name: CIS | Section 1.2 - Account Lockout Policy
+  ansible.builtin.include_tasks: account_lockout.yml
+  when:
+    - "'account_lockout' in windows_manage_cis_categories"
+    - >-
+      windows_manage_cis_only_rules | length == 0 or
+      windows_manage_cis_only_rules | intersect(['1.2.1', '1.2.2', '1.2.3']) | length > 0
+  tags:
+    - account_lockout
+    - section_1
+    - cis
+
+- name: CIS | Section 2.2 - User Rights Assignment
+  ansible.builtin.include_tasks: user_rights_assignment.yml
+  when:
+    - "'user_rights_assignment' in windows_manage_cis_categories"
+    - >-
+      windows_manage_cis_only_rules | length == 0 or
+      windows_manage_cis_only_rules | select('match', '^2\\.2\\.*') | length > 0
+  tags:
+    - user_rights_assignment
+    - section_2
+    - cis
+
+- name: CIS | Section 2.3 - Security Options
+  ansible.builtin.include_tasks: security_options.yml
+  when:
+    - "'security_options' in windows_manage_cis_categories"
+    - >-
+      windows_manage_cis_only_rules | length == 0 or
+      windows_manage_cis_only_rules | select('match', '^2\\.3\\.*') | length > 0
+  tags:
+    - security_options
+    - section_2
+    - cis
+
+- name: CIS | Section 5 - System Services
+  ansible.builtin.include_tasks: system_services.yml
+  when:
+    - "'system_services' in windows_manage_cis_categories"
+    - >-
+      windows_manage_cis_only_rules | length == 0 or
+      windows_manage_cis_only_rules | select('match', '^5\\.*') | length > 0
+  tags:
+    - system_services
+    - section_5
+    - cis
+
+- name: CIS | Section 17 - Advanced Audit Policy Configuration
+  ansible.builtin.include_tasks: advanced_audit_policies.yml
+  when:
+    - "'advanced_audit_policies' in windows_manage_cis_categories"
+    - >-
+      windows_manage_cis_only_rules | length == 0 or
+      windows_manage_cis_only_rules | select('match', '^17\\.*') | length > 0
+  tags:
+    - advanced_audit_policies
+    - section_17
+    - cis
+
+- name: CIS | Section 17.9 - Event Log Configuration
+  ansible.builtin.include_tasks: event_log.yml
+  when:
+    - "'event_log' in windows_manage_cis_categories"
+    - >-
+      windows_manage_cis_only_rules | length == 0 or
+      windows_manage_cis_only_rules | select('match', '^17\\.9\\.*') | length > 0
+  tags:
+    - event_log
+    - section_17
+    - cis
+
+- name: CIS | Section 18 - Administrative Templates
+  ansible.builtin.include_tasks: administrative_templates.yml
+  when:
+    - "'administrative_templates' in windows_manage_cis_categories"
+    - >-
+      windows_manage_cis_only_rules | length == 0 or
+      windows_manage_cis_only_rules | select('match', '^18\\.*') | length > 0
+  tags:
+    - administrative_templates
+    - registry_settings
+    - section_18
+    - cis
+
+- name: CIS | Section 9 - Windows Firewall with Advanced Security
+  ansible.builtin.include_tasks: windows_firewall.yml
+  when:
+    - "'windows_firewall' in windows_manage_cis_categories"
+    - >-
+      windows_manage_cis_only_rules | length == 0 or
+      windows_manage_cis_only_rules | select('match', '^9\\.*') | length > 0
+  tags:
+    - windows_firewall
+    - section_9
+    - cis
+
+- name: CIS | Section 19 - Additional Registry Settings
+  ansible.builtin.include_tasks: additional_registry_settings.yml
+  when:
+    - "'additional_registry' in windows_manage_cis_categories"
+    - >-
+      windows_manage_cis_only_rules | length == 0 or
+      windows_manage_cis_only_rules | select('match', '^19\\.*') | length > 0
+  tags:
+    - additional_registry
+    - section_19
+    - cis
+
+# =============================================================================
+# COMPLIANCE REPORTING AND VALIDATION
+# =============================================================================
+
+- name: CIS | Generate compliance report
+  ansible.builtin.include_tasks: generate_report.yml
+  when: windows_manage_cis_generate_report | bool
+  tags:
+    - reporting
+    - always
+
+- name: CIS | Calculate final compliance score
+  ansible.builtin.set_fact:
+    windows_manage_cis_execution_end: "{{ ansible_date_time.iso8601 }}"
+    windows_manage_cis_total_controls: "{{ windows_manage_cis_results | length }}"
+    windows_manage_cis_passed_controls: "{{ windows_manage_cis_results | selectattr('status', 'equalto', 'PASS') | list | length }}"
+    windows_manage_cis_failed_controls_count: "{{ windows_manage_cis_failed_controls | length }}"
+  tags: always
+
+- name: CIS | Calculate compliance percentage
+  ansible.builtin.set_fact:
+    windows_manage_cis_compliance_score: >-
+      {{
+        ((windows_manage_cis_passed_controls | int) * 100 /
+         (windows_manage_cis_total_controls | int)) | round(2)
+        if windows_manage_cis_total_controls | int > 0 else 0
+      }}
+  tags: always
+
+- name: CIS | Display final compliance summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - CIS Compliance Execution Summary
+      - ==========================================
+      - "Benchmark: {{ windows_manage_cis_benchmark_name }} {{ windows_manage_cis_benchmark_version }}"
+      - >-
+        Execution Mode:
+        {{ 'CHECK ONLY (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}
+      - "Total Controls Evaluated: {{ windows_manage_cis_total_controls }}"
+      - "Controls Passed: {{ windows_manage_cis_passed_controls }}"
+      - "Controls Failed: {{ windows_manage_cis_failed_controls_count }}"
+      - "Controls Skipped: {{ windows_manage_cis_skipped_controls | length }}"
+      - "Compliance Score: {{ windows_manage_cis_compliance_score }}%"
+      - "Execution Start: {{ windows_manage_cis_execution_start }}"
+      - "Execution End: {{ windows_manage_cis_execution_end }}"
+      - ==========================================
+  tags: always
+
+- name: CIS | Fail role if compliance threshold not met
+  ansible.builtin.fail:
+    msg: |
+      CIS Compliance Threshold Not Met!
+      Required: {{ windows_manage_cis_compliance_threshold }}%
+      Achieved: {{ windows_manage_cis_compliance_score }}%
+
+      Failed Controls ({{ windows_manage_cis_failed_controls_count }}):
+      {{ windows_manage_cis_failed_controls | join(', ') if windows_manage_cis_failed_controls | length > 0 else 'None' }}
+
+      This system does not meet the required CIS compliance standards.
+      Review the failed controls and remediate before proceeding.
+  when:
+    - windows_manage_cis_fail_on_non_compliance | bool
+    - windows_manage_cis_compliance_score | float < windows_manage_cis_compliance_threshold | float
+  tags: always

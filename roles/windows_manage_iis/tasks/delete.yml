@@ -5,18 +5,18 @@
   ansible.windows.win_powershell:
     script: |
       Get-Website -Name {{ windows_manage_iis_name }}
-  register: powershell_result
+  register: windows_manage_iis_powershell_result
 
 - name: Fail if server doesn't exist
   ansible.builtin.fail:
     msg: "{{ windows_manage_iis_name }} Doesn't exist."
   when:
-    - powershell_result.output | length != 1
+    - windows_manage_iis_powershell_result.output | length != 1
 
 - name: Set Facts
   ansible.builtin.set_fact:
-    windows_manage_iis_path: "{{ powershell_result.output[0].physicalPath }}"
-    windows_manage_iis_port: "{{ (powershell_result.output[0].bindings.Collection | regex_search(':([0-9]+):', '\\1'))[0] }}"
+    windows_manage_iis_path: "{{ windows_manage_iis_powershell_result.output[0].physicalPath }}"
+    windows_manage_iis_port: "{{ (windows_manage_iis_powershell_result.output[0].bindings.Collection | regex_search(':([0-9]+):', '\\1'))[0] }}"
 
 - name: Close port for site on the firewall
   community.windows.win_firewall_rule:

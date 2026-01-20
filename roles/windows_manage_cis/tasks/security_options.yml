@@ -1,0 +1,235 @@
+---
+# CIS Microsoft Windows Server 2022 Benchmark v1.0.0
+# Section 2.3: Security Options
+# HARDENED Implementation with Structured JSON and Native Modules
+
+# =============================================================================
+# STRUCTURED SECURITY OPTIONS CONFIGURATION - Data-driven approach
+# =============================================================================
+
+- name: CIS Security Options | SETUP | Define security options configuration matrix
+  ansible.builtin.set_fact:
+    windows_manage_cis_security_options:
+      # Account Management
+      - rule_id: 2.3.1.1
+        title: "Accounts: Administrator account status"
+        type: user_account
+        account: Administrator
+        enabled: "{{ windows_manage_cis_accounts_administrator_account_status }}"
+        level: Level 1
+        severity: Medium
+        description: Administrator account state
+      - rule_id: 2.3.1.2
+        title: "Accounts: Guest account status"
+        type: user_account
+        account: Guest
+        enabled: false # Always disabled per CIS
+        level: Level 1
+        severity: Medium
+        description: Guest account must be disabled
+
+      # Registry-based Security Options
+      - rule_id: 2.3.1.3
+        title: "Accounts: Limit local account use of blank passwords"
+        type: registry
+        path: HKLM:\System\CurrentControlSet\Control\Lsa
+        name: LimitBlankPasswordUse
+        data: 1
+        reg_type: dword
+        level: Level 1
+        severity: High
+        description: Enabled - limit blank password logons
+      - rule_id: 2.3.2.1
+        title: "Audit: Force audit policy subcategory settings"
+        type: registry
+        path: HKLM:\System\CurrentControlSet\Control\Lsa
+        name: SCENoApplyLegacyAuditPolicy
+        data: 1
+        reg_type: dword
+        level: Level 1
+        severity: Medium
+        description: Enabled - force audit subcategory settings
+  tags:
+    - security_options
+    - setup
+
+# =============================================================================
+# HARDENED AUDIT PHASE - Structured JSON for Multiple Data Sources
+# =============================================================================
+
+- name: CIS Security Options | AUDIT | Get current user account states (structured)
+  ansible.windows.win_powershell:
+    script: |
+      $ErrorActionPreference = 'Stop'
+      try {
+        # Get all local user accounts with structured data
+        $users = Get-LocalUser | ForEach-Object {
+          @{
+            Name = $_.Name
+            Enabled = $_.Enabled
+            Description = $_.Description
+            LastLogon = if ($_.LastLogon) { $_.LastLogon.ToString('yyyy-MM-ddTHH:mm:ssZ') } else { $null }
+            PasswordExpires = if ($_.PasswordExpires) { $_.PasswordExpires.ToString('yyyy-MM-ddTHH:mm:ssZ') } else { $null }
+          }
+        }
+
+        $Ansible.Result = @{
+          accounts = $users
+          source = "Get-LocalUser"
+          timestamp = Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ"
+          status = "success"
+        }
+      }
+      catch {
+        $Ansible.Failed = $true
+        $Ansible.Result = @{
+          error = $_.Exception.Message
+          line_number = $_.InvocationInfo.ScriptLineNumber
+          status = "failed"
+        }
+      }
+  register: windows_manage_cis_security_accounts_current
+  check_mode: false
+  tags:
+    - security_options
+    - audit
+    - accounts
+
+- name: CIS Security Options | AUDIT | Get current registry security settings (structured)
+  ansible.windows.win_reg_stat:
+    path: "{{ item.path }}"
+    name: "{{ item.name }}"
+  register: windows_manage_cis_security_registry_current
+  loop: "{{ windows_manage_cis_security_options | selectattr('type', 'equalto', 'registry') }}"
+  check_mode: false
+  tags:
+    - security_options
+    - audit
+    - registry
+
+# =============================================================================
+# MODERNIZED REMEDIATION PHASE - Native Modules by Type
+# =============================================================================
+
+- name: CIS Security Options | SCORED | Configure user account states (modernized)
+  ansible.windows.win_user:
+    name: "{{ item.account }}"
+    account_disabled: "{{ not item.enabled }}"
+  register: windows_manage_cis_security_accounts_results
+  loop: "{{ windows_manage_cis_security_options | selectattr('type', 'equalto', 'user_account') }}"
+  when:
+    - item.rule_id not in windows_manage_cis_skip_rules
+    - current_account_state.Enabled != item.enabled
+  vars:
+    current_account_state: >-
+      {{
+        (windows_manage_cis_security_accounts_current.result.accounts |
+        selectattr('Name', 'equalto', item.account) | first) | default({'Enabled': not item.enabled})
+      }}
+  tags:
+    - security_options
+    - user_accounts
+    - scored
+
+- name: CIS Security Options | SCORED | Configure registry security settings (modernized)
+  ansible.windows.win_regedit:
+    path: "{{ item.path }}"
+    name: "{{ item.name }}"
+    data: "{{ item.data }}"
+    type: "{{ item.reg_type }}"
+  register: windows_manage_cis_security_registry_results
+  loop: "{{ windows_manage_cis_security_options | selectattr('type', 'equalto', 'registry') }}"
+  when:
+    - item.rule_id not in windows_manage_cis_skip_rules
+    - current_registry_value != item.data | string
+  vars:
+    current_registry_value: >-
+      {{
+        (windows_manage_cis_security_registry_current.results |
+        selectattr('item.rule_id', 'equalto', item.rule_id) | first).value | default('') | string
+      }}
+  loop_control:
+    extended: true
+  tags:
+    - security_options
+    - registry
+    - scored
+
+# =============================================================================
+# HARDENED COMPLIANCE TRACKING - Structured Results
+# =============================================================================
+
+- name: CIS Security Options | AUDIT | Record compliance results (structured)
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results | default([]) + (windows_manage_cis_security_options | map('combine', {
+        'rule_section': 'Security Options',
+        'scored': true,
+        'current_value': current_status,
+        'expected_value': expected_status,
+        'status': compliance_status,
+        'changed': change_status,
+        'skip_reason': 'User configured skip' if item.rule_id in windows_manage_cis_skip_rules else '',
+        'check_mode': ansible_check_mode
+      }) | list) }}
+  vars:
+    current_status: >-
+      {%- if item.type == 'user_account' -%}
+        {{
+          (windows_manage_cis_security_accounts_current.result.accounts |
+          selectattr('Name', 'equalto', item.account) | first).Enabled |
+          default(false) | ternary('Enabled', 'Disabled')
+        }}
+      {%- elif item.type == 'registry' -%}
+        {{ (windows_manage_cis_security_registry_current.results | selectattr('item.rule_id', 'equalto', item.rule_id) | first).value | default('Not Set') }}
+      {%- endif -%}
+    expected_status: >-
+      {%- if item.type == 'user_account' -%}
+        {{ item.enabled | ternary('Enabled', 'Disabled') }}
+      {%- elif item.type == 'registry' -%}
+        {{ item.data }}
+      {%- endif -%}
+    compliance_status: >-
+      {%- if item.type == 'user_account' -%}
+        {{ 'PASS' if (current_status == expected_status) else 'FAIL' }}
+      {%- elif item.type == 'registry' -%}
+        {{ 'PASS' if (current_status | string == expected_status | string) else 'FAIL' }}
+      {%- endif -%}
+    change_status: false # Will be updated by actual task results
+    item: "{{ security_option }}"
+  loop: "{{ windows_manage_cis_security_options }}"
+  loop_control:
+    loop_var: security_option
+  tags:
+    - security_options
+    - compliance
+    - hardened
+
+# =============================================================================
+# SECTION SUMMARY - Hardened Implementation
+# =============================================================================
+
+- name: CIS Security Options | Display hardened implementation summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - CIS Security Options Summary (HARDENED)
+      - ==========================================
+      - "Security Configuration Status:"
+      - "User Accounts: {{ (windows_manage_cis_security_options | selectattr('type', 'equalto', 'user_account') | list | length) }} configured"
+      - "Registry Settings: {{ (windows_manage_cis_security_options | selectattr('type', 'equalto', 'registry') | list | length) }} configured"
+      - ""
+      - "RELIABILITY: Immune to Windows command output format changes"
+      - "PERFORMANCE: Consolidated audit queries by data source type"
+      - "MAINTAINABILITY: Type-aware configuration with structured validation"
+      - "IDEMPOTENCY: Native module state management"
+      - ==========================================
+      - "Accounts Audit Source: {{ windows_manage_cis_security_accounts_current.result.source | default('N/A') }}"
+      - "Audit Timestamp: {{ windows_manage_cis_security_accounts_current.result.timestamp | default('N/A') }}"
+      - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
+      - ==========================================
+  when: not ansible_check_mode or true
+  tags:
+    - security_options
+    - hardened
+    - summary

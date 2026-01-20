@@ -7,7 +7,7 @@ The collection includes a variety of Ansible roles to help automate the manageme
 <!--start requires_ansible-->
 ## Ansible version compatibility
 
-This collection has been tested against following Ansible versions: **>=2.14.0**.
+This collection has been tested against following Ansible versions: **>=2.18.0**.
 
 ## Included content
 
@@ -15,11 +15,19 @@ Click on the name of a plugin or module to view that content's documentation:
 
 <!--start collection content-->
 ### Roles
+
+#### Infrastructure Management
 Name | Description
 --- | ---
 [infra.windows_ops.windows_manage_iis](https://github.com/redhat-cop/infra.windows_ops/blob/main/roles/windows_manage_iis/README.md)|A role to manage IIS Web Server.
 [infra.windows_ops.windows_manage_service](https://github.com/redhat-cop/infra.windows_ops/blob/main/roles/windows_manage_service/README.md)|A role to manage Windows Services.
 [infra.windows_ops.windows_manage_updates](https://github.com/redhat-cop/infra.windows_ops/blob/main/roles/windows_manage_updates/README.md)|A role to manage Windows Updates.
+
+#### Security and Compliance
+Name | Description
+--- | ---
+[infra.windows_ops.windows_manage_cis](https://github.com/redhat-cop/infra.windows_ops/blob/main/roles/windows_manage_cis/README.md)|A role to enforce CIS Microsoft Windows Server 2022 Benchmark compliance.
+[infra.windows_ops.windows_manage_stig](https://github.com/redhat-cop/infra.windows_ops/blob/main/roles/windows_manage_stig/README.md)|A role to enforce DISA STIG Windows Server 2022 compliance.
 
 
 ## Installation and Usage

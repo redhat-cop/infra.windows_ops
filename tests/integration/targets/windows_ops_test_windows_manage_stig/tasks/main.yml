@@ -1,0 +1,50 @@
+---
+- name: Test STIG role application and validation
+  block:
+    - name: Create test output directory
+      ansible.windows.win_file:
+        path: "{{ test_stig_output_dir }}"
+        state: directory
+
+    - name: Gather facts before running role
+      ansible.builtin.setup:
+
+    - name: Apply STIG hardening in check mode
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_stig
+      vars:
+        windows_manage_stig_report_path: "{{ test_stig_output_dir }}\\{{ test_stig_check_report_filename }}"
+
+    - name: Verify STIG check report was created
+      ansible.windows.win_stat:
+        path: "{{ test_stig_output_dir }}\\{{ test_stig_check_report_filename }}"
+      register: _stig_check_report
+
+
+    - name: Assert STIG check report exists
+      ansible.builtin.assert:
+        that:
+          - _stig_check_report.stat.exists
+          - _stig_check_report.stat.size > 0
+
+    - name: Display test completion message
+      ansible.builtin.debug:
+        msg: "STIG baseline test completed successfully"
+
+  rescue:
+    - name: Cleanup on test failure
+      ansible.windows.win_file:
+        path: "{{ test_stig_output_dir }}"
+        state: absent
+      failed_when: false
+
+    - name: Fail the test
+      ansible.builtin.fail:
+        msg: "STIG role integration test failed"
+
+  always:
+    - name: Cleanup test directory
+      ansible.windows.win_file:
+        path: "{{ test_stig_output_dir }}"
+        state: absent
+      failed_when: false

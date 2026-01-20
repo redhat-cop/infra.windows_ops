@@ -1,0 +1,419 @@
+---
+# Windows Server CIS Benchmark Role - Default Variables
+# Role: windows_manage_cis
+# Collection: infra.windows_ops
+# CIS Benchmark: Microsoft Windows Server 2022 Benchmark v1.0.0
+# Documentation: https://www.cisecurity.org/benchmark/microsoft_windows_server
+
+# =============================================================================
+# ROLE EXECUTION CONTROLS
+# =============================================================================
+
+# Report generation settings
+windows_manage_cis_generate_report: true
+windows_manage_cis_report_format: json # json, html, yaml
+windows_manage_cis_report_path: /tmp/cis_compliance_report
+windows_manage_cis_report_output_dir: "{{ windows_manage_cis_report_path }}"
+windows_manage_cis_fail_on_non_compliance: false
+
+# =============================================================================
+# CIS BENCHMARK IDENTIFICATION
+# =============================================================================
+
+# CIS benchmark metadata (DO NOT MODIFY - for audit traceability)
+windows_manage_cis_benchmark_name: CIS Microsoft Windows Server 2022 Benchmark
+windows_manage_cis_benchmark_version: v1.0.0
+windows_manage_cis_benchmark_date: 12-15-2022
+windows_manage_cis_profile: Level 1 # Level 1, Level 2
+
+# Supported Windows versions for this benchmark
+windows_manage_cis_supported_versions:
+  - "2022"
+  - "2019" # with limitations
+
+# =============================================================================
+# CONTROL EXECUTION OPTIONS
+# =============================================================================
+
+# Skip specific CIS controls (use exact CIS rule IDs)
+# Example: ["1.1.1", "2.2.5", "17.1.1"]
+windows_manage_cis_skip_rules: []
+# Run only specific controls (leave empty to run all)
+# Example: ["1.1.1", "1.1.2", "1.1.3"]
+windows_manage_cis_only_rules: []
+# CIS control categories to execute (all Level 1 controls by default)
+windows_manage_cis_categories:
+  - password_policies # CIS 1.1.x
+  - account_lockout # CIS 1.2.x
+  - user_rights_assignment # CIS 2.2.x
+  - security_options # CIS 2.3.x
+  - system_services # CIS 5.x
+  - advanced_audit_policies # CIS 17.x
+  - event_log # CIS 17.9.x
+  - administrative_templates # CIS 18.x
+  - windows_firewall # CIS 9.x
+  - additional_registry # CIS 19.x
+
+# Compliance scoring (for enterprise reporting)
+windows_manage_cis_compliance_threshold: 100 # % - fail role if below threshold
+
+# =============================================================================
+# CIS BENCHMARK CONTROLS - SECTION 1: ACCOUNT POLICIES
+# =============================================================================
+
+# CIS 1.1.1 - Enforce password history
+# Recommendation: 24 or more passwords
+windows_manage_cis_password_history_size: 24
+
+# CIS 1.1.2 - Maximum password age
+# Recommendation: 365 or fewer days, but not 0
+windows_manage_cis_maximum_password_age: 365
+
+# CIS 1.1.3 - Minimum password age
+# Recommendation: 1 or more days
+windows_manage_cis_minimum_password_age: 1
+
+# CIS 1.1.4 - Minimum password length
+# Recommendation: 14 or more characters
+windows_manage_cis_minimum_password_length: 14
+
+# CIS 1.1.5 - Password complexity requirements
+# Recommendation: Enabled
+windows_manage_cis_password_complexity_enabled: true
+
+# CIS 1.1.6 - Store passwords using reversible encryption
+# Recommendation: Disabled
+windows_manage_cis_password_reversible_encryption: false
+
+# CIS 1.2.1 - Account lockout duration
+# Recommendation: 15 or more minutes
+windows_manage_cis_account_lockout_duration: 15
+
+# CIS 1.2.2 - Account lockout threshold
+# Recommendation: 5 or fewer invalid attempts (0 = disabled)
+windows_manage_cis_account_lockout_threshold: 5
+
+# CIS 1.2.3 - Reset account lockout counter
+# Recommendation: 15 or more minutes
+windows_manage_cis_reset_account_lockout_counter: 15
+
+# =============================================================================
+# CIS BENCHMARK CONTROLS - SECTION 2.2: USER RIGHTS ASSIGNMENT
+# =============================================================================
+
+# CIS 2.2.1 - Access this computer from the network
+# Recommendation: Administrators, Authenticated Users (customize per environment)
+windows_manage_cis_access_computer_from_network:
+  - Administrators
+  - Authenticated Users
+
+# CIS 2.2.2 - Act as part of the operating system
+# Recommendation: No One (empty list)
+windows_manage_cis_act_as_part_of_operating_system: []
+# CIS 2.2.3 - Add workstations to domain
+# Recommendation: Administrators
+windows_manage_cis_add_workstations_to_domain:
+  - Administrators
+
+# CIS 2.2.4 - Adjust memory quotas for a process
+# Recommendation: Administrators, LOCAL SERVICE, NETWORK SERVICE
+windows_manage_cis_adjust_memory_quotas:
+  - Administrators
+  - LOCAL SERVICE
+  - NETWORK SERVICE
+
+# CIS 2.2.5 - Allow log on locally
+# Recommendation: Administrators (customize per server role)
+windows_manage_cis_allow_log_on_locally:
+  - Administrators
+
+# CIS 2.2.6 - Allow log on through Remote Desktop Services
+# Recommendation: Administrators, Remote Desktop Users
+windows_manage_cis_allow_log_on_through_remote_desktop:
+  - Administrators
+  - Remote Desktop Users
+
+# CIS 2.2.7 - Back up files and directories
+# Recommendation: Administrators
+windows_manage_cis_back_up_files_and_directories:
+  - Administrators
+
+# CIS 2.2.8 - Create symbolic links
+# Recommendation: Administrators
+windows_manage_cis_create_symbolic_links:
+  - Administrators
+
+# CIS 2.2.9 - Debug programs
+# Recommendation: No One (empty list)
+windows_manage_cis_debug_programs: []
+# CIS 2.2.10 - Deny access to this computer from the network
+# Recommendation: Guests, Local account, Local account and member of Administrators group
+windows_manage_cis_deny_access_computer_from_network:
+  - Guests
+  - Local account
+  - Local account and member of Administrators group
+
+# CIS 2.2.11 - Deny log on as a batch job
+# Recommendation: Guests
+windows_manage_cis_deny_log_on_as_batch_job:
+  - Guests
+
+# CIS 2.2.12 - Deny log on as a service
+# Recommendation: Guests
+windows_manage_cis_deny_log_on_as_service:
+  - Guests
+
+# CIS 2.2.13 - Deny log on locally
+# Recommendation: Guests
+windows_manage_cis_deny_log_on_locally:
+  - Guests
+
+# CIS 2.2.14 - Deny log on through Remote Desktop Services
+# Recommendation: Guests, Local account, Local account and member of Administrators group
+windows_manage_cis_deny_log_on_through_remote_desktop:
+  - Guests
+  - Local account
+  - Local account and member of Administrators group
+
+# =============================================================================
+# CIS BENCHMARK CONTROLS - SECTION 2.3: SECURITY OPTIONS
+# =============================================================================
+
+# CIS 2.3.1.1 - Accounts: Administrator account status
+# Recommendation: Enabled (for non-domain controllers)
+windows_manage_cis_accounts_administrator_account_status: true
+
+# CIS 2.3.1.2 - Accounts: Guest account status
+# Recommendation: Disabled
+windows_manage_cis_accounts_guest_account_status: false
+
+# CIS 2.3.1.3 - Accounts: Limit local account use of blank passwords to console logon only
+# Recommendation: Enabled
+windows_manage_cis_accounts_limit_local_account_use: true
+
+# CIS 2.3.1.4 - Accounts: Rename administrator account
+# Recommendation: Custom name (not "Administrator")
+windows_manage_cis_accounts_rename_administrator_account: LocalAdmin
+
+# CIS 2.3.1.5 - Accounts: Rename guest account
+# Recommendation: Custom name (not "Guest")
+windows_manage_cis_accounts_rename_guest_account: LocalGuest
+# CIS 2.3.2.1 - Audit: Force audit policy subcategory settings
+# Recommendation: Enabled
+windows_manage_cis_audit_force_audit_policy_subcategory_settings: true
+
+# CIS 2.3.2.2 - Audit: Shut down system immediately if unable to log security audits
+# Recommendation: Disabled (for most environments)
+windows_manage_cis_audit_shutdown_system_immediately: false
+windows_manage_cis_devices_allowed_to_format_and_eject_removable_media: Administrators
+windows_manage_cis_devices_prevent_users_from_installing_printer_drivers: true
+windows_manage_cis_domain_controller_allow_server_operators: false
+windows_manage_cis_domain_controller_ldap_server_signing_requirements: Require signing
+windows_manage_cis_domain_member_digitally_encrypt_or_sign_secure_channel: true
+windows_manage_cis_domain_member_digitally_encrypt_secure_channel: true
+windows_manage_cis_domain_member_digitally_sign_secure_channel: true
+windows_manage_cis_domain_member_disable_machine_account_password_changes: false
+windows_manage_cis_domain_member_maximum_machine_account_password_age: 30
+windows_manage_cis_domain_member_require_strong_session_key: true
+
+# Interactive logon settings
+windows_manage_cis_interactive_logon_display_user_information: User display name only
+windows_manage_cis_interactive_logon_do_not_display_last_user_name: true
+windows_manage_cis_interactive_logon_do_not_require_ctrl_alt_del: false
+windows_manage_cis_interactive_logon_machine_inactivity_limit: 900
+windows_manage_cis_interactive_logon_message_text: This system is restricted solely to authorized users for legitimate business purposes only.
+windows_manage_cis_interactive_logon_message_title: IT Security Warning
+windows_manage_cis_interactive_logon_number_of_previous_logons_to_cache: 4
+windows_manage_cis_interactive_logon_prompt_user_to_change_password: 5
+windows_manage_cis_interactive_logon_require_domain_controller_authentication: true
+windows_manage_cis_interactive_logon_require_smart_card: false
+windows_manage_cis_interactive_logon_smart_card_removal_behavior: Lock Workstation
+
+# Microsoft network client/server settings
+windows_manage_cis_microsoft_network_client_digitally_sign_communications: true
+windows_manage_cis_microsoft_network_client_digitally_sign_communications_if_server_agrees: true
+windows_manage_cis_microsoft_network_client_send_unencrypted_password: false
+windows_manage_cis_microsoft_network_server_amount_of_idle_time: 15
+windows_manage_cis_microsoft_network_server_digitally_sign_communications: true
+windows_manage_cis_microsoft_network_server_digitally_sign_communications_if_client_agrees: true
+windows_manage_cis_microsoft_network_server_disconnect_clients_when_logon_hours_expire: true
+
+# Network access settings
+windows_manage_cis_network_access_allow_anonymous_sid_name_translation: false
+windows_manage_cis_network_access_do_not_allow_anonymous_enumeration_of_sam_accounts: true
+windows_manage_cis_network_access_do_not_allow_anonymous_enumeration_of_sam_accounts_and_shares: true
+windows_manage_cis_network_access_let_everyone_permissions_apply_to_anonymous_users: false
+windows_manage_cis_network_access_named_pipes_that_can_be_accessed_anonymously: []
+windows_manage_cis_network_access_remotely_accessible_registry_paths: []
+windows_manage_cis_network_access_remotely_accessible_registry_paths_and_subpaths: []
+windows_manage_cis_network_access_restrict_anonymous_access_to_named_pipes_and_shares: true
+windows_manage_cis_network_access_restrict_clients_allowed_to_make_remote_sam_calls: O:BAG:BAD:(A;;RC;;;BA)
+windows_manage_cis_network_access_shares_that_can_be_accessed_anonymously: []
+# Network security settings
+windows_manage_cis_network_security_allow_local_system_to_use_computer_identity: true
+windows_manage_cis_network_security_allow_localsystem_null_session_fallback: false
+windows_manage_cis_network_security_allow_pku2u_authentication_requests: false
+windows_manage_cis_network_security_configure_encryption_types_allowed_for_kerberos: AES128_HMAC_SHA1, AES256_HMAC_SHA1, Future encryption types
+windows_manage_cis_network_security_do_not_store_lan_manager_hash_value: true
+windows_manage_cis_network_security_force_logoff_when_logon_hours_expire: true
+windows_manage_cis_network_security_lan_manager_authentication_level: Send NTLMv2 response only. Refuse LM & NTLM
+windows_manage_cis_network_security_ldap_client_signing_requirements: Negotiate signing
+windows_manage_cis_network_security_minimum_session_security_for_ntlm_ssp_based_clients: Require NTLMv2 session security, Require 128-bit encryption
+windows_manage_cis_network_security_minimum_session_security_for_ntlm_ssp_based_servers: Require NTLMv2 session security, Require 128-bit encryption
+
+# System objects settings
+windows_manage_cis_system_objects_require_case_insensitivity_for_non_windows_subsystems: true
+windows_manage_cis_system_objects_strengthen_default_permissions: true
+
+# System settings
+windows_manage_cis_system_settings_optional_subsystems: []
+windows_manage_cis_user_account_control_admin_approval_mode_for_built_in_administrator: true
+windows_manage_cis_user_account_control_allow_uiaccess_applications: false
+windows_manage_cis_user_account_control_behavior_of_elevation_prompt_for_administrators: Prompt for consent on the secure desktop
+windows_manage_cis_user_account_control_behavior_of_elevation_prompt_for_standard_users: Automatically deny elevation requests
+windows_manage_cis_user_account_control_detect_application_installations: true
+windows_manage_cis_user_account_control_only_elevate_executables_that_are_signed: true
+windows_manage_cis_user_account_control_only_elevate_uiaccess_applications: true
+windows_manage_cis_user_account_control_run_all_administrators_in_admin_approval_mode: true
+windows_manage_cis_user_account_control_switch_to_secure_desktop: true
+windows_manage_cis_user_account_control_virtualize_file_and_registry_write_failures: true
+
+# 9.1 Windows Firewall with Advanced Security
+windows_manage_cis_windows_firewall_domain_firewall_state: "On"
+windows_manage_cis_windows_firewall_domain_inbound_connections: Block
+windows_manage_cis_windows_firewall_domain_outbound_connections: Allow
+windows_manage_cis_windows_firewall_domain_settings_display_notification: false
+windows_manage_cis_windows_firewall_domain_logging_name: "%systemroot%\\system32\\LogFiles\\Firewall\\domainfw.log"
+windows_manage_cis_windows_firewall_domain_logging_size_limit: 16384
+windows_manage_cis_windows_firewall_domain_log_dropped_packets: true
+windows_manage_cis_windows_firewall_domain_log_successful_connections: true
+
+# Private profile settings
+windows_manage_cis_windows_firewall_private_firewall_state: "On"
+windows_manage_cis_windows_firewall_private_inbound_connections: Block
+windows_manage_cis_windows_firewall_private_outbound_connections: Allow
+windows_manage_cis_windows_firewall_private_settings_display_notification: false
+windows_manage_cis_windows_firewall_private_logging_name: "%systemroot%\\system32\\LogFiles\\Firewall\\privatefw.log"
+windows_manage_cis_windows_firewall_private_logging_size_limit: 16384
+windows_manage_cis_windows_firewall_private_log_dropped_packets: true
+windows_manage_cis_windows_firewall_private_log_successful_connections: true
+
+# Public profile settings
+windows_manage_cis_windows_firewall_public_firewall_state: "On"
+windows_manage_cis_windows_firewall_public_inbound_connections: Block
+windows_manage_cis_windows_firewall_public_outbound_connections: Allow
+windows_manage_cis_windows_firewall_public_settings_display_notification: false
+windows_manage_cis_windows_firewall_public_logging_name: "%systemroot%\\system32\\LogFiles\\Firewall\\publicfw.log"
+windows_manage_cis_windows_firewall_public_logging_size_limit: 16384
+windows_manage_cis_windows_firewall_public_log_dropped_packets: true
+windows_manage_cis_windows_firewall_public_log_successful_connections: true
+
+# 17.1 Audit Policy Settings (Advanced Audit Policy Configuration)
+windows_manage_cis_audit_credential_validation: Success and Failure
+windows_manage_cis_audit_application_group_management: Success and Failure
+windows_manage_cis_audit_computer_account_management: Success and Failure
+windows_manage_cis_audit_distribution_group_management: Success and Failure
+windows_manage_cis_audit_other_account_management_events: Success and Failure
+windows_manage_cis_audit_security_group_management: Success and Failure
+windows_manage_cis_audit_user_account_management: Success and Failure
+windows_manage_cis_audit_dpapi_activity: Success and Failure
+windows_manage_cis_audit_pnp_activity: Success
+windows_manage_cis_audit_process_creation: Success
+windows_manage_cis_audit_account_lockout: Success and Failure
+windows_manage_cis_audit_group_membership: Success
+windows_manage_cis_audit_logoff: Success
+windows_manage_cis_audit_logon: Success and Failure
+windows_manage_cis_audit_other_logon_logoff_events: Success and Failure
+windows_manage_cis_audit_special_logon: Success
+windows_manage_cis_audit_detailed_file_share: Failure
+windows_manage_cis_audit_file_share: Success and Failure
+windows_manage_cis_audit_other_object_access_events: Success and Failure
+windows_manage_cis_audit_removable_storage: Success and Failure
+windows_manage_cis_audit_audit_policy_change: Success and Failure
+windows_manage_cis_audit_authentication_policy_change: Success
+windows_manage_cis_audit_authorization_policy_change: Success
+windows_manage_cis_audit_mpssvc_rule_level_policy_change: Success and Failure
+windows_manage_cis_audit_other_policy_change_events: Failure
+windows_manage_cis_audit_sensitive_privilege_use: Success and Failure
+windows_manage_cis_audit_ipsec_driver: Success and Failure
+windows_manage_cis_audit_other_system_events: Success and Failure
+windows_manage_cis_audit_security_state_change: Success
+windows_manage_cis_audit_security_system_extension: Success and Failure
+windows_manage_cis_audit_system_integrity: Success and Failure
+
+# =============================================================================
+# CIS Section 18 - Administrative Templates Configuration
+# =============================================================================
+
+# 18.1 Control Panel Settings
+windows_manage_cis_allow_online_tips: false
+windows_manage_cis_allow_windows_ink_workspace: false
+
+# 18.4 MSS (Microsoft Security Guide) Settings
+windows_manage_cis_mss_autoadminlogon: false
+windows_manage_cis_mss_disableipsourcerouting: 2
+windows_manage_cis_mss_enableicmpredirect: false
+windows_manage_cis_mss_keepalivetime: 300000
+windows_manage_cis_mss_nodefaultexempt: true
+windows_manage_cis_mss_performrouterdiscovery: false
+windows_manage_cis_mss_safedllsearchmode: true
+windows_manage_cis_mss_screensaveretimeout: 900
+windows_manage_cis_mss_synattackprotect: true
+windows_manage_cis_mss_tcpmaxdataretransmissions: 3
+windows_manage_cis_mss_warningleveltcp: 80
+
+# 18.5 Network Settings
+windows_manage_cis_wdigest_authentication: false
+windows_manage_cis_insecure_logons_to_smb_servers: false
+
+# Event Log Settings
+windows_manage_cis_application_log_maximum_size: 32768
+windows_manage_cis_application_log_retention_method: OverwriteAsNeeded
+windows_manage_cis_security_log_maximum_size: 196608
+windows_manage_cis_security_log_retention_method: OverwriteAsNeeded
+windows_manage_cis_system_log_maximum_size: 32768
+windows_manage_cis_system_log_retention_method: OverwriteAsNeeded
+
+# =============================================================================
+# CIS Section 5 - System Services Configuration
+# =============================================================================
+
+# CIS 5.1 - Print Spooler service (disable on non-print servers)
+windows_manage_cis_allow_print_spooler: false
+
+# CIS 5.3 - Server service (for file sharing)
+windows_manage_cis_allow_file_sharing: true
+
+# CIS 5.6 - Windows Remote Management (required for Ansible)
+windows_manage_cis_allow_winrm: true
+
+# CIS 5.7 - IIS World Wide Web Publishing service
+windows_manage_cis_allow_iis: false
+
+# =============================================================================
+# CIS Section 17 - Advanced Audit Policy Configuration
+# =============================================================================
+
+# CIS 17.1.1 - Audit Credential Validation
+windows_manage_cis_audit_credential_validation_success: true
+windows_manage_cis_audit_credential_validation_failure: true
+windows_manage_cis_audit_credential_validation_expected: Success and Failure
+
+# CIS 17.2.1 - Audit Application Group Management
+windows_manage_cis_audit_application_group_management_success: true
+windows_manage_cis_audit_application_group_management_failure: true
+windows_manage_cis_audit_application_group_management_expected: Success and Failure
+
+# =============================================================================
+# CIS Section 19 - Additional Registry Settings Configuration
+# =============================================================================
+
+# 19.1 Computer Configuration Additional Settings
+windows_manage_cis_ipv6_disabled_components: 255 # 0=enabled, 32=prefer IPv4, 255=disabled
+windows_manage_cis_winrm_allow_auto_config: true # Allow WinRM auto-configuration (required for Ansible)
+windows_manage_cis_windows_update_au_options: 4 # 0=disabled, 2=notify, 3=auto download, 4=auto install
+windows_manage_cis_enable_credential_guard: true # Enable Windows Defender Credential Guard
+
+# 19.2 Security Features Configuration
+windows_manage_cis_powershell_execution_policy: RemoteSigned # Restricted, AllSigned, RemoteSigned, Unrestricted
+windows_manage_cis_powershell_enable_module_logging: true # Enable PowerShell module logging
