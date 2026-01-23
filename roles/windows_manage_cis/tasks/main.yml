@@ -75,7 +75,7 @@
     - "'user_rights_assignment' in windows_manage_cis_categories"
     - >-
       windows_manage_cis_only_rules | length == 0 or
-      windows_manage_cis_only_rules | select('match', '^2\\.2\\.*') | length > 0
+      windows_manage_cis_only_rules | select('match', '^2\.2\.') | list | length > 0
   tags:
     - user_rights_assignment
     - section_2
@@ -87,7 +87,7 @@
     - "'security_options' in windows_manage_cis_categories"
     - >-
       windows_manage_cis_only_rules | length == 0 or
-      windows_manage_cis_only_rules | select('match', '^2\\.3\\.*') | length > 0
+      windows_manage_cis_only_rules | select('match', '^2\.3\.') | list | length > 0
   tags:
     - security_options
     - section_2
@@ -99,7 +99,7 @@
     - "'system_services' in windows_manage_cis_categories"
     - >-
       windows_manage_cis_only_rules | length == 0 or
-      windows_manage_cis_only_rules | select('match', '^5\\.*') | length > 0
+      windows_manage_cis_only_rules | select('match', '^5\.') | list | length > 0
   tags:
     - system_services
     - section_5
@@ -111,7 +111,7 @@
     - "'advanced_audit_policies' in windows_manage_cis_categories"
     - >-
       windows_manage_cis_only_rules | length == 0 or
-      windows_manage_cis_only_rules | select('match', '^17\\.*') | length > 0
+      windows_manage_cis_only_rules | select('match', '^17\.') | list | length > 0
   tags:
     - advanced_audit_policies
     - section_17
@@ -123,7 +123,7 @@
     - "'event_log' in windows_manage_cis_categories"
     - >-
       windows_manage_cis_only_rules | length == 0 or
-      windows_manage_cis_only_rules | select('match', '^17\\.9\\.*') | length > 0
+      windows_manage_cis_only_rules | select('match', '^17\.9\.') | list | length > 0
   tags:
     - event_log
     - section_17
@@ -135,7 +135,7 @@
     - "'administrative_templates' in windows_manage_cis_categories"
     - >-
       windows_manage_cis_only_rules | length == 0 or
-      windows_manage_cis_only_rules | select('match', '^18\\.*') | length > 0
+      windows_manage_cis_only_rules | select('match', '^18\.') | list | length > 0
   tags:
     - administrative_templates
     - registry_settings
@@ -148,7 +148,7 @@
     - "'windows_firewall' in windows_manage_cis_categories"
     - >-
       windows_manage_cis_only_rules | length == 0 or
-      windows_manage_cis_only_rules | select('match', '^9\\.*') | length > 0
+      windows_manage_cis_only_rules | select('match', '^9\.') | list | length > 0
   tags:
     - windows_firewall
     - section_9
@@ -160,7 +160,7 @@
     - "'additional_registry' in windows_manage_cis_categories"
     - >-
       windows_manage_cis_only_rules | length == 0 or
-      windows_manage_cis_only_rules | select('match', '^19\\.*') | length > 0
+      windows_manage_cis_only_rules | select('match', '^19\.') | list | length > 0
   tags:
     - additional_registry
     - section_19

@@ -394,6 +394,8 @@
     name: "{{ item.name }}"
   register: windows_manage_stig_services_current
   loop: "{{ all_services }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
   check_mode: false
   failed_when: false # Some services may not exist on all systems
   vars:
@@ -515,28 +517,25 @@
 - name: STIG System Services | AUDIT | Record compliance results
   ansible.builtin.set_fact:
     windows_manage_stig_results: >-
-      {{ windows_manage_stig_results | default([]) +
-        (all_services | map('combine', {
+      {{ windows_manage_stig_results | default([]) + [
+        service | combine({
           'rule_section': 'System Services',
           'scored': true,
-          'current_value': current_state_info.state + ' / ' + current_state_info.start_mode if current_state_info.exists else 'Service not installed',
-          'expected_value': item.description,
-          'status': ('PASS' if (not current_state_info.exists or (current_state_info.state == item.state and current_state_info.start_mode == item.start_mode)) else 'FAIL'),
-          'changed': task_changed,
-          'skip_reason': ('User configured skip' if item.stig_id in windows_manage_stig_skip_rules else ('Service not installed' if not current_state_info.exists else '')),
+          'current_value': (current_state_info.state + ' / ' + current_state_info.start_mode if current_state_info.exists else 'Service not installed'),
+          'expected_value': service.description,
+          'status': ('PASS' if (not current_state_info.exists or (current_state_info.state == service.state and current_state_info.start_mode == service.start_mode)) else 'FAIL'),
+          'changed': false,
+          'skip_reason': ('User configured skip' if service.stig_id in windows_manage_stig_skip_rules else ('Service not installed' if not current_state_info.exists else '')),
           'check_mode': ansible_check_mode
-        }) | list) }}
+        })
+      ] }}
   vars:
-    all_services: "{{ (windows_manage_stig_system_services.critical_disable + windows_manage_stig_system_services.standard_disable + windows_manage_stig_system_services.essential_enable
-      + windows_manage_stig_system_services.conditional) }}"
-    current_state_info: "{{ (windows_manage_stig_services_current.results | selectattr('item.name', 'equalto', item.name) | first).services[item.name] | default({'exists':
-      false, 'state': 'unknown', 'start_mode': 'unknown'}) }}"
-    task_changed: false # Will be updated by actual task results
-    item: "{{ service }}"
-  loop: "{{ all_services }}"
+    current_state_info: "{{ (windows_manage_stig_services_current.results | selectattr('item.stig_id', 'equalto', service.stig_id) | list | first).services[service.name] | default({'exists': false, 'state': 'unknown', 'start_mode': 'unknown'}) }}"
+  loop: "{{ (windows_manage_stig_system_services.critical_disable + windows_manage_stig_system_services.standard_disable + windows_manage_stig_system_services.essential_enable + windows_manage_stig_system_services.conditional) }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or service.stig_id in windows_manage_stig_only_rules
   loop_control:
     loop_var: service
-    extended: true
   tags:
     - system_services
     - compliance
