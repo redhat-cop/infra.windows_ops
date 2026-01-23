@@ -379,6 +379,8 @@
     name: "{{ item.name }}"
   register: windows_manage_stig_security_registry_current
   loop: "{{ windows_manage_stig_security_options | dict2items | map(attribute='value') | flatten | selectattr('path', 'defined') }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
   check_mode: false
   tags:
     - security_options
@@ -434,19 +436,26 @@
 
 - name: STIG Security Options | AUDIT | Record compliance results
   ansible.builtin.set_fact:
-    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + (all_security_options | map('combine', {'rule_section': 'Security Options', 'scored':
-      true, 'current_value': (('Registry: ' + (registry_results[loop.index0].value | default('Not Configured') | string)) if item.path is defined else 'Policy: Applied'),
-      'expected_value': item.description, 'status': ('PASS' if ((item.path is defined and registry_results[loop.index0].value | default('') | string == item.data
-      | string) or (item.method is defined)) else 'FAIL'), 'changed': false, 'skip_reason': 'User configured skip' if item.stig_id in windows_manage_stig_skip_rules
-      else '', 'check_mode': ansible_check_mode}) | list) }}"
+    windows_manage_stig_results: >-
+      {{ windows_manage_stig_results | default([]) + [
+        security_option | combine({
+          'rule_section': 'Security Options',
+          'scored': true,
+          'current_value': (('Registry: ' + (current_reg_value | string)) if security_option.path is defined else 'Policy: Applied'),
+          'expected_value': security_option.description,
+          'status': ('PASS' if ((security_option.path is defined and current_reg_value | string == security_option.data | string) or (security_option.method is defined)) else 'FAIL'),
+          'changed': false,
+          'skip_reason': ('User configured skip' if security_option.stig_id in windows_manage_stig_skip_rules else ''),
+          'check_mode': ansible_check_mode
+        })
+      ] }}
   vars:
-    all_security_options: "{{ windows_manage_stig_security_options | dict2items | map(attribute='value') | flatten }}"
-    registry_results: "{{ windows_manage_stig_security_registry_current.results | default([]) }}"
-    item: "{{ security_option }}"
-  loop: "{{ all_security_options }}"
+    current_reg_value: "{{ (windows_manage_stig_security_registry_current.results | default([]) | selectattr('item.stig_id', 'equalto', security_option.stig_id) | list | first).value | default('Not Configured') }}"
+  loop: "{{ windows_manage_stig_security_options | dict2items | map(attribute='value') | flatten }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or security_option.stig_id in windows_manage_stig_only_rules
   loop_control:
     loop_var: security_option
-    extended: true
   tags:
     - security_options
     - compliance

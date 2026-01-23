@@ -484,6 +484,8 @@
     name: "{{ item.name }}"
   register: windows_manage_stig_registry_current
   loop: "{{ windows_manage_stig_registry_settings }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
   check_mode: false
   tags:
     - registry_settings
@@ -515,22 +517,26 @@
 - name: STIG Registry Settings | AUDIT | Record compliance results
   ansible.builtin.set_fact:
     windows_manage_stig_results: >-
-      {{ windows_manage_stig_results | default([]) + (windows_manage_stig_registry_settings | map('combine', {
-        'rule_section': 'Registry Settings',
-        'scored': true,
-        'current_value': windows_manage_stig_registry_current.results[ansible_loop.index0].value | default('Not Configured'),
-        'expected_value': item.description,
-        'status': 'PASS' if (windows_manage_stig_registry_current.results[ansible_loop.index0].value | default('') | string == item.data | string) else 'FAIL',
-        'changed': (windows_manage_stig_registry_results.results | selectattr('item.stig_id', 'equalto', item.stig_id) | list | first).changed | default(false),
-        'skip_reason': 'User configured skip' if item.stig_id in windows_manage_stig_skip_rules else '',
-        'check_mode': ansible_check_mode
-      }) | list) }}
+      {{ windows_manage_stig_results | default([]) + [
+        registry_setting | combine({
+          'rule_section': 'Registry Settings',
+          'scored': true,
+          'current_value': current_value,
+          'expected_value': registry_setting.description,
+          'status': ('PASS' if (current_value | string == registry_setting.data | string) else 'FAIL'),
+          'changed': changed_status,
+          'skip_reason': ('User configured skip' if registry_setting.stig_id in windows_manage_stig_skip_rules else ''),
+          'check_mode': ansible_check_mode
+        })
+      ] }}
   vars:
-    item: "{{ registry_setting }}"
+    current_value: "{{ (windows_manage_stig_registry_current.results | selectattr('item.stig_id', 'equalto', registry_setting.stig_id) | list | first).value | default('Not Configured') }}"
+    changed_status: "{{ (windows_manage_stig_registry_results.results | selectattr('item.stig_id', 'equalto', registry_setting.stig_id) | list | first).changed | default(false) }}"
   loop: "{{ windows_manage_stig_registry_settings }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or registry_setting.stig_id in windows_manage_stig_only_rules
   loop_control:
     loop_var: registry_setting
-    extended: true
   tags:
     - registry_settings
     - compliance
