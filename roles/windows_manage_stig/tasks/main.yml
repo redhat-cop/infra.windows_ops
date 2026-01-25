@@ -54,7 +54,6 @@
   ansible.builtin.include_tasks: account_policies.yml
   when:
     - "'account_policies' in windows_manage_stig_categories"
-    - windows_manage_stig_only_rules | length == 0 or (windows_manage_stig_only_rules | select('match', '^V-25424[0-6]$') | list | length > 0)
   tags:
     - stig_v254240_v254246
     - account_policies
@@ -64,7 +63,6 @@
   ansible.builtin.include_tasks: audit_policies.yml
   when:
     - "'audit_policies' in windows_manage_stig_categories"
-    - windows_manage_stig_only_rules | length == 0 or (windows_manage_stig_only_rules | select('match', '^V-25424[7-8].*|V-25425[0-8]$') | list | length > 0)
   tags:
     - stig_v254247_v254258
     - audit_policies
@@ -74,10 +72,6 @@
   ansible.builtin.include_tasks: user_rights_assignment.yml
   when:
     - "'user_rights' in windows_manage_stig_categories"
-    - >-
-      windows_manage_stig_only_rules | length == 0 or
-      (windows_manage_stig_only_rules | select('match', '^V-25445[1-9].*|V-254[4-5][0-9][0-9]$') |
-      list | length > 0)
   tags:
     - stig_v254451_v254500
     - user_rights
@@ -87,10 +81,6 @@
   ansible.builtin.include_tasks: security_options.yml
   when:
     - "'security_options' in windows_manage_stig_categories"
-    - >-
-      windows_manage_stig_only_rules | length == 0 or
-      (windows_manage_stig_only_rules | select('match', '^V-25425[9].*|V-254[2-3][0-9][0-9]$') |
-      list | length > 0)
   tags:
     - stig_v254259_v254350
     - security_options
@@ -100,10 +90,6 @@
   ansible.builtin.include_tasks: registry_settings.yml
   when:
     - "'registry_settings' in windows_manage_stig_categories"
-    - >-
-      windows_manage_stig_only_rules | length == 0 or
-      (windows_manage_stig_only_rules | select('match', '^V-25435[1-9].*|V-254[3-4][0-9][0-9]$') |
-      list | length > 0)
   tags:
     - stig_v254351_v254400
     - registry_settings
@@ -113,10 +99,6 @@
   ansible.builtin.include_tasks: system_services.yml
   when:
     - "'system_services' in windows_manage_stig_categories"
-    - >-
-      windows_manage_stig_only_rules | length == 0 or
-      (windows_manage_stig_only_rules | select('match', '^V-25440[1-9].*|V-254[4][0-9][0-9]$') |
-      list | length > 0)
   tags:
     - stig_v254401_v254450
     - system_services
