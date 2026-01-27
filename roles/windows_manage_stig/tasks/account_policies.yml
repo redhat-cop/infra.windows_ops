@@ -77,6 +77,42 @@
         value: "{{ windows_manage_stig_reset_account_lockout_counter }}"
         category: account_lockout
         severity: CAT II
+      # V2R7 NEW RULES (V-254288 to V-254293)
+      - stig_id: V-254288
+        title: Password history must be configured to 24 passwords remembered
+        section: System Access
+        key: PasswordHistorySize
+        value: "24"
+        category: password_policies
+        severity: CAT II
+      - stig_id: V-254289
+        title: Maximum password age must be configured to 60 days or less
+        section: System Access
+        key: MaximumPasswordAge
+        value: "60"
+        category: password_policies
+        severity: CAT II
+      - stig_id: V-254291
+        title: Minimum password length must be configured to 14 characters
+        section: System Access
+        key: MinimumPasswordLength
+        value: "14"
+        category: password_policies
+        severity: CAT II
+      - stig_id: V-254292
+        title: Password complexity policy must be enabled
+        section: System Access
+        key: PasswordComplexity
+        value: "1"
+        category: password_policies
+        severity: CAT II
+      - stig_id: V-254293
+        title: Reversible password encryption must be disabled
+        section: System Access
+        key: ClearTextPassword
+        value: "0"
+        category: password_policies
+        severity: CAT I
   tags:
     - account_policies
     - setup
@@ -121,19 +157,25 @@
 
 - name: STIG Account Policies | AUDIT | Record compliance results
   ansible.builtin.set_fact:
-    windows_manage_stig_results: >-
-      {{ windows_manage_stig_results | default([]) + (windows_manage_stig_account_policies | map('combine', {
-        'rule_section': 'Account Policies',
-        'scored': true,
-        'current_value': windows_manage_stig_account_current.results[ansible_loop.index0].value | default('Not Configured'),
-        'expected_value': item.value,
-        'status': 'PASS' if (windows_manage_stig_account_current.results[ansible_loop.index0].value | string == item.value | string) else 'FAIL',
-        'changed': (windows_manage_stig_account_results.results | selectattr('item.stig_id', 'equalto', item.stig_id) | list | first).changed | default(false),
-        'skip_reason': 'User configured skip' if item.stig_id in windows_manage_stig_skip_rules else '',
-        'check_mode': ansible_check_mode
-      }) | list) }}
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [current_result] }}"
   vars:
-    item: "{{ account_policy }}"
+    current_account_value: "{{ windows_manage_stig_account_current.results[ansible_loop.index0].value | default('Not Configured') }}"
+    current_result:
+      stig_id: "{{ account_policy.stig_id }}"
+      title: "{{ account_policy.title }}"
+      section: "{{ account_policy.section }}"
+      key: "{{ account_policy.key }}"
+      value: "{{ account_policy.value }}"
+      category: "{{ account_policy.category }}"
+      severity: "{{ account_policy.severity }}"
+      rule_section: Account Policies
+      scored: true
+      current_value: "{{ current_account_value }}"
+      expected_value: "{{ account_policy.value }}"
+      status: "{{ 'PASS' if (current_account_value | string == account_policy.value | string) else 'FAIL' }}"
+      changed: "{{ windows_manage_stig_account_results.results[ansible_loop.index0].changed | default(false) }}"
+      skip_reason: "{{ 'User configured skip' if account_policy.stig_id in windows_manage_stig_skip_rules else '' }}"
+      check_mode: "{{ ansible_check_mode }}"
   loop: "{{ windows_manage_stig_account_policies }}"
   loop_control:
     loop_var: account_policy
@@ -150,7 +192,7 @@
   ansible.builtin.debug:
     msg:
       - ==========================================
-      - STIG Account Policies Summary (MODERNIZED)
+      - STIG Account Policies Summary
       - ==========================================
       - >-
         Password Policy Controls:
@@ -160,10 +202,6 @@
         Account Lockout Controls:
         {{ (windows_manage_stig_account_policies |
         selectattr('category', 'equalto', 'account_lockout') | list | length) }} configured
-      - ""
-      - "PERFORMANCE: 78% task reduction with native modules"
-      - "RELIABILITY: Eliminated shell command dependencies"
-      - "COMPLIANCE: Full STIG V-254238 through V-254246 coverage"
       - ==========================================
       - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
       - ==========================================
