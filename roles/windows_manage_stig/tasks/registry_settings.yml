@@ -1,6 +1,6 @@
 ---
 # =============================================================================
-# DISA STIG V-254351 through V-254400 - Registry Settings (CONSOLIDATED)
+# DISA STIG V-254351 through V-254400 - Registry Settings
 # Windows Registry Security Controls for Enhanced Protection
 # Enterprise Implementation using data-driven approach
 # =============================================================================
@@ -470,6 +470,154 @@
         category: privacy_controls
         severity: CAT II
         description: Disabled
+      # V2R7 NEW RULES - WN22-CC (V-254333 to V-254349)
+      - stig_id: V-254333
+        title: Prevent display of slide shows on lock screen
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization
+        name: NoLockScreenSlideshow
+        data: 1
+        type: dword
+        category: ui_controls
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-254334
+        title: Disable WDigest Authentication
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\Wdigest
+        name: UseLogonCredential
+        data: 0
+        type: dword
+        category: authentication
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-254335
+        title: Configure IPv6 source routing protection
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters
+        name: DisableIPSourceRouting
+        data: 2
+        type: dword
+        category: network_security
+        severity: CAT III
+        description: Highest protection
+      - stig_id: V-254336
+        title: Configure IP source routing protection
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+        name: DisableIPSourceRouting
+        data: 2
+        type: dword
+        category: network_security
+        severity: CAT III
+        description: Highest protection
+      - stig_id: V-254337
+        title: Prevent ICMP redirects
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+        name: EnableICMPRedirect
+        data: 0
+        type: dword
+        category: network_security
+        severity: CAT III
+        description: Disabled
+      - stig_id: V-254338
+        title: Ignore NetBIOS name release requests
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Netbt\Parameters
+        name: NoNameReleaseOnDemand
+        data: 1
+        type: dword
+        category: network_security
+        severity: CAT III
+        description: Enabled
+      - stig_id: V-254339
+        title: Disable insecure logons to SMB server
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\LanmanWorkstation
+        name: AllowInsecureGuestAuth
+        data: 0
+        type: dword
+        category: network_security
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-254343
+        title: Enable virtualization-based security
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard
+        name: EnableVirtualizationBasedSecurity
+        data: 1
+        type: dword
+        category: device_guard
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-254344
+        title: Configure Early Launch Antimalware driver policy
+        path: HKLM:\SYSTEM\CurrentControlSet\Policies\EarlyLaunch
+        name: DriverLoadPolicy
+        data: 1
+        type: dword
+        category: device_guard
+        severity: CAT II
+        description: Good only
+      - stig_id: V-254345
+        title: Reprocess group policy objects
+        path: 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Group Policy\{35378EAC-683F-11D2-A89A-00C04FBBCFA2}'
+        name: NoGPOListChanges
+        data: 0
+        type: dword
+        category: group_policy
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-254346
+        title: Disable downloading print driver packages over HTTP
+        path: 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Printers'
+        name: DisableWebPnPDownload
+        data: 1
+        type: dword
+        category: printing
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-254347
+        title: Disable printing over HTTP
+        path: 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Printers'
+        name: DisableHTTPPrinting
+        data: 1
+        type: dword
+        category: printing
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-254348
+        title: Do not display network selection UI
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\System
+        name: DontDisplayNetworkSelectionUI
+        data: 1
+        type: dword
+        category: ui_controls
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-254349
+        title: Prompt for authentication when system wakes from sleep
+        path: 'HKLM:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\0e796bdb-100d-47d6-a2d5-f7d2daa51f51'
+        name: DCSettingIndex
+        data: 1
+        type: dword
+        category: power_management
+        severity: CAT II
+        description: Enabled
+      # V2R7 NEW RULES - WN22-DC Domain Controller (V-271426 to V-271427)
+      - stig_id: V-271426
+        title: Configure strong certificate binding enforcement for DCs
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Kdc
+        name: StrongCertificateBindingEnforcement
+        data: 1
+        type: dword
+        category: domain_controller
+        severity: CAT II
+        description: Enabled (DC only)
+        dc_only: true
+      - stig_id: V-271427
+        title: Allow name-based strong mappings for certificates
+        path: 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System\KDC'
+        name: UseSubjectAltName
+        data: 1
+        type: dword
+        category: domain_controller
+        severity: CAT II
+        description: Enabled (DC only)
+        dc_only: true
   tags:
     - registry_settings
     - setup
@@ -514,19 +662,28 @@
 
 - name: STIG Registry Settings | AUDIT | Record compliance results
   ansible.builtin.set_fact:
-    windows_manage_stig_results: >-
-      {{ windows_manage_stig_results | default([]) + (windows_manage_stig_registry_settings | map('combine', {
-        'rule_section': 'Registry Settings',
-        'scored': true,
-        'current_value': windows_manage_stig_registry_current.results[ansible_loop.index0].value | default('Not Configured'),
-        'expected_value': item.description,
-        'status': 'PASS' if (windows_manage_stig_registry_current.results[ansible_loop.index0].value | default('') | string == item.data | string) else 'FAIL',
-        'changed': (windows_manage_stig_registry_results.results | selectattr('item.stig_id', 'equalto', item.stig_id) | list | first).changed | default(false),
-        'skip_reason': 'User configured skip' if item.stig_id in windows_manage_stig_skip_rules else '',
-        'check_mode': ansible_check_mode
-      }) | list) }}
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [current_result] }}"
   vars:
-    item: "{{ registry_setting }}"
+    current_registry_value: "{{ windows_manage_stig_registry_current.results[ansible_loop.index0].value | default('Not Configured') }}"
+    current_result:
+      stig_id: "{{ registry_setting.stig_id }}"
+      title: "{{ registry_setting.title }}"
+      path: "{{ registry_setting.path }}"
+      name: "{{ registry_setting.name }}"
+      data: "{{ registry_setting.data }}"
+      type: "{{ registry_setting.type }}"
+      category: "{{ registry_setting.category }}"
+      severity: "{{ registry_setting.severity }}"
+      description: "{{ registry_setting.description }}"
+      dc_only: "{{ registry_setting.dc_only | default(false) }}"
+      rule_section: Registry Settings
+      scored: true
+      current_value: "{{ current_registry_value }}"
+      expected_value: "{{ registry_setting.description }}"
+      status: "{{ 'PASS' if (current_registry_value | default('') | string == registry_setting.data | string) else 'FAIL' }}"
+      changed: "{{ windows_manage_stig_registry_results.results[ansible_loop.index0].changed | default(false) }}"
+      skip_reason: "{{ 'User configured skip' if registry_setting.stig_id in windows_manage_stig_skip_rules else '' }}"
+      check_mode: "{{ ansible_check_mode }}"
   loop: "{{ windows_manage_stig_registry_settings }}"
   loop_control:
     loop_var: registry_setting
@@ -543,7 +700,7 @@
   ansible.builtin.debug:
     msg:
       - ==========================================
-      - STIG Registry Settings Summary (CONSOLIDATED)
+      - STIG Registry Settings Summary
       - ==========================================
       - "Registry Categories Configured:"
       - >-
@@ -571,11 +728,6 @@
         {{ 'COMPLIANT' if (windows_manage_stig_registry_settings |
         selectattr('category', 'equalto', 'privacy_controls') | list | length) > 0
         else 'NOT CONFIGURED' }}
-      - ""
-      - "PERFORMANCE: 92% task reduction with modernized architecture"
-      - "RELIABILITY: Eliminated broken changed_when: true patterns"
-      - "IDEMPOTENCY: True audit-then-remediate implementation"
-      - "COMPLIANCE: Complete STIG V-254351 through V-254400 coverage"
       - ==========================================
       - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
       - ==========================================
