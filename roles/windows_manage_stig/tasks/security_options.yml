@@ -1,6 +1,6 @@
 ---
 # =============================================================================
-# DISA STIG V-254259 through V-254350 - Security Options (CONSOLIDATED)
+# DISA STIG V-254259 through V-254350 - Security Options
 # Core Security Policy Settings for Government Compliance
 # Enterprise Implementation using data-driven approach with proper idempotency
 # =============================================================================
@@ -434,15 +434,29 @@
 
 - name: STIG Security Options | AUDIT | Record compliance results
   ansible.builtin.set_fact:
-    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + (all_security_options | map('combine', {'rule_section': 'Security Options', 'scored':
-      true, 'current_value': (('Registry: ' + (registry_results[loop.index0].value | default('Not Configured') | string)) if item.path is defined else 'Policy: Applied'),
-      'expected_value': item.description, 'status': ('PASS' if ((item.path is defined and registry_results[loop.index0].value | default('') | string == item.data
-      | string) or (item.method is defined)) else 'FAIL'), 'changed': false, 'skip_reason': 'User configured skip' if item.stig_id in windows_manage_stig_skip_rules
-      else '', 'check_mode': ansible_check_mode}) | list) }}"
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [current_result] }}"
   vars:
     all_security_options: "{{ windows_manage_stig_security_options | dict2items | map(attribute='value') | flatten }}"
     registry_results: "{{ windows_manage_stig_security_registry_current.results | default([]) }}"
-    item: "{{ security_option }}"
+    current_registry_value: "{{ registry_results[ansible_loop.index0].value | default('Not Configured') }}"
+    current_result:
+      stig_id: "{{ security_option.stig_id }}"
+      title: "{{ security_option.title }}"
+      path: "{{ security_option.path | default('') }}"
+      name: "{{ security_option.name | default('') }}"
+      data: "{{ security_option.data | default('') }}"
+      type: "{{ security_option.type | default('') }}"
+      severity: "{{ security_option.severity }}"
+      description: "{{ security_option.description }}"
+      method: "{{ security_option.method | default('') }}"
+      rule_section: Security Options
+      scored: true
+      current_value: "{{ ('Registry: ' + (current_registry_value | string)) if security_option.path is defined else 'Policy: Applied' }}"
+      expected_value: "{{ security_option.description }}"
+      status: "{{ 'PASS' if ((security_option.path is defined and current_registry_value | default('') | string == security_option.data | string) or (security_option.method is defined)) else 'FAIL' }}"
+      changed: false
+      skip_reason: "{{ 'User configured skip' if security_option.stig_id in windows_manage_stig_skip_rules else '' }}"
+      check_mode: "{{ ansible_check_mode }}"
   loop: "{{ all_security_options }}"
   loop_control:
     loop_var: security_option
@@ -459,7 +473,7 @@
   ansible.builtin.debug:
     msg:
       - ==========================================
-      - STIG Security Options Summary (CONSOLIDATED)
+      - STIG Security Options Summary
       - ==========================================
       - "Security Categories Configured:"
       - "Interactive Logon Controls: {{ (windows_manage_stig_security_options.interactive_logon | length) }} settings"
@@ -471,11 +485,6 @@
       - "Device Access Controls: {{ (windows_manage_stig_security_options.device_controls | length) }} settings"
       - "Domain Member Settings: {{ (windows_manage_stig_security_options.domain_member | length) }} settings"
       - "Miscellaneous Security: {{ (windows_manage_stig_security_options.miscellaneous | length) }} settings"
-      - ""
-      - "PERFORMANCE: 93% task reduction with structured data approach"
-      - "RELIABILITY: Eliminated all broken idempotency patterns"
-      - "MAINTAINABILITY: Logical grouping by security function"
-      - "COMPLIANCE: Complete STIG V-254259 through V-254350 coverage"
       - ==========================================
       - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
       - ==========================================
