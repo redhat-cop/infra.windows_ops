@@ -457,6 +457,8 @@
       changed: false
       skip_reason: "{{ 'User configured skip' if security_option.stig_id in windows_manage_stig_skip_rules else '' }}"
       check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or security_option.stig_id in windows_manage_stig_only_rules
   loop: "{{ all_security_options }}"
   loop_control:
     loop_var: security_option

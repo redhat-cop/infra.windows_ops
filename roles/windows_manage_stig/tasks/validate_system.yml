@@ -296,6 +296,8 @@
           'check_mode': ansible_check_mode
         }
       ] }}
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-254283' in windows_manage_stig_only_rules or 'V-254284' in windows_manage_stig_only_rules
 
 - name: STIG | VALIDATE | Set system validation facts for DISA STIG compliance
   ansible.builtin.set_fact:

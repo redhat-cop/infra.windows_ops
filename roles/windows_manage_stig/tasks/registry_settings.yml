@@ -684,6 +684,8 @@
       changed: "{{ windows_manage_stig_registry_results.results[ansible_loop.index0].changed | default(false) }}"
       skip_reason: "{{ 'User configured skip' if registry_setting.stig_id in windows_manage_stig_skip_rules else '' }}"
       check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or registry_setting.stig_id in windows_manage_stig_only_rules
   loop: "{{ windows_manage_stig_registry_settings }}"
   loop_control:
     loop_var: registry_setting
