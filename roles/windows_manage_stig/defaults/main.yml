@@ -10,7 +10,7 @@
 
 # DISA STIG Benchmark Information
 windows_manage_stig_benchmark_name: Microsoft Windows Server 2022 Security Technical Implementation Guide
-windows_manage_stig_benchmark_version: V1R3
+windows_manage_stig_benchmark_version: V2R7
 windows_manage_stig_profile: STIG
 windows_manage_stig_classification: UNCLASSIFIED
 

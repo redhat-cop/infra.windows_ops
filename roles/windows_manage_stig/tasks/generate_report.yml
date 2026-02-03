@@ -4,6 +4,16 @@
 # Enterprise-grade audit reporting for government compliance
 # =============================================================================
 
+- name: STIG | REPORT | Ensure report directory exists
+  ansible.windows.win_file:
+    path: "{{ windows_manage_stig_report_path | regex_replace('\\\\[^\\\\]+$', '') }}"
+    state: directory
+  when:
+    - windows_manage_stig_report_format == "json" or windows_manage_stig_report_format is not defined
+    - windows_manage_stig_report_path | regex_replace('\\\\[^\\\\]+$', '') | length > 0
+  tags:
+    - reporting
+
 - name: STIG | REPORT | Generate JSON compliance report for government audit
   ansible.windows.win_copy:
     content: |

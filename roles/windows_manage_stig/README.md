@@ -1,7 +1,7 @@
 windows_manage_stig
 ===================
 
-A role to enforce DISA STIG (Security Technical Implementation Guide) Windows Server 2022 V1R3 compliance controls with automated hardening, security validation, and comprehensive audit reporting.
+A role to enforce DISA STIG (Security Technical Implementation Guide) Windows Server 2022 V2R7 compliance controls with automated hardening, security validation, and comprehensive audit reporting.
 
 Requirements
 ------------
@@ -24,7 +24,7 @@ Role Variables
 
 ### Benchmark Configuration
 
-* **windows_manage_stig_benchmark_version**: DISA STIG version. Default: **V1R3**
+* **windows_manage_stig_benchmark_version**: DISA STIG version. Default: **V2R7**
 * **windows_manage_stig_profile**: STIG compliance profile. Default: **STIG**
 * **windows_manage_stig_skip_rules**: List of STIG rule IDs to skip (e.g., ["V-254238", "V-254292"]). Default: **[]**
 * **windows_manage_stig_only_rules**: List of specific STIG rule IDs to run (empty = run all). Default: **[]**
