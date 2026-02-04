@@ -1,0 +1,93 @@
+---
+# =============================================================================
+# Full STIG Execution Test
+# Tests complete STIG role execution with all rules and V2R7 validation
+# =============================================================================
+- name: Test STIG full execution with all rules
+  block:
+    - name: Create test output directory
+      ansible.windows.win_file:
+        path: "{{ test_stig_output_dir }}"
+        state: directory
+
+    - name: Gather facts before running role
+      ansible.builtin.setup:
+
+    - name: Apply STIG hardening in check mode
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_stig
+      vars:
+        windows_manage_stig_report_path: "{{ test_stig_output_dir }}\\{{ test_stig_check_report_filename }}"
+
+    - name: Verify STIG check report was created
+      ansible.windows.win_stat:
+        path: "{{ test_stig_output_dir }}\\{{ test_stig_check_report_filename }}"
+      register: _stig_check_report
+
+    - name: Assert STIG check report exists
+      ansible.builtin.assert:
+        that:
+          - _stig_check_report.stat.exists
+          - _stig_check_report.stat.size > 0
+
+    - name: Read STIG compliance report
+      ansible.builtin.slurp:
+        src: "{{ test_stig_output_dir }}\\{{ test_stig_check_report_filename }}"
+      register: _stig_report_content
+
+    - name: Parse STIG compliance report
+      ansible.builtin.set_fact:
+        _stig_report: "{{ _stig_report_content.content | b64decode | from_json }}"
+
+    - name: Verify V2R7 benchmark version in report
+      ansible.builtin.assert:
+        that:
+          - _stig_report.version == 'V2R7'
+        fail_msg: "Expected STIG benchmark version V2R7, got {{ _stig_report.version | default('UNDEFINED') }}"
+        success_msg: "STIG benchmark version V2R7 confirmed"
+
+    - name: Verify V2R7 new rules are present in results
+      ansible.builtin.assert:
+        that:
+          - _stig_report.results | selectattr('stig_id', 'equalto', 'V-254282') | list | length > 0  # Orphaned SIDs check
+          - _stig_report.results | selectattr('stig_id', 'equalto', 'V-254283') | list | length > 0  # UEFI mode check
+          - _stig_report.results | selectattr('stig_id', 'equalto', 'V-254284') | list | length > 0  # Secure Boot check
+          - _stig_report.results | selectattr('stig_id', 'equalto', 'V-254294') | list | length > 0  # Audit log backup check
+          - _stig_report.results | selectattr('stig_id', 'equalto', 'V-254333') | list | length > 0  # Lock screen slideshow (WN22-CC)
+          - _stig_report.results | selectattr('stig_id', 'equalto', 'V-254491') | list | length > 0  # New user rights (V2R7)
+          - _stig_report.results | selectattr('stig_id', 'equalto', 'V-271426') | list | length > 0  # DC cert auth (V2R7)
+        fail_msg: "V2R7 new rules not found in compliance report"
+        success_msg: "V2R7 new rules confirmed in compliance report"
+
+    - name: Verify deprecated rule V-254411 is NOT present
+      ansible.builtin.assert:
+        that:
+          - _stig_report.results | selectattr('stig_id', 'equalto', 'V-254411') | list | length == 0
+        fail_msg: "Deprecated rule V-254411 still present in results"
+        success_msg: "Deprecated rule V-254411 correctly removed"
+
+    - name: Display V2R7 test summary
+      ansible.builtin.debug:
+        msg:
+          - "============================================"
+          - "STIG V2R7 Integration Test Results"
+          - "============================================"
+          - "Benchmark Version: {{ _stig_report.version }}"
+          - "Total Rules Evaluated: {{ _stig_report.results | length }}"
+          - "Compliance Score: {{ _stig_report.compliance_score | default(0) }}%"
+          - "UEFI Mode: {{ (_stig_report.results | selectattr('stig_id', 'equalto', 'V-254283') | list | first).current_value | default('Not checked') }}"
+          - "Secure Boot: {{ (_stig_report.results | selectattr('stig_id', 'equalto', 'V-254284') | list | first).current_value | default('Not checked') }}"
+          - "Orphaned SIDs: {{ (_stig_report.results | selectattr('stig_id', 'equalto', 'V-254282') | list | first).current_value | default('Not checked') }}"
+          - "Log Backup: {{ (_stig_report.results | selectattr('stig_id', 'equalto', 'V-254294') | list | first).current_value | default('Not checked') }}"
+          - "============================================"
+          - "V2R7 upgrade validation: PASSED"
+          - "============================================"
+
+    - name: Display test completion message
+      ansible.builtin.debug:
+        msg: "STIG full execution test completed successfully"
+
+  rescue:
+    - name: Fail the test
+      ansible.builtin.fail:
+        msg: "STIG full execution test failed"

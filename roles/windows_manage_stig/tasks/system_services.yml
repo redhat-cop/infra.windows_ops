@@ -527,6 +527,8 @@
       changed: false
       skip_reason: "{{ 'User configured skip' if service.stig_id in windows_manage_stig_skip_rules else ('Service not installed' if not current_state_info.exists else '') }}"
       check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or service.stig_id in windows_manage_stig_only_rules
   loop: "{{ all_services }}"
   loop_control:
     loop_var: service
