@@ -5,3 +5,6 @@ infra-windows_ops-*.tar.gz
 generate_inventory
 inventory.winrm
 inventory.winrm.tpl
+
+# Design documents and planning
+docs/plans/
