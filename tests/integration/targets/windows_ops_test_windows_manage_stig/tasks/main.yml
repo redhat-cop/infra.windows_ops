@@ -5,13 +5,25 @@
 
 - name: Execute STIG integration tests
   block:
+    - name: Run version detection test
+      ansible.builtin.include_tasks: version_detection.yml
+
     - name: Run full STIG execution test
       ansible.builtin.include_tasks: full_execution.yml
 
     - name: Run STIG rule filtering test
       ansible.builtin.include_tasks: rule_filtering.yml
 
+    - name: Run Windows Server 2025 features test (conditional)
+      ansible.builtin.include_tasks: windows_2025.yml
+
   always:
+    - name: Final cleanup - Remove version detection test directory
+      ansible.windows.win_file:
+        path: "{{ test_stig_output_dir }}_version"
+        state: absent
+      failed_when: false
+
     - name: Final cleanup - Remove full execution test directory
       ansible.windows.win_file:
         path: "{{ test_stig_output_dir }}"
@@ -21,5 +33,11 @@
     - name: Final cleanup - Remove filtering test directory
       ansible.windows.win_file:
         path: "{{ test_stig_filtered_output_dir }}"
+        state: absent
+      failed_when: false
+
+    - name: Final cleanup - Remove 2025 features test directory
+      ansible.windows.win_file:
+        path: "{{ test_stig_output_dir }}_2025"
         state: absent
       failed_when: false

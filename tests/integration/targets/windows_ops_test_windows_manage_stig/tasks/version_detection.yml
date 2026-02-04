@@ -1,0 +1,171 @@
+---
+# =============================================================================
+# Version Detection Test
+# Tests version detection for Windows Server 2019, 2022, and 2025
+# Validates ProductName and build number detection fallback
+# =============================================================================
+- name: Test version detection across Windows Server versions
+  block:
+    - name: Create test output directory for version detection
+      ansible.windows.win_file:
+        path: "{{ test_stig_output_dir }}_version"
+        state: directory
+
+    - name: Gather Windows system information
+      ansible.windows.win_powershell:
+        script: |
+          $osInfo = Get-ComputerInfo -Property WindowsProductName, WindowsVersion, OsHardwareAbstractionLayer
+          @{
+            'ProductName' = $osInfo.WindowsProductName
+            'Version' = $osInfo.WindowsVersion
+            'BuildNumber' = $osInfo.OsHardwareAbstractionLayer
+          } | ConvertTo-Json
+      register: _version_system_info
+
+    - name: Parse system information
+      ansible.builtin.set_fact:
+        _version_info: "{{ _version_system_info.output[0] | from_json }}"
+
+    - name: Display detected Windows version
+      ansible.builtin.debug:
+        msg:
+          - "============================================"
+          - "System Version Information"
+          - "============================================"
+          - "ProductName: {{ _version_info.ProductName }}"
+          - "Version: {{ _version_info.Version }}"
+          - "Build Number: {{ _version_info.BuildNumber }}"
+          - "============================================"
+
+    - name: Run STIG role to trigger version detection
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_stig
+      vars:
+        windows_manage_stig_report_path: "{{ test_stig_output_dir }}_version\\version_detection_report.json"
+        windows_manage_stig_categories: ['account_policies']  # Run minimal set for fast testing
+
+    - name: Read version detection report
+      ansible.builtin.slurp:
+        src: "{{ test_stig_output_dir }}_version\\version_detection_report.json"
+      register: _version_report_content
+
+    - name: Parse version detection report
+      ansible.builtin.set_fact:
+        _version_report: "{{ _version_report_content.content | b64decode | from_json }}"
+
+    - name: Verify version was detected correctly
+      ansible.builtin.assert:
+        that:
+          - _version_report.detected_version is defined
+          - _version_report.detected_version in ['2019', '2022', '2025']
+        fail_msg: "Version detection failed. Expected 2019/2022/2025, got {{ _version_report.detected_version | default('UNDEFINED') }}"
+        success_msg: "Version detection successful: {{ _version_report.detected_version }}"
+
+    - name: Verify ProductName detection method
+      ansible.builtin.set_fact:
+        _product_name_contains_version: >-
+          {{ '2019' in _version_info.ProductName or
+             '2022' in _version_info.ProductName or
+             '2025' in _version_info.ProductName }}
+
+    - name: Verify build number detection (if ProductName doesn't contain version)
+      when: not (_product_name_contains_version | bool)
+      block:
+        - name: Check if version was detected via build number
+          ansible.builtin.assert:
+            that:
+              - _version_report.detected_version is defined
+              - |
+                (_version_info.Version is search('10.0.17763') and _version_report.detected_version == '2019') or
+                (_version_info.Version is search('10.0.20348') and _version_report.detected_version == '2022') or
+                (_version_info.Version is search('10.0.26\d{3}') and _version_report.detected_version == '2025')
+            fail_msg: "Build number detection failed"
+            success_msg: "Build number detection successful (fallback method)"
+
+    - name: Verify benchmark version mapping
+      ansible.builtin.assert:
+        that:
+          - _version_report.benchmark_version is defined
+          - |
+            (_version_report.detected_version == '2019' and _version_report.benchmark_version == 'v3r7') or
+            (_version_report.detected_version == '2022' and _version_report.benchmark_version == 'v2r7') or
+            (_version_report.detected_version == '2025' and _version_report.benchmark_version == 'v1r1')
+        fail_msg: "Benchmark version mapping incorrect for {{ _version_report.detected_version }}"
+        success_msg: "Benchmark version correctly mapped: {{ _version_report.benchmark_version }}"
+
+    - name: Verify version-specific feature flags
+      ansible.builtin.assert:
+        that:
+          - _version_report.version_features is defined
+          - _version_report.version_features.has_native_laps is defined
+          - _version_report.version_features.smb_signing_default_enabled is defined
+        fail_msg: "Version-specific feature flags not loaded"
+        success_msg: "Version-specific feature flags loaded correctly"
+
+    - name: Verify 2019-specific features (if 2019 detected)
+      when: _version_report.detected_version == '2019'
+      ansible.builtin.assert:
+        that:
+          - not (_version_report.version_features.has_native_laps | bool)
+          - not (_version_report.version_features.has_dns_over_https | bool)
+          - not (_version_report.version_features.has_hotpatching | bool)
+          - not (_version_report.version_features.smb_signing_default_enabled | bool)
+        fail_msg: "2019 feature flags incorrect"
+        success_msg: "2019 feature flags validated"
+
+    - name: Verify 2022-specific features (if 2022 detected)
+      when: _version_report.detected_version == '2022'
+      ansible.builtin.assert:
+        that:
+          - _version_report.version_features.has_native_laps | bool
+          - _version_report.version_features.has_dns_over_https | bool
+          - not (_version_report.version_features.has_hotpatching | bool)
+          - not (_version_report.version_features.smb_signing_default_enabled | bool)
+        fail_msg: "2022 feature flags incorrect"
+        success_msg: "2022 feature flags validated"
+
+    - name: Verify 2025-specific features (if 2025 detected)
+      when: _version_report.detected_version == '2025'
+      ansible.builtin.assert:
+        that:
+          - _version_report.version_features.has_native_laps | bool
+          - _version_report.version_features.has_dns_over_https | bool
+          - _version_report.version_features.has_hotpatching | bool
+          - _version_report.version_features.has_nextgen_credential_guard | bool
+          - _version_report.version_features.smb_signing_default_enabled | bool
+          - _version_report.version_features.has_ad_32k_pages | bool
+        fail_msg: "2025 feature flags incorrect"
+        success_msg: "2025 feature flags validated"
+
+    - name: Display version detection test summary
+      ansible.builtin.debug:
+        msg:
+          - "============================================"
+          - "Version Detection Test Results"
+          - "============================================"
+          - "Detected Version: {{ _version_report.detected_version }}"
+          - "Benchmark Version: {{ _version_report.benchmark_version }}"
+          - "Detection Method: {{ 'ProductName' if (_product_name_contains_version | bool) else 'Build Number (Fallback)' }}"
+          - "Native LAPS: {{ _version_report.version_features.has_native_laps }}"
+          - "DNS-over-HTTPS: {{ _version_report.version_features.has_dns_over_https }}"
+          - "Hotpatching: {{ _version_report.version_features.has_hotpatching | default(false) }}"
+          - "SMB Signing Default: {{ _version_report.version_features.smb_signing_default_enabled }}"
+          - "============================================"
+          - "Version detection validation: PASSED"
+          - "============================================"
+
+    - name: Display test completion message
+      ansible.builtin.debug:
+        msg: "Version detection test completed successfully"
+
+  rescue:
+    - name: Fail the test
+      ansible.builtin.fail:
+        msg: "Version detection test failed"
+
+  always:
+    - name: Cleanup version detection test directory
+      ansible.windows.win_file:
+        path: "{{ test_stig_output_dir }}_version"
+        state: absent
+      failed_when: false

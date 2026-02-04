@@ -1,0 +1,207 @@
+---
+# =============================================================================
+# Windows Server 2025 Features Test
+# Tests 2025-specific features and 2022+ features on 2025
+# Only runs when detected_version == 2025
+# =============================================================================
+- name: Test Windows Server 2025-specific features
+  block:
+    - name: Create test output directory for 2025 features
+      ansible.windows.win_file:
+        path: "{{ test_stig_output_dir }}_2025"
+        state: directory
+
+    - name: Check if running on Windows Server 2025
+      ansible.windows.win_powershell:
+        script: |
+          $osInfo = Get-ComputerInfo -Property WindowsProductName, WindowsVersion
+          $is2025 = $osInfo.WindowsProductName -match '2025' -or $osInfo.WindowsVersion -match '10.0.26\d{3}'
+          @{ 'is_2025' = $is2025 } | ConvertTo-Json
+      register: _2025_check
+
+    - name: Parse 2025 check result
+      ansible.builtin.set_fact:
+        _is_windows_2025: "{{ (_2025_check.output[0] | from_json).is_2025 }}"
+
+    - name: Skip test if not Windows Server 2025
+      when: not (_is_windows_2025 | bool)
+      block:
+        - name: Display skip message
+          ansible.builtin.debug:
+            msg:
+              - "============================================"
+              - "Skipping Windows 2025 Feature Tests"
+              - "============================================"
+              - "Current system is not Windows Server 2025"
+              - "This test requires Windows Server 2025"
+              - "============================================"
+
+        - name: End test early
+          ansible.builtin.meta: end_host
+
+    - name: Run STIG role with 2025 features enabled
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_stig
+      vars:
+        windows_manage_stig_report_path: "{{ test_stig_output_dir }}_2025\\windows_2025_report.json"
+        windows_manage_stig_categories:
+          - account_policies
+          - security_options
+        windows_manage_stig_hotpatching_enabled: true
+        windows_manage_stig_credential_guard_enabled: true
+
+    - name: Read 2025 features report
+      ansible.builtin.slurp:
+        src: "{{ test_stig_output_dir }}_2025\\windows_2025_report.json"
+      register: _2025_report_content
+
+    - name: Parse 2025 features report
+      ansible.builtin.set_fact:
+        _2025_report: "{{ _2025_report_content.content | b64decode | from_json }}"
+
+    - name: Verify 2025 version detection
+      ansible.builtin.assert:
+        that:
+          - _2025_report.detected_version == '2025'
+          - _2025_report.benchmark_version == 'v1r1'
+        fail_msg: "2025 version detection failed"
+        success_msg: "2025 version correctly detected"
+
+    - name: Verify 2025-specific feature flags
+      ansible.builtin.assert:
+        that:
+          - _2025_report.version_features.has_native_laps | bool
+          - _2025_report.version_features.has_dns_over_https | bool
+          - _2025_report.version_features.has_smb_over_quic | bool
+          - _2025_report.version_features.has_hotpatching | bool
+          - _2025_report.version_features.has_nextgen_credential_guard | bool
+          - _2025_report.version_features.smb_signing_default_enabled | bool
+          - _2025_report.version_features.has_tls_13_default | bool
+          - _2025_report.version_features.has_ad_32k_pages | bool
+        fail_msg: "2025 feature flags not set correctly"
+        success_msg: "2025 feature flags validated"
+
+    - name: Verify 2022+ features are present (DNS-over-HTTPS, TLS 1.3)
+      ansible.builtin.assert:
+        that:
+          - _2025_report.results | selectattr('stig_id', 'equalto', 'V-DNS-HTTPS') | list | length > 0
+          - _2025_report.results | selectattr('stig_id', 'equalto', 'V-TLS-13') | list | length > 0
+        fail_msg: "2022+ features (DNS-over-HTTPS, TLS 1.3) not found in 2025 results"
+        success_msg: "2022+ features confirmed in 2025 execution"
+
+    - name: Verify 2025-only features are present (Hotpatching, Credential Guard, AD 32k)
+      ansible.builtin.assert:
+        that:
+          - _2025_report.results | selectattr('stig_id', 'equalto', 'V-254501') | list | length > 0  # Hotpatching
+          - _2025_report.results | selectattr('stig_id', 'equalto', 'V-254502') | list | length > 0  # Credential Guard
+          - _2025_report.results | selectattr('stig_id', 'equalto', 'V-254503') | list | length > 0  # AD 32k
+        fail_msg: "2025-only features (V-254501, V-254502, V-254503) not found in results"
+        success_msg: "2025-only features confirmed in execution"
+
+    - name: Extract 2025 feature results
+      ansible.builtin.set_fact:
+        _hotpatch_result: "{{ _2025_report.results | selectattr('stig_id', 'equalto', 'V-254501') | list | first }}"
+        _credguard_result: "{{ _2025_report.results | selectattr('stig_id', 'equalto', 'V-254502') | list | first }}"
+        _ad32k_result: "{{ _2025_report.results | selectattr('stig_id', 'equalto', 'V-254503') | list | first }}"
+        _doh_result: "{{ _2025_report.results | selectattr('stig_id', 'equalto', 'V-DNS-HTTPS') | list | first }}"
+        _tls13_result: "{{ _2025_report.results | selectattr('stig_id', 'equalto', 'V-TLS-13') | list | first }}"
+
+    - name: Verify Hotpatching control (V-254501)
+      ansible.builtin.assert:
+        that:
+          - _hotpatch_result.title is search('[Hh]otpatch')
+          - _hotpatch_result.applies_to_versions is defined
+          - "'2025' in _hotpatch_result.applies_to_versions"
+          - _hotpatch_result.version_specific | bool
+        fail_msg: "Hotpatching control (V-254501) validation failed"
+        success_msg: "Hotpatching control validated"
+
+    - name: Verify Next-Gen Credential Guard control (V-254502)
+      ansible.builtin.assert:
+        that:
+          - _credguard_result.title is search('[Cc]redential [Gg]uard')
+          - _credguard_result.applies_to_versions is defined
+          - "'2025' in _credguard_result.applies_to_versions"
+          - _credguard_result.version_specific | bool
+          - _credguard_result.severity == 'CAT I'
+        fail_msg: "Credential Guard control (V-254502) validation failed"
+        success_msg: "Credential Guard control validated"
+
+    - name: Verify AD 32k Pages control (V-254503)
+      ansible.builtin.assert:
+        that:
+          - _ad32k_result.title is search('32k')
+          - _ad32k_result.applies_to_versions is defined
+          - "'2025' in _ad32k_result.applies_to_versions"
+          - _ad32k_result.version_specific | bool
+        fail_msg: "AD 32k Pages control (V-254503) validation failed"
+        success_msg: "AD 32k Pages control validated"
+
+    - name: Verify DNS-over-HTTPS is available on 2025
+      ansible.builtin.assert:
+        that:
+          - _doh_result.title is search('DNS')
+          - _doh_result.applies_to_versions is defined
+          - "'2025' in _doh_result.applies_to_versions"
+        fail_msg: "DNS-over-HTTPS not properly configured for 2025"
+        success_msg: "DNS-over-HTTPS validated on 2025"
+
+    - name: Verify TLS 1.3 is default on 2025
+      ansible.builtin.assert:
+        that:
+          - _tls13_result.title is search('TLS')
+          - _tls13_result.applies_to_versions is defined
+          - "'2025' in _tls13_result.applies_to_versions"
+        fail_msg: "TLS 1.3 not properly configured for 2025"
+        success_msg: "TLS 1.3 validated on 2025"
+
+    - name: Verify SMB signing behavior on 2025 (verify-only, not enforce)
+      ansible.builtin.set_fact:
+        _smb_signing_results: "{{ _2025_report.results | selectattr('stig_id', 'equalto', 'V-SMB') | list }}"
+
+    - name: Check SMB signing control exists
+      when: _smb_signing_results | length > 0
+      ansible.builtin.assert:
+        that:
+          - _smb_signing_results | first | json_query('notes') is search('[Vv]erif|[Dd]efault') or
+            _smb_signing_results | first | json_query('current_value') is defined
+        fail_msg: "SMB signing not handled correctly for 2025"
+        success_msg: "SMB signing verified for 2025 (default enabled behavior)"
+
+    - name: Display Windows 2025 test summary
+      ansible.builtin.debug:
+        msg:
+          - "============================================"
+          - "Windows Server 2025 Features Test Results"
+          - "============================================"
+          - "Detected Version: {{ _2025_report.detected_version }}"
+          - "Benchmark Version: {{ _2025_report.benchmark_version }}"
+          - "Total Controls: {{ _2025_report.results | length }}"
+          - "2025-Only Controls Found: 3 (V-254501, V-254502, V-254503)"
+          - "2022+ Controls Found: 2+ (DNS-HTTPS, TLS-13)"
+          - ""
+          - "Feature Validation:"
+          - "  Hotpatching (V-254501): {{ _hotpatch_result.status }}"
+          - "  Credential Guard (V-254502): {{ _credguard_result.status }}"
+          - "  AD 32k Pages (V-254503): {{ _ad32k_result.status }}"
+          - "  DNS-over-HTTPS: {{ _doh_result.status }}"
+          - "  TLS 1.3: {{ _tls13_result.status }}"
+          - "============================================"
+          - "Windows 2025 features validation: PASSED"
+          - "============================================"
+
+    - name: Display test completion message
+      ansible.builtin.debug:
+        msg: "Windows Server 2025 features test completed successfully"
+
+  rescue:
+    - name: Fail the test
+      ansible.builtin.fail:
+        msg: "Windows Server 2025 features test failed"
+
+  always:
+    - name: Cleanup 2025 test directory
+      ansible.windows.win_file:
+        path: "{{ test_stig_output_dir }}_2025"
+        state: absent
+      failed_when: false
