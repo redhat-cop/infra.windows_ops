@@ -105,6 +105,30 @@
     - stig
 
 # =============================================================================
+# VERSION-SPECIFIC FEATURES (2022+ and 2025)
+# =============================================================================
+
+- name: STIG | Apply Windows Server 2022+ features (DNS-over-HTTPS, SMB over QUIC, TLS 1.3)
+  ansible.builtin.include_tasks: windows_2022_plus_features.yml
+  when:
+    - windows_manage_stig_detected_version is defined
+    - windows_manage_stig_detected_version in ['2022', '2025']
+  tags:
+    - stig_2022_plus
+    - version_specific
+    - stig
+
+- name: STIG | Apply Windows Server 2025 exclusive features (Hotpatching, Credential Guard, AD 32k)
+  ansible.builtin.include_tasks: windows_2025_features.yml
+  when:
+    - windows_manage_stig_detected_version is defined
+    - windows_manage_stig_detected_version == '2025'
+  tags:
+    - stig_2025
+    - version_specific
+    - stig
+
+# =============================================================================
 # COMPLIANCE REPORT GENERATION
 # =============================================================================
 

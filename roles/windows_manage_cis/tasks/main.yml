@@ -167,6 +167,30 @@
     - cis
 
 # =============================================================================
+# VERSION-SPECIFIC FEATURES (2022+ and 2025)
+# =============================================================================
+
+- name: CIS | Windows Server 2022+ features (DNS-over-HTTPS, TLS 1.3)
+  ansible.builtin.include_tasks: windows_2022_plus_features.yml
+  when:
+    - windows_manage_cis_detected_version is defined
+    - windows_manage_cis_detected_version in ['2022', '2025']
+  tags:
+    - cis_2022_plus
+    - version_specific
+    - cis
+
+- name: CIS | Windows Server 2025 exclusive features (Azure Arc, Zero Trust, AD 32k)
+  ansible.builtin.include_tasks: windows_2025_features.yml
+  when:
+    - windows_manage_cis_detected_version is defined
+    - windows_manage_cis_detected_version == '2025'
+  tags:
+    - cis_2025
+    - version_specific
+    - cis
+
+# =============================================================================
 # COMPLIANCE REPORTING AND VALIDATION
 # =============================================================================
 
