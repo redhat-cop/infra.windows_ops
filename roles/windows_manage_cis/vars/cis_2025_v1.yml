@@ -1,0 +1,48 @@
+---
+# =============================================================================
+# Windows Server 2025 CIS Benchmark v1.0.0 Data
+# CIS Microsoft Windows Server 2025 Benchmark
+# Release Date: February 1, 2026
+# =============================================================================
+
+# Metadata for audit trail
+cis_benchmark_metadata:
+  name: "CIS Microsoft Windows Server 2025 Benchmark"
+  version: "v1.0.0"
+  release_date: "2026-02-01"
+  level_1_controls: 165
+  level_2_controls: 45
+  total_controls: 210
+
+# Version-specific feature flags
+cis_version_features:
+  has_azure_arc_integration: true
+  has_zero_trust_features: true
+  has_advanced_ad_security: true
+  has_dns_over_https: true
+  has_smb_over_quic: true
+  smb_signing_default_enabled: true
+  has_hotpatching: true
+
+# 2025-specific new controls
+cis_2025_new_controls:
+  - control_id: "18.10.89.1"
+    title: "Configure Azure Arc security baseline"
+    level: 2
+  - control_id: "18.10.90.1"
+    title: "Enable AD 32k page support"
+    level: 2
+  - control_id: "19.7.1"
+    title: "Configure Zero Trust network access"
+    level: 2
+
+# OS-specific default values
+cis_version_defaults:
+  # SMB signing enabled by default in 2025
+  smb_signing_verification_only: true
+
+  # Azure Arc baseline configuration
+  azure_arc_baseline_enabled: false  # Requires Arc agent
+
+  # Zero Trust features (optional)
+  zero_trust_enabled: false  # Requires infrastructure

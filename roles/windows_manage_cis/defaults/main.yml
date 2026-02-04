@@ -28,8 +28,25 @@ windows_manage_cis_profile: Level 1 # Level 1, Level 2
 
 # Supported Windows versions for this benchmark
 windows_manage_cis_supported_versions:
+  - "2019"
   - "2022"
-  - "2019" # with limitations
+  - "2025"
+
+# Benchmark version mapping (auto-loaded based on detected OS)
+windows_manage_cis_benchmark_versions:
+  "2019": "v3.0.0"
+  "2022": "v3.0.0"
+  "2025": "v1.0.0"
+
+# Version-specific feature flags (overridden by var files)
+cis_version_features:
+  has_azure_arc_integration: false
+  has_zero_trust_features: false
+  has_advanced_ad_security: false
+  has_dns_over_https: false
+  has_smb_over_quic: false
+  smb_signing_default_enabled: false
+  has_hotpatching: false
 
 # =============================================================================
 # CONTROL EXECUTION OPTIONS
@@ -417,3 +434,23 @@ windows_manage_cis_enable_credential_guard: true # Enable Windows Defender Crede
 # 19.2 Security Features Configuration
 windows_manage_cis_powershell_execution_policy: RemoteSigned # Restricted, AllSigned, RemoteSigned, Unrestricted
 windows_manage_cis_powershell_enable_module_logging: true # Enable PowerShell module logging
+
+# =============================================================================
+# VERSION-SPECIFIC CONTROL TOGGLES (2025)
+# =============================================================================
+
+# Azure Arc security baseline (2025 only)
+windows_manage_cis_azure_arc_baseline_enabled: true
+windows_manage_cis_azure_arc_agent_auto_update: true
+
+# Zero Trust network access (2025 only)
+windows_manage_cis_zero_trust_network_enabled: false  # Requires infrastructure
+
+# Advanced AD security (2025 only)
+windows_manage_cis_ad_32k_pages_enabled: false  # Only for new forests
+
+# DNS-over-HTTPS (2022+ only)
+windows_manage_cis_dns_over_https_enabled: true
+
+# Hotpatching (2025 only, requires Azure Arc)
+windows_manage_cis_hotpatching_enabled: true

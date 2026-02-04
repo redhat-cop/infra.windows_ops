@@ -51,7 +51,11 @@
 - name: STIG | VALIDATE | Extract Windows Server version for STIG compatibility
   ansible.builtin.set_fact:
     windows_manage_stig_detected_version: >-
-      {%- if '2022' in windows_manage_stig_system_info.ProductName -%}
+      {%- if '2025' in windows_manage_stig_system_info.ProductName -%}
+        2025
+      {%- elif windows_manage_stig_system_info.Version | regex_search('^10\.0\.26\d{3}') -%}
+        2025
+      {%- elif '2022' in windows_manage_stig_system_info.ProductName -%}
         2022
       {%- elif '2019' in windows_manage_stig_system_info.ProductName -%}
         2019
