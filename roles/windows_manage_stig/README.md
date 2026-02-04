@@ -1,15 +1,20 @@
 windows_manage_stig
 ===================
 
-A role to enforce DISA STIG (Security Technical Implementation Guide) Windows Server 2022 V2R7 compliance controls with automated hardening, security validation, and comprehensive audit reporting.
+A role to enforce DISA STIG (Security Technical Implementation Guide) compliance controls for Windows Server with automated hardening, security validation, and comprehensive audit reporting. Supports Windows Server 2019, 2022, and 2025 with version-specific feature detection.
 
 Requirements
 ------------
 
-* Windows Server 2019 or 2022
+* Windows Server 2019, 2022, or 2025
 * PowerShell 5.1 or higher
 * Administrative privileges on target systems
 * Collection dependencies (see `galaxy.yml` and `meta/runtime.yml` for version requirements)
+
+**Supported STIG Versions:**
+* Windows Server 2019: V3R7 (276 controls)
+* Windows Server 2022: V2R7 (283 controls)
+* Windows Server 2025: V1R1 (295 controls)
 
 Role Variables
 --------------
@@ -53,6 +58,24 @@ Role Variables
 
 * **windows_manage_stig_classification**: Security classification level. Default: **Unclassified**
 * **windows_manage_stig_organization**: Organization name for audit trails. Default: **Organization Name**
+
+### Version-Specific Features
+
+The role automatically detects the Windows Server version and applies appropriate controls. Version-specific variables:
+
+**Windows Server 2019:**
+* **windows_manage_stig_laps_msi_path**: Path to LAPS MSI installer. Default: **C:\\temp\\LAPS.x64.msi**
+
+**Windows Server 2022+:**
+* **windows_manage_stig_dns_over_https_enabled**: Enable DNS-over-HTTPS. Default: **true**
+* **windows_manage_stig_dns_over_https_mode**: DoH mode (2=automatic, 3=enforce). Default: **2**
+* **windows_manage_stig_smb_over_quic_required**: Enable SMB over QUIC (edge scenarios). Default: **false**
+
+**Windows Server 2025:**
+* **windows_manage_stig_hotpatching_enabled**: Enable hotpatching (requires Azure Arc). Default: **true**
+* **windows_manage_stig_credential_guard_enabled**: Enable Next-Gen Credential Guard. Default: **true**
+
+**Note:** The role automatically selects the correct implementation method based on detected OS version. No manual configuration required for version-specific features.
 
 Tags
 ----
@@ -170,6 +193,21 @@ Example Playbook
           - "V-254238"
           - "V-254239"
           - "V-254240"
+```
+
+### Windows Server 2025 with Advanced Features
+
+```yaml
+- hosts: windows_2025_servers
+  tasks:
+    - name: Apply STIG with 2025 features
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_stig
+      vars:
+        windows_manage_stig_generate_report: true
+        windows_manage_stig_hotpatching_enabled: true
+        windows_manage_stig_credential_guard_enabled: true
+        windows_manage_stig_dns_over_https_enabled: true
 ```
 
 License

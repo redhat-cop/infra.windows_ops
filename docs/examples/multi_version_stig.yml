@@ -1,0 +1,86 @@
+---
+# =============================================================================
+# Multi-Version Windows Server STIG Compliance Example
+# =============================================================================
+# This playbook demonstrates automatic version detection and appropriate STIG
+# benchmark application for Windows Server 2019, 2022, and 2025.
+#
+# The role automatically:
+# - Detects OS version (2019/2022/2025)
+# - Applies correct benchmark version (V3R7/V2R7/V1R1)
+# - Enables version-specific features
+# - Adjusts control implementation based on OS capabilities
+# =============================================================================
+
+- name: Apply DISA STIG compliance across multiple Windows Server versions
+  hosts: all_windows_servers
+  gather_facts: true
+
+  vars:
+    compliance_reports_dir: C:\compliance\reports
+
+  tasks:
+    - name: Ensure compliance reports directory exists
+      ansible.windows.win_file:
+        path: "{{ compliance_reports_dir }}"
+        state: directory
+
+    - name: Apply DISA STIG with automatic version detection
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_stig
+      vars:
+        # Report configuration
+        windows_manage_stig_generate_report: true
+        windows_manage_stig_report_format: "json"
+        windows_manage_stig_report_path: "{{ compliance_reports_dir }}\\{{ inventory_hostname }}_stig_report.json"
+
+        # Compliance settings
+        windows_manage_stig_fail_on_non_compliance: false
+        windows_manage_stig_compliance_threshold: 90
+
+        # Enable all categories
+        windows_manage_stig_categories:
+          - account_policies
+          - audit_policies
+          - user_rights
+          - security_options
+          - registry_settings
+          - system_services
+
+        # Version-specific features (auto-configured based on detected OS)
+        # 2019: Uses LAPS MSI, no DNS-over-HTTPS
+        # 2022: Uses native LAPS, enables DNS-over-HTTPS
+        # 2025: Uses native LAPS, enables DNS-over-HTTPS + Hotpatching + Credential Guard
+        windows_manage_stig_laps_enabled: true
+        windows_manage_stig_dns_over_https_enabled: true  # Only applies to 2022+
+        windows_manage_stig_hotpatching_enabled: true     # Only applies to 2025
+        windows_manage_stig_credential_guard_enabled: true # Only applies to 2025
+
+    - name: Read compliance report
+      ansible.builtin.slurp:
+        src: "{{ compliance_reports_dir }}\\{{ inventory_hostname }}_stig_report.json"
+      register: compliance_data
+
+    - name: Parse compliance report
+      ansible.builtin.set_fact:
+        compliance: "{{ compliance_data.content | b64decode | from_json }}"
+
+    - name: Display version-aware compliance summary
+      ansible.builtin.debug:
+        msg:
+          - "================================================"
+          - "System: {{ inventory_hostname }}"
+          - "Detected Version: Windows Server {{ compliance.detected_version }}"
+          - "STIG Benchmark: {{ compliance.version }}"
+          - "================================================"
+          - "Compliance Score: {{ compliance.compliance_score }}%"
+          - "Total Controls: {{ compliance.total_controls }}"
+          - "Passed: {{ compliance.passed_controls }}"
+          - "Failed: {{ compliance.failed_controls }}"
+          - "================================================"
+          - "Version Features Applied:"
+          - "  Native LAPS: {{ compliance.version_features.has_native_laps }}"
+          - "  DNS-over-HTTPS: {{ compliance.version_features.has_dns_over_https }}"
+          - "  Hotpatching: {{ compliance.version_features.has_hotpatching | default(false) }}"
+          - "  SMB Signing Default: {{ compliance.version_features.smb_signing_default_enabled }}"
+          - "================================================"
