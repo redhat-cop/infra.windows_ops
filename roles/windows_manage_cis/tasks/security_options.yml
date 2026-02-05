@@ -1,7 +1,7 @@
 ---
 # CIS Microsoft Windows Server 2022 Benchmark v1.0.0
 # Section 2.3: Security Options
-# HARDENED Implementation with Structured JSON and Native Modules
+# Implementation with Structured JSON and Native Modules
 
 # =============================================================================
 # STRUCTURED SECURITY OPTIONS CONFIGURATION - Data-driven approach
@@ -54,7 +54,7 @@
     - setup
 
 # =============================================================================
-# HARDENED AUDIT PHASE - Structured JSON for Multiple Data Sources
+# AUDIT PHASE - Structured JSON for Multiple Data Sources
 # =============================================================================
 
 - name: CIS Security Options | AUDIT | Get current user account states (structured)
@@ -156,7 +156,7 @@
     - scored
 
 # =============================================================================
-# HARDENED COMPLIANCE TRACKING - Structured Results
+# COMPLIANCE TRACKING - Structured Results
 # =============================================================================
 
 - name: CIS Security Options | AUDIT | Record compliance results (structured)
@@ -213,16 +213,12 @@
   ansible.builtin.debug:
     msg:
       - ==========================================
-      - CIS Security Options Summary (HARDENED)
+      - CIS Security Options Summary
       - ==========================================
       - "Security Configuration Status:"
       - "User Accounts: {{ (windows_manage_cis_security_options | selectattr('type', 'equalto', 'user_account') | list | length) }} configured"
       - "Registry Settings: {{ (windows_manage_cis_security_options | selectattr('type', 'equalto', 'registry') | list | length) }} configured"
       - ""
-      - "RELIABILITY: Immune to Windows command output format changes"
-      - "PERFORMANCE: Consolidated audit queries by data source type"
-      - "MAINTAINABILITY: Type-aware configuration with structured validation"
-      - "IDEMPOTENCY: Native module state management"
       - ==========================================
       - "Accounts Audit Source: {{ windows_manage_cis_security_accounts_current.result.source | default('N/A') }}"
       - "Audit Timestamp: {{ windows_manage_cis_security_accounts_current.result.timestamp | default('N/A') }}"

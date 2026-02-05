@@ -16,9 +16,9 @@
       'Version' = $info.WindowsVersion
       'Build' = $info.WindowsBuildLabEx
       'Edition' = $info.WindowsEditionId
-      'Architecture' = $info.CsProcessorArchitecture
+      'Architecture' = $info.OsArchitecture
       'DomainRole' = $info.CsDomainRole
-      'TotalMemoryGB' = [Math]::Round($info.TotalPhysicalMemory / 1GB, 2)
+      'TotalMemoryGB' = [Math]::Round($info.CsTotalPhysicalMemory / 1GB, 2)
     } | ConvertTo-Json
   register: windows_manage_stig_system_info_raw
   changed_when: false
@@ -65,6 +65,15 @@
         unknown
       {%- endif -%}
 
+- name: STIG | VALIDATE | Update STIG benchmark metadata based on detected version
+  ansible.builtin.set_fact:
+    windows_manage_stig_benchmark_name: "Microsoft Windows Server {{ windows_manage_stig_detected_version }} Security Technical Implementation Guide"
+    windows_manage_stig_benchmark_version: "{{ windows_manage_stig_benchmark_versions[windows_manage_stig_detected_version] }}"
+
+- name: STIG | VALIDATE | Load version-specific feature flags and defaults
+  ansible.builtin.include_vars:
+    file: "stig_{{ windows_manage_stig_detected_version }}_{{ windows_manage_stig_benchmark_versions[windows_manage_stig_detected_version].lower() }}.yml"
+
 - name: STIG | VALIDATE | Check Windows Server version against DISA STIG support matrix
   ansible.builtin.assert:
     that:
@@ -93,7 +102,7 @@
 - name: STIG | VALIDATE | Check system architecture compliance
   ansible.builtin.assert:
     that:
-      - windows_manage_stig_system_info.Architecture in ['AMD64', 'x64'] or windows_manage_stig_system_info.Architecture == None
+      - windows_manage_stig_system_info.Architecture in ['64-bit', 'AMD64', 'x64'] or windows_manage_stig_system_info.Architecture == None
     fail_msg: |
       Unsupported system architecture: {{ windows_manage_stig_system_info.Architecture }}
       DISA STIG requirements mandate x64 architecture for Windows Server systems.

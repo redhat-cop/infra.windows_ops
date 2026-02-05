@@ -330,9 +330,6 @@
       - "Total Policies: {{ windows_manage_cis_audit_policies | length }} configured"
       - "Policy Categories: {{ (windows_manage_cis_audit_policies | map(attribute='subcategory') | unique | list | length) }} unique subcategories"
       - ""
-      - "PERFORMANCE: Reduced from 75+ individual tasks to 4 structured tasks"
-      - "RELIABILITY: Eliminated text parsing and shell command vulnerabilities"
-      - "MAINTAINABILITY: Centralized configuration in data structure"
       - ==========================================
       - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
       - ==========================================

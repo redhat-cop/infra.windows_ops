@@ -33,7 +33,7 @@
         "execution_mode": "{{ 'audit' if ansible_check_mode else 'remediation' }}",
         "detected_version": "{{ windows_manage_stig_detected_version | default('unknown') }}",
         "benchmark_version": "{{ windows_manage_stig_benchmark_versions[windows_manage_stig_detected_version] | default('unknown') }}",
-        "version_features": {{ stig_version_features | default({}) | to_json }},
+        "version_features": {{ windows_manage_stig_version_features | default({}) | to_json }},
         "system_validation": {{ windows_manage_stig_validation_summary | default({}) | to_json }},
         "results": {{ windows_manage_stig_results | default([]) | to_json }}
       }

@@ -13,7 +13,7 @@
   ansible.windows.win_reg_stat:
     path: HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters
     name: EnableDnsOverHttps
-  register: doh_current_status
+  register: windows_manage_stig_doh_current_status
   tags:
     - dns_over_https
     - version_2022_plus
@@ -23,13 +23,13 @@
   when:
     - windows_manage_stig_dns_over_https_enabled | default(true)
     - windows_manage_stig_only_rules | length == 0 or 'V-DNS-HTTPS' in windows_manage_stig_only_rules
-    - not doh_current_status.exists or doh_current_status.value != windows_manage_stig_dns_over_https_mode | default(2)
+    - not windows_manage_stig_doh_current_status.exists or windows_manage_stig_doh_current_status.value != windows_manage_stig_dns_over_https_mode | default(2)
   ansible.windows.win_regedit:
     path: HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters
     name: EnableDnsOverHttps
     data: "{{ windows_manage_stig_dns_over_https_mode | default(2) }}"
     type: dword
-  register: doh_configured
+  register: windows_manage_stig_doh_configured
 
 - name: STIG 2022+ | DNS-over-HTTPS | Record compliance result
   when:
@@ -42,10 +42,10 @@
         'rule_section': 'Network Security',
         'severity': 'CAT II',
         'scored': true,
-        'current_value': (doh_current_status.value | default(0) | string) if doh_current_status.exists else 'Not Configured',
+        'current_value': (windows_manage_stig_doh_current_status.value | default(0) | string) if windows_manage_stig_doh_current_status.exists else 'Not Configured',
         'expected_value': (windows_manage_stig_dns_over_https_mode | default(2) | string),
-        'status': 'PASS' if (doh_current_status.exists and doh_current_status.value == (windows_manage_stig_dns_over_https_mode | default(2))) else ('REMEDIATED' if (doh_configured.changed | default(false)) else 'FAIL'),
-        'changed': doh_configured.changed | default(false),
+        'status': 'PASS' if (windows_manage_stig_doh_current_status.exists and windows_manage_stig_doh_current_status.value == (windows_manage_stig_dns_over_https_mode | default(2))) else ('REMEDIATED' if (windows_manage_stig_doh_configured.changed | default(false)) else 'FAIL'),
+        'changed': windows_manage_stig_doh_configured.changed | default(false),
         'check_mode': ansible_check_mode,
         'version_specific': true,
         'applies_to_versions': ['2022', '2025'],
@@ -61,13 +61,13 @@
 
 - name: STIG 2022+ | SMB over QUIC | Check if QUIC is required
   ansible.builtin.set_fact:
-    smb_quic_required: "{{ windows_manage_stig_smb_over_quic_required | default(false) }}"
+    windows_manage_stig_smb_quic_required: "{{ windows_manage_stig_smb_over_quic_required | default(false) }}"
   tags:
     - smb_over_quic
     - version_2022_plus
 
 - name: STIG 2022+ | SMB over QUIC | Check current configuration
-  when: smb_quic_required
+  when: windows_manage_stig_smb_quic_required
   ansible.windows.win_powershell:
     script: |
       try {
@@ -91,16 +91,16 @@
           'error' = $_.Exception.Message
         } | ConvertTo-Json
       }
-  register: smb_quic_status
+  register: windows_manage_stig_smb_quic_status
   changed_when: false
 
 - name: STIG 2022+ | SMB over QUIC | Parse status
   when:
-    - smb_quic_required
-    - smb_quic_status is defined
-    - smb_quic_status.output is defined
+    - windows_manage_stig_smb_quic_required
+    - windows_manage_stig_smb_quic_status is defined
+    - windows_manage_stig_smb_quic_status.output is defined
   ansible.builtin.set_fact:
-    smb_quic_parsed: "{{ smb_quic_status.output[0] | from_json }}"
+    windows_manage_stig_smb_quic_parsed: "{{ windows_manage_stig_smb_quic_status.output[0] | from_json }}"
 
 - name: STIG 2022+ | SMB over QUIC | Record compliance result
   when:
@@ -113,9 +113,9 @@
         'rule_section': 'Network Security',
         'severity': 'CAT II',
         'scored': false,
-        'current_value': 'Required: ' + (smb_quic_required | string) + ', Installed: ' + ((smb_quic_parsed.feature_installed | default(false)) | string) if smb_quic_required else 'Not Required',
+        'current_value': 'Required: ' + (windows_manage_stig_smb_quic_required | string) + ', Installed: ' + ((windows_manage_stig_smb_quic_parsed.feature_installed | default(false)) | string) if windows_manage_stig_smb_quic_required else 'Not Required',
         'expected_value': 'Configured when required for edge scenarios',
-        'status': 'PASS' if (not smb_quic_required or (smb_quic_parsed.feature_installed | default(false))) else 'INFO',
+        'status': 'PASS' if (not windows_manage_stig_smb_quic_required or (windows_manage_stig_smb_quic_parsed.feature_installed | default(false))) else 'INFO',
         'changed': false,
         'check_mode': ansible_check_mode,
         'version_specific': true,
@@ -157,7 +157,7 @@
           'error' = $_.Exception.Message
         } | ConvertTo-Json
       }
-  register: tls13_status
+  register: windows_manage_stig_tls13_status
   changed_when: false
   tags:
     - tls_configuration
@@ -165,10 +165,10 @@
 
 - name: STIG 2022+ | TLS 1.3 | Parse TLS status
   when:
-    - tls13_status is defined
-    - tls13_status.output is defined
+    - windows_manage_stig_tls13_status is defined
+    - windows_manage_stig_tls13_status.output is defined
   ansible.builtin.set_fact:
-    tls13_parsed: "{{ tls13_status.output[0] | from_json }}"
+    windows_manage_stig_tls13_parsed: "{{ windows_manage_stig_tls13_status.output[0] | from_json }}"
 
 - name: STIG 2022+ | TLS 1.3 | Record compliance result
   when:
@@ -181,9 +181,9 @@
         'rule_section': 'Network Security',
         'severity': 'CAT II',
         'scored': true,
-        'current_value': 'Client: ' + ((tls13_parsed.tls13_client_enabled | default(false)) | string) + ', Server: ' + ((tls13_parsed.tls13_server_enabled | default(false)) | string),
+        'current_value': 'Client: ' + ((windows_manage_stig_tls13_parsed.tls13_client_enabled | default(false)) | string) + ', Server: ' + ((windows_manage_stig_tls13_parsed.tls13_server_enabled | default(false)) | string),
         'expected_value': 'TLS 1.3 enabled (default in 2022+)',
-        'status': 'PASS' if (tls13_parsed.tls13_client_enabled | default(false) and tls13_parsed.tls13_server_enabled | default(false)) else 'FAIL',
+        'status': 'PASS' if (windows_manage_stig_tls13_parsed.tls13_client_enabled | default(false) and windows_manage_stig_tls13_parsed.tls13_server_enabled | default(false)) else 'FAIL',
         'changed': false,
         'check_mode': ansible_check_mode,
         'version_specific': true,
@@ -206,9 +206,9 @@
       - Windows Server 2022+ Features Summary (STIG)
       - ==========================================
       - "Feature Configuration Status:"
-      - "DNS-over-HTTPS: {{ 'Enabled' if (doh_current_status.exists and doh_current_status.value == (windows_manage_stig_dns_over_https_mode | default(2))) else 'Not Configured' }}"
-      - "SMB over QUIC: {{ 'Required and checked' if smb_quic_required else 'Not required (optional feature)' }}"
-      - "TLS 1.3: {{ 'Enabled (default)' if (tls13_parsed.tls13_client_enabled | default(false) and tls13_parsed.tls13_server_enabled | default(false)) else 'Check required' }}"
+      - "DNS-over-HTTPS: {{ 'Enabled' if (windows_manage_stig_doh_current_status.exists and windows_manage_stig_doh_current_status.value == (windows_manage_stig_dns_over_https_mode | default(2))) else 'Not Configured' }}"
+      - "SMB over QUIC: {{ 'Required and checked' if windows_manage_stig_smb_quic_required else 'Not required (optional feature)' }}"
+      - "TLS 1.3: {{ 'Enabled (default)' if (windows_manage_stig_tls13_parsed.tls13_client_enabled | default(false) and windows_manage_stig_tls13_parsed.tls13_server_enabled | default(false)) else 'Check required' }}"
       - ""
       - "VERSION-SPECIFIC CONTROLS: These features apply to Windows Server 2022 and 2025 only"
       - "Current OS Version: {{ windows_manage_stig_detected_version }}"

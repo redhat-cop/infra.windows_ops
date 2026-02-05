@@ -87,9 +87,9 @@
         that:
           - _version_report.benchmark_version is defined
           - |
-            (_version_report.detected_version == '2019' and _version_report.benchmark_version == 'v3r7') or
-            (_version_report.detected_version == '2022' and _version_report.benchmark_version == 'v2r7') or
-            (_version_report.detected_version == '2025' and _version_report.benchmark_version == 'v1r1')
+            (_version_report.detected_version == '2019' and _version_report.benchmark_version == 'V3R7') or
+            (_version_report.detected_version == '2022' and _version_report.benchmark_version == 'V2R7') or
+            (_version_report.detected_version == '2025' and _version_report.benchmark_version == 'V1R1')
         fail_msg: "Benchmark version mapping incorrect for {{ _version_report.detected_version }}"
         success_msg: "Benchmark version correctly mapped: {{ _version_report.benchmark_version }}"
 

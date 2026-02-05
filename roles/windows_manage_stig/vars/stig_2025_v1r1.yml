@@ -6,7 +6,7 @@
 # =============================================================================
 
 # Metadata for audit trail
-stig_benchmark_metadata:
+windows_manage_stig_benchmark_metadata:
   name: "Microsoft Windows Server 2025 Security Technical Implementation Guide"
   version: "V1R1"
   release_date: "2026-01-23"
@@ -18,7 +18,7 @@ stig_benchmark_metadata:
     - V-254503  # AD 32k pages support
 
 # Version-specific feature flags
-stig_version_features:
+windows_manage_stig_version_features:
   has_native_laps: true
   has_dns_over_https: true
   has_smb_over_quic: true
@@ -30,7 +30,7 @@ stig_version_features:
   has_ad_32k_pages: true
 
 # OS-specific default values (override role defaults where needed)
-stig_version_defaults:
+windows_manage_stig_version_defaults:
   # SMB signing already enabled by default in 2025
   smb_signing_enforcement_required: false
 
@@ -41,7 +41,7 @@ stig_version_defaults:
   tls_minimum_version: "1.3"
 
 # 2025-specific control overrides
-stig_2025_control_overrides:
+windows_manage_stig_2025_control_overrides:
   - control_id: "V-254XXX"
     reason: "SMB signing enabled by default in 2025"
     action: "verify_only"

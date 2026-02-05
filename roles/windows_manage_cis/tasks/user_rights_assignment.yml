@@ -1,7 +1,7 @@
 ---
 # CIS Microsoft Windows Server 2022 Benchmark v1.0.0
 # Section 2.2: User Rights Assignment
-# HARDENED Implementation with Structured JSON and Native Modules
+# Implementation with Structured JSON and Native Modules
 
 # =============================================================================
 # STRUCTURED USER RIGHTS CONFIGURATION - Data-driven approach
@@ -43,7 +43,7 @@
     - setup
 
 # =============================================================================
-# HARDENED AUDIT PHASE - Structured JSON Return Data
+# AUDIT PHASE - Structured JSON Return Data
 # =============================================================================
 
 - name: CIS User Rights Assignment | AUDIT | Get all current user rights assignments (structured)
@@ -128,7 +128,7 @@
     - modernized
 
 # =============================================================================
-# HARDENED COMPLIANCE TRACKING - Structured Results
+# COMPLIANCE TRACKING - Structured Results
 # =============================================================================
 
 - name: CIS User Rights Assignment | AUDIT | Record compliance results (structured)
@@ -157,16 +157,12 @@
   ansible.builtin.debug:
     msg:
       - ==========================================
-      - CIS User Rights Assignment Summary (HARDENED)
+      - CIS User Rights Assignment Summary
       - ==========================================
       - "User Rights Status:"
       - "Total Rights: {{ windows_manage_cis_user_rights | length }} configured"
       - "Rights Audited: {{ (windows_manage_cis_user_rights_current_all.result.user_rights | default({}) | length) }} checked"
       - ""
-      - "RELIABILITY: Eliminated fragile secedit text parsing with structured JSON"
-      - "IDEMPOTENCY: True declarative state management with native modules"
-      - "MAINTAINABILITY: Future-proof against Windows command output changes"
-      - "PERFORMANCE: Consolidated audit queries and data-driven configuration"
       - ==========================================
       - "Audit Source: {{ windows_manage_cis_user_rights_current_all.result.source | default('N/A') }}"
       - "Audit Timestamp: {{ windows_manage_cis_user_rights_current_all.result.timestamp | default('N/A') }}"

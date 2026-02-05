@@ -22,6 +22,14 @@
     windows_manage_stig_failed_controls_count: 0
     windows_manage_stig_compliance_score: 0
 
+# =============================================================================
+# SYSTEM VALIDATION AND PREREQUISITES
+# =============================================================================
+
+- name: STIG | Validate system compatibility and prerequisites
+  ansible.builtin.include_tasks: validate_system.yml
+  tags: always
+
 - name: STIG | Display role execution banner
   ansible.builtin.debug:
     msg:
@@ -37,14 +45,6 @@
       - "Execution ID: {{ windows_manage_stig_execution_id }}"
       - "Started: {{ windows_manage_stig_execution_start }}"
       - ==========================================================
-
-# =============================================================================
-# SYSTEM VALIDATION AND PREREQUISITES
-# =============================================================================
-
-- name: STIG | Validate system compatibility and prerequisites
-  ansible.builtin.include_tasks: validate_system.yml
-  tags: always
 
 # =============================================================================
 # STIG CONTROL IMPLEMENTATION BY CATEGORY

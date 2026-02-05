@@ -63,7 +63,7 @@
       ansible.builtin.assert:
         that:
           - _2025_report.detected_version == '2025'
-          - _2025_report.benchmark_version == 'v1r1'
+          - _2025_report.benchmark_version == 'V1R1'
         fail_msg: "2025 version detection failed"
         success_msg: "2025 version correctly detected"
 
@@ -163,8 +163,8 @@
       when: _smb_signing_results | length > 0
       ansible.builtin.assert:
         that:
-          - _smb_signing_results | first | json_query('notes') is search('[Vv]erif|[Dd]efault') or
-            _smb_signing_results | first | json_query('current_value') is defined
+          - (_smb_signing_results | first).notes | default('') is search('[Vv]erif|[Dd]efault') or
+            (_smb_signing_results | first).current_value | default(none) is not none
         fail_msg: "SMB signing not handled correctly for 2025"
         success_msg: "SMB signing verified for 2025 (default enabled behavior)"
 

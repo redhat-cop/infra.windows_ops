@@ -22,9 +22,9 @@ windows_manage_stig_supported_versions:
 
 # Benchmark version mapping (auto-loaded based on detected OS)
 windows_manage_stig_benchmark_versions:
-  "2019": "v3r7"
-  "2022": "v2r7"
-  "2025": "v1r1"
+  "2019": "V3R7"
+  "2022": "V2R7"
+  "2025": "V1R1"
 
 # Expected rule counts by version (for validation)
 windows_manage_stig_expected_rule_counts:
@@ -33,7 +33,7 @@ windows_manage_stig_expected_rule_counts:
   "2025": 295
 
 # Version-specific feature flags (overridden by var files)
-stig_version_features:
+windows_manage_stig_version_features:
   has_native_laps: false
   has_dns_over_https: false
   has_smb_over_quic: false

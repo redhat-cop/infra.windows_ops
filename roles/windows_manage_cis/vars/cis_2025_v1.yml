@@ -6,7 +6,7 @@
 # =============================================================================
 
 # Metadata for audit trail
-cis_benchmark_metadata:
+windows_manage_cis_benchmark_metadata:
   name: "CIS Microsoft Windows Server 2025 Benchmark"
   version: "v1.0.0"
   release_date: "2026-02-01"
@@ -15,7 +15,7 @@ cis_benchmark_metadata:
   total_controls: 210
 
 # Version-specific feature flags
-cis_version_features:
+windows_manage_cis_version_features:
   has_azure_arc_integration: true
   has_zero_trust_features: true
   has_advanced_ad_security: true
@@ -25,7 +25,7 @@ cis_version_features:
   has_hotpatching: true
 
 # 2025-specific new controls
-cis_2025_new_controls:
+windows_manage_cis_2025_new_controls:
   - control_id: "18.10.89.1"
     title: "Configure Azure Arc security baseline"
     level: 2
@@ -37,7 +37,7 @@ cis_2025_new_controls:
     level: 2
 
 # OS-specific default values
-cis_version_defaults:
+windows_manage_cis_version_defaults:
   # SMB signing enabled by default in 2025
   smb_signing_verification_only: true
 

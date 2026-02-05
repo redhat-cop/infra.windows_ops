@@ -477,27 +477,38 @@
 
 - name: STIG | SECURITY | Check current OS version for LAPS implementation
   ansible.builtin.set_fact:
-    laps_implementation_method: >-
-      {{ stig_version_defaults.laps_installation_method
-         if stig_version_defaults is defined and stig_version_defaults.laps_installation_method is defined
+    windows_manage_stig_laps_implementation_method: >-
+      {{ windows_manage_stig_version_defaults.laps_installation_method
+         if windows_manage_stig_version_defaults is defined and windows_manage_stig_version_defaults.laps_installation_method is defined
          else 'msi' if windows_manage_stig_detected_version == '2019' else 'native' }}
+
+- name: STIG | SECURITY | LAPS | Check if MSI exists (Windows Server 2019)
+  when:
+    - windows_manage_stig_laps_enabled | default(true)
+    - windows_manage_stig_detected_version == '2019'
+    - windows_manage_stig_laps_implementation_method == 'msi'
+    - windows_manage_stig_only_rules | length == 0 or 'V-LAPS' in windows_manage_stig_only_rules
+  ansible.windows.win_stat:
+    path: "{{ windows_manage_stig_laps_msi_path }}"
+  register: windows_manage_stig_laps_msi_check
 
 - name: STIG | SECURITY | LAPS | Install via MSI (Windows Server 2019)
   when:
     - windows_manage_stig_laps_enabled | default(true)
     - windows_manage_stig_detected_version == '2019'
-    - laps_implementation_method == 'msi'
+    - windows_manage_stig_laps_implementation_method == 'msi'
+    - windows_manage_stig_laps_msi_check.stat.exists | default(false)
     - windows_manage_stig_only_rules | length == 0 or 'V-LAPS' in windows_manage_stig_only_rules
   ansible.windows.win_package:
     path: "{{ windows_manage_stig_laps_msi_path }}"
     state: present
-  register: laps_install_2019
+  register: windows_manage_stig_laps_install_2019
 
 - name: STIG | SECURITY | LAPS | Configure native LAPS (Windows Server 2022/2025)
   when:
     - windows_manage_stig_laps_enabled | default(true)
     - windows_manage_stig_detected_version in ['2022', '2025']
-    - laps_implementation_method == 'native'
+    - windows_manage_stig_laps_implementation_method == 'native'
     - windows_manage_stig_only_rules | length == 0 or 'V-LAPS' in windows_manage_stig_only_rules
   ansible.windows.win_shell: |
     # Check if LAPS is available
@@ -507,7 +518,7 @@
     } else {
       Write-Output "LAPS not available"
     }
-  register: laps_native_check
+  register: windows_manage_stig_laps_native_check
   changed_when: false
 
 - name: STIG | SECURITY | LAPS | Record compliance result
@@ -521,14 +532,15 @@
         'rule_section': 'Security Options',
         'severity': 'CAT II',
         'scored': true,
-        'implementation': laps_implementation_method,
-        'status': 'PASS' if (laps_install_2019.changed | default(false) or laps_native_check.stdout is search('available')) else 'INFO',
-        'current_value': laps_implementation_method,
+        'implementation': windows_manage_stig_laps_implementation_method,
+        'status': 'PASS' if (windows_manage_stig_laps_install_2019.changed | default(false) or (windows_manage_stig_laps_native_check.stdout is defined and windows_manage_stig_laps_native_check.stdout is search('available'))) else 'INFO',
+        'current_value': 'MSI installed' if (windows_manage_stig_laps_install_2019.changed | default(false)) else ('Native available' if (windows_manage_stig_laps_native_check.stdout is defined and windows_manage_stig_laps_native_check.stdout is search('available')) else ('MSI not found at ' + windows_manage_stig_laps_msi_path if (windows_manage_stig_laps_msi_check.stat is defined and not windows_manage_stig_laps_msi_check.stat.exists) else 'Not configured')),
         'expected_value': 'Configured',
-        'changed': laps_install_2019.changed | default(false),
+        'changed': windows_manage_stig_laps_install_2019.changed | default(false),
         'check_mode': ansible_check_mode,
         'version_specific': true,
-        'os_version': windows_manage_stig_detected_version
+        'os_version': windows_manage_stig_detected_version,
+        'notes': 'LAPS MSI must be provided at ' + windows_manage_stig_laps_msi_path + ' for Windows Server 2019' if (windows_manage_stig_detected_version == '2019' and windows_manage_stig_laps_msi_check.stat is defined and not windows_manage_stig_laps_msi_check.stat.exists) else ''
       }] }}
 
 # SMB Signing - Version-aware implementation
@@ -543,34 +555,34 @@
       'ServerSigning' = (Get-SmbServerConfiguration).RequireSecuritySignature
       'ClientSigning' = (Get-SmbClientConfiguration).RequireSecuritySignature
     } | ConvertTo-Json
-  register: smb_signing_status
+  register: windows_manage_stig_smb_signing_status
   changed_when: false
 
 - name: STIG | SECURITY | SMB Signing | Parse status
   when:
-    - smb_signing_status is defined
-    - smb_signing_status.stdout is defined
+    - windows_manage_stig_smb_signing_status is defined
+    - windows_manage_stig_smb_signing_status.stdout is defined
   ansible.builtin.set_fact:
-    smb_signing_parsed: "{{ smb_signing_status.stdout | from_json }}"
+    windows_manage_stig_smb_signing_parsed: "{{ windows_manage_stig_smb_signing_status.stdout | from_json }}"
 
 - name: STIG | SECURITY | SMB Signing | Enforce on Windows Server 2019/2022
   when:
     - windows_manage_stig_detected_version in ['2019', '2022']
-    - smb_signing_parsed is defined
-    - not (smb_signing_parsed.ServerSigning | default(false) | bool and smb_signing_parsed.ClientSigning | default(false) | bool)
+    - windows_manage_stig_smb_signing_parsed is defined
+    - not (windows_manage_stig_smb_signing_parsed.ServerSigning | default(false) | bool and windows_manage_stig_smb_signing_parsed.ClientSigning | default(false) | bool)
     - windows_manage_stig_only_rules | length == 0 or 'V-SMB' in windows_manage_stig_only_rules
   ansible.windows.win_shell: |
     Set-SmbServerConfiguration -RequireSecuritySignature $true -Force
     Set-SmbClientConfiguration -RequireSecuritySignature $true -Force
-  register: smb_signing_enforced
+  register: windows_manage_stig_smb_signing_enforced
 
 - name: STIG | SECURITY | SMB Signing | Verify on Windows Server 2025 (default enabled)
   when:
     - windows_manage_stig_detected_version == '2025'
-    - smb_signing_parsed is defined
+    - windows_manage_stig_smb_signing_parsed is defined
   ansible.builtin.set_fact:
-    smb_signing_2025_status: >-
-      {{ 'PASS' if (smb_signing_parsed.ServerSigning | default(false) | bool and smb_signing_parsed.ClientSigning | default(false) | bool) else 'FAIL' }}
+    windows_manage_stig_smb_signing_2025_status: >-
+      {{ 'PASS' if (windows_manage_stig_smb_signing_parsed.ServerSigning | default(false) | bool and windows_manage_stig_smb_signing_parsed.ClientSigning | default(false) | bool) else 'FAIL' }}
 
 - name: STIG | SECURITY | SMB Signing | Record compliance result
   when:
@@ -583,13 +595,13 @@
         'rule_section': 'Security Options',
         'severity': 'CAT II',
         'scored': true,
-        'current_value': 'Server: ' + (smb_signing_parsed.ServerSigning | default(false) | string) + ', Client: ' + (smb_signing_parsed.ClientSigning | default(false) | string),
+        'current_value': 'Server: ' + (windows_manage_stig_smb_signing_parsed.ServerSigning | default(false) | string) + ', Client: ' + (windows_manage_stig_smb_signing_parsed.ClientSigning | default(false) | string),
         'expected_value': 'Both enabled',
         'status': 'PASS' if (
-          (windows_manage_stig_detected_version in ['2019', '2022'] and (smb_signing_enforced.changed | default(false) or (smb_signing_parsed.ServerSigning | default(false) | bool and smb_signing_parsed.ClientSigning | default(false) | bool))) or
-          (windows_manage_stig_detected_version == '2025' and smb_signing_2025_status == 'PASS')
+          (windows_manage_stig_detected_version in ['2019', '2022'] and (windows_manage_stig_smb_signing_enforced.changed | default(false) or (windows_manage_stig_smb_signing_parsed.ServerSigning | default(false) | bool and windows_manage_stig_smb_signing_parsed.ClientSigning | default(false) | bool))) or
+          (windows_manage_stig_detected_version == '2025' and windows_manage_stig_smb_signing_2025_status == 'PASS')
         ) else 'FAIL',
-        'changed': smb_signing_enforced.changed | default(false),
+        'changed': windows_manage_stig_smb_signing_enforced.changed | default(false),
         'action_taken': 'Verified only (default behavior in 2025)' if windows_manage_stig_detected_version == '2025' else 'Enforced',
         'check_mode': ansible_check_mode,
         'version_specific': true,

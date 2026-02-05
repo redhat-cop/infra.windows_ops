@@ -13,7 +13,7 @@
   ansible.windows.win_reg_stat:
     path: HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters
     name: EnableDnsOverHttps
-  register: cis_doh_current_status
+  register: windows_manage_cis_doh_current_status
   tags:
     - dns_over_https
     - version_2022_plus
@@ -22,13 +22,13 @@
 - name: CIS 2022+ | DNS-over-HTTPS | Enable DoH
   when:
     - windows_manage_cis_dns_over_https_enabled | default(true)
-    - not cis_doh_current_status.exists or cis_doh_current_status.value != (windows_manage_cis_dns_over_https_mode | default(2))
+    - not windows_manage_cis_doh_current_status.exists or windows_manage_cis_doh_current_status.value != (windows_manage_cis_dns_over_https_mode | default(2))
   ansible.windows.win_regedit:
     path: HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters
     name: EnableDnsOverHttps
     data: "{{ windows_manage_cis_dns_over_https_mode | default(2) }}"
     type: dword
-  register: cis_doh_configured
+  register: windows_manage_cis_doh_configured
 
 - name: CIS 2022+ | DNS-over-HTTPS | Record compliance result
   ansible.builtin.set_fact:
@@ -39,10 +39,10 @@
         'rule_section': 'Network Security',
         'level': 'Level 2',
         'scored': true,
-        'current_value': (cis_doh_current_status.value | default(0) | string) if cis_doh_current_status.exists else 'Not Configured',
+        'current_value': (windows_manage_cis_doh_current_status.value | default(0) | string) if windows_manage_cis_doh_current_status.exists else 'Not Configured',
         'expected_value': (windows_manage_cis_dns_over_https_mode | default(2) | string),
-        'status': 'PASS' if (cis_doh_current_status.exists and cis_doh_current_status.value == (windows_manage_cis_dns_over_https_mode | default(2))) else ('REMEDIATED' if (cis_doh_configured.changed | default(false)) else 'FAIL'),
-        'changed': cis_doh_configured.changed | default(false),
+        'status': 'PASS' if (windows_manage_cis_doh_current_status.exists and windows_manage_cis_doh_current_status.value == (windows_manage_cis_dns_over_https_mode | default(2))) else ('REMEDIATED' if (windows_manage_cis_doh_configured.changed | default(false)) else 'FAIL'),
+        'changed': windows_manage_cis_doh_configured.changed | default(false),
         'check_mode': ansible_check_mode,
         'version_specific': true,
         'applies_to_versions': ['2022', '2025'],
@@ -77,7 +77,7 @@
           'error' = $_.Exception.Message
         } | ConvertTo-Json
       }
-  register: cis_tls13_status
+  register: windows_manage_cis_tls13_status
   changed_when: false
   tags:
     - tls_configuration
@@ -85,10 +85,10 @@
 
 - name: CIS 2022+ | TLS 1.3 | Parse TLS status
   when:
-    - cis_tls13_status is defined
-    - cis_tls13_status.output is defined
+    - windows_manage_cis_tls13_status is defined
+    - windows_manage_cis_tls13_status.output is defined
   ansible.builtin.set_fact:
-    cis_tls13_parsed: "{{ cis_tls13_status.output[0] | from_json }}"
+    windows_manage_cis_tls13_parsed: "{{ windows_manage_cis_tls13_status.output[0] | from_json }}"
 
 - name: CIS 2022+ | TLS 1.3 | Record compliance result
   ansible.builtin.set_fact:
@@ -99,9 +99,9 @@
         'rule_section': 'Network Security',
         'level': 'Level 1',
         'scored': true,
-        'current_value': 'Client: ' + ((cis_tls13_parsed.tls13_client_enabled | default(false)) | string) + ', Server: ' + ((cis_tls13_parsed.tls13_server_enabled | default(false)) | string),
+        'current_value': 'Client: ' + ((windows_manage_cis_tls13_parsed.tls13_client_enabled | default(false)) | string) + ', Server: ' + ((windows_manage_cis_tls13_parsed.tls13_server_enabled | default(false)) | string),
         'expected_value': 'TLS 1.3 enabled (default in 2022+)',
-        'status': 'PASS' if (cis_tls13_parsed.tls13_client_enabled | default(false) and cis_tls13_parsed.tls13_server_enabled | default(false)) else 'FAIL',
+        'status': 'PASS' if (windows_manage_cis_tls13_parsed.tls13_client_enabled | default(false) and windows_manage_cis_tls13_parsed.tls13_server_enabled | default(false)) else 'FAIL',
         'changed': false,
         'check_mode': ansible_check_mode,
         'version_specific': true,
@@ -124,8 +124,8 @@
       - Windows Server 2022+ Features Summary (CIS)
       - ==========================================
       - "Feature Configuration Status:"
-      - "DNS-over-HTTPS: {{ 'Enabled' if (cis_doh_current_status.exists and cis_doh_current_status.value == (windows_manage_cis_dns_over_https_mode | default(2))) else 'Not Configured' }}"
-      - "TLS 1.3: {{ 'Enabled (default)' if (cis_tls13_parsed.tls13_client_enabled | default(false) and cis_tls13_parsed.tls13_server_enabled | default(false)) else 'Check required' }}"
+      - "DNS-over-HTTPS: {{ 'Enabled' if (windows_manage_cis_doh_current_status.exists and windows_manage_cis_doh_current_status.value == (windows_manage_cis_dns_over_https_mode | default(2))) else 'Not Configured' }}"
+      - "TLS 1.3: {{ 'Enabled (default)' if (windows_manage_cis_tls13_parsed.tls13_client_enabled | default(false) and windows_manage_cis_tls13_parsed.tls13_server_enabled | default(false)) else 'Check required' }}"
       - ""
       - "VERSION-SPECIFIC CONTROLS: These features apply to Windows Server 2022 and 2025 only"
       - "Current OS Version: {{ windows_manage_cis_detected_version }}"

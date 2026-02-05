@@ -22,6 +22,10 @@
     windows_manage_cis_skipped_controls: []
   tags: always
 
+- name: CIS | Validate Windows Server version compatibility
+  ansible.builtin.include_tasks: validate_system.yml
+  tags: always
+
 - name: CIS | Display benchmark identification
   ansible.builtin.debug:
     msg:
@@ -35,10 +39,6 @@
       - "Execution Mode: {{ 'CHECK ONLY' if ansible_check_mode else 'APPLY CHANGES' }}"
       - "Execution ID: {{ windows_manage_cis_execution_id }}"
       - ==========================================
-  tags: always
-
-- name: CIS | Validate Windows Server version compatibility
-  ansible.builtin.include_tasks: validate_system.yml
   tags: always
 
 # =============================================================================

@@ -39,7 +39,7 @@ windows_manage_cis_benchmark_versions:
   "2025": "v1.0.0"
 
 # Version-specific feature flags (overridden by var files)
-cis_version_features:
+windows_manage_cis_version_features:
   has_azure_arc_integration: false
   has_zero_trust_features: false
   has_advanced_ad_security: false
