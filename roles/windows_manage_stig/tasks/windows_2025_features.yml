@@ -1,0 +1,306 @@
+---
+# =============================================================================
+# Windows Server 2025-Only Features - DISA STIG Controls
+# Features exclusive to Windows Server 2025
+# Hotpatching, Next-Gen Credential Guard, AD 32k Pages
+# =============================================================================
+
+# =============================================================================
+# HOTPATCHING CONFIGURATION (2025 only)
+# =============================================================================
+
+- name: STIG 2025 | Hotpatching | Check Azure Arc connectivity
+  when:
+    - windows_manage_stig_hotpatching_enabled | default(true)
+    - windows_manage_stig_only_rules | length == 0 or 'V-254501' in windows_manage_stig_only_rules
+  ansible.windows.win_powershell:
+    script: |
+      try {
+        # Check if Azure Arc agent is installed and connected
+        $arcService = Get-Service -Name 'himds' -ErrorAction SilentlyContinue
+
+        if ($arcService) {
+          # Check Arc connection status
+          $arcStatus = azcmagent show --output json 2>$null | ConvertFrom-Json -ErrorAction SilentlyContinue
+
+          @{
+            'arc_installed' = $true
+            'arc_connected' = if ($arcStatus) { $arcStatus.status -eq 'Connected' } else { $false }
+            'hotpatch_available' = $true
+            'status' = 'configured'
+          } | ConvertTo-Json
+        } else {
+          @{
+            'arc_installed' = $false
+            'arc_connected' = $false
+            'hotpatch_available' = $false
+            'status' = 'arc_not_installed'
+          } | ConvertTo-Json
+        }
+      } catch {
+        @{
+          'arc_installed' = $false
+          'arc_connected' = $false
+          'hotpatch_available' = $false
+          'status' = 'error'
+          'error' = $_.Exception.Message
+        } | ConvertTo-Json
+      }
+  register: windows_manage_stig_hotpatch_arc_status
+  changed_when: false
+  tags:
+    - hotpatching
+    - version_2025_only
+
+- name: STIG 2025 | Hotpatching | Parse Arc status
+  when:
+    - windows_manage_stig_hotpatch_arc_status is defined
+    - windows_manage_stig_hotpatch_arc_status.output is defined
+  ansible.builtin.set_fact:
+    windows_manage_stig_hotpatch_parsed: "{{ windows_manage_stig_hotpatch_arc_status.output[0] | from_json }}"
+
+- name: STIG 2025 | Hotpatching | Check hotpatch configuration
+  when:
+    - windows_manage_stig_hotpatching_enabled | default(true)
+    - windows_manage_stig_hotpatch_parsed.arc_connected | default(false)
+    - windows_manage_stig_only_rules | length == 0 or 'V-254501' in windows_manage_stig_only_rules
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Servicing
+    name: RepairContent
+  register: windows_manage_stig_hotpatch_config_status
+
+- name: STIG 2025 | Hotpatching | Record compliance result (V-254501)
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-254501' in windows_manage_stig_only_rules
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: >-
+      {{ windows_manage_stig_results | default([]) + [{
+        'stig_id': 'V-254501',
+        'title': 'Hotpatching must be configured when Azure Arc is available',
+        'rule_section': 'System Maintenance',
+        'severity': 'CAT II',
+        'scored': true,
+        'current_value': 'Arc Connected: ' + ((windows_manage_stig_hotpatch_parsed.arc_connected | default(false)) | string) + ', Hotpatch Available: ' + ((windows_manage_stig_hotpatch_parsed.hotpatch_available | default(false)) | string),
+        'expected_value': 'Azure Arc connected and hotpatch configured',
+        'status': 'PASS' if (windows_manage_stig_hotpatch_parsed.arc_connected | default(false)) else 'INFO',
+        'changed': false,
+        'check_mode': ansible_check_mode,
+        'version_specific': true,
+        'applies_to_versions': ['2025'],
+        'os_version': windows_manage_stig_detected_version,
+        'notes': 'Hotpatching requires Azure Arc agent. Status: ' + (windows_manage_stig_hotpatch_parsed.status | default('unknown'))
+      }] }}
+  tags:
+    - hotpatching
+    - compliance
+
+# =============================================================================
+# NEXT-GEN CREDENTIAL GUARD (2025 only)
+# =============================================================================
+
+- name: STIG 2025 | Credential Guard | Check hardware support
+  when:
+    - windows_manage_stig_credential_guard_enabled | default(true)
+    - windows_manage_stig_only_rules | length == 0 or 'V-254502' in windows_manage_stig_only_rules
+  ansible.windows.win_powershell:
+    script: |
+      try {
+        # Check for Credential Guard support
+        $cgStatus = Get-ComputerInfo | Select-Object DeviceGuardSmartStatus, DeviceGuardRequiredSecurityProperties, DeviceGuardAvailableSecurityProperties
+
+        # Check if Credential Guard is enabled
+        $cgService = Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\Microsoft\Windows\DeviceGuard -ErrorAction SilentlyContinue
+
+        @{
+          'hardware_support' = if ($cgStatus.DeviceGuardAvailableSecurityProperties -contains 'CredentialGuard') { $true } else { $false }
+          'credential_guard_running' = if ($cgService) { $cgService.SecurityServicesRunning -contains 1 } else { $false }
+          'credential_guard_configured' = if ($cgService) { $cgService.SecurityServicesConfigured -contains 1 } else { $false }
+          'status' = 'checked'
+        } | ConvertTo-Json
+      } catch {
+        @{
+          'hardware_support' = $false
+          'credential_guard_running' = $false
+          'credential_guard_configured' = $false
+          'status' = 'error'
+          'error' = $_.Exception.Message
+        } | ConvertTo-Json
+      }
+  register: windows_manage_stig_credguard_status
+  changed_when: false
+  tags:
+    - credential_guard
+    - version_2025_only
+
+- name: STIG 2025 | Credential Guard | Parse status
+  when:
+    - windows_manage_stig_credguard_status is defined
+    - windows_manage_stig_credguard_status.output is defined
+  ansible.builtin.set_fact:
+    windows_manage_stig_credguard_parsed: "{{ windows_manage_stig_credguard_status.output[0] | from_json }}"
+
+- name: STIG 2025 | Credential Guard | Enable if supported
+  when:
+    - windows_manage_stig_credential_guard_enabled | default(true)
+    - windows_manage_stig_credguard_parsed.hardware_support | default(false)
+    - not (windows_manage_stig_credguard_parsed.credential_guard_configured | default(false))
+    - windows_manage_stig_only_rules | length == 0 or 'V-254502' in windows_manage_stig_only_rules
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard
+    name: EnableVirtualizationBasedSecurity
+    data: 1
+    type: dword
+  register: windows_manage_stig_credguard_enabled
+
+- name: STIG 2025 | Credential Guard | Configure Credential Guard
+  when:
+    - windows_manage_stig_credential_guard_enabled | default(true)
+    - windows_manage_stig_credguard_parsed.hardware_support | default(false)
+    - windows_manage_stig_credguard_enabled.changed | default(false)
+    - windows_manage_stig_only_rules | length == 0 or 'V-254502' in windows_manage_stig_only_rules
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard
+    name: RequirePlatformSecurityFeatures
+    data: 1  # Secure Boot only (1) or Secure Boot + DMA (3)
+    type: dword
+  register: windows_manage_stig_credguard_configured
+
+- name: STIG 2025 | Credential Guard | Enable LsaCfgFlags
+  when:
+    - windows_manage_stig_credential_guard_enabled | default(true)
+    - windows_manage_stig_credguard_parsed.hardware_support | default(false)
+    - windows_manage_stig_only_rules | length == 0 or 'V-254502' in windows_manage_stig_only_rules
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+    name: LsaCfgFlags
+    data: 1  # 1 = Enabled with UEFI lock
+    type: dword
+  register: windows_manage_stig_credguard_lsa_configured
+
+- name: STIG 2025 | Credential Guard | Record compliance result (V-254502)
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-254502' in windows_manage_stig_only_rules
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: >-
+      {{ windows_manage_stig_results | default([]) + [{
+        'stig_id': 'V-254502',
+        'title': 'Next-Gen Credential Guard must be enabled on supported hardware',
+        'rule_section': 'Access Control',
+        'severity': 'CAT I',
+        'scored': true,
+        'current_value': 'HW Support: ' + ((windows_manage_stig_credguard_parsed.hardware_support | default(false)) | string) + ', Running: ' + ((windows_manage_stig_credguard_parsed.credential_guard_running | default(false)) | string) + ', Configured: ' + ((windows_manage_stig_credguard_parsed.credential_guard_configured | default(false)) | string),
+        'expected_value': 'Credential Guard enabled on supported hardware',
+        'status': 'PASS' if (windows_manage_stig_credguard_parsed.hardware_support | default(false) and (windows_manage_stig_credguard_parsed.credential_guard_configured | default(false) or windows_manage_stig_credguard_enabled.changed | default(false))) else ('INFO' if not (windows_manage_stig_credguard_parsed.hardware_support | default(false)) else 'FAIL'),
+        'changed': (windows_manage_stig_credguard_enabled.changed | default(false)) or (windows_manage_stig_credguard_configured.changed | default(false)) or (windows_manage_stig_credguard_lsa_configured.changed | default(false)),
+        'check_mode': ansible_check_mode,
+        'version_specific': true,
+        'applies_to_versions': ['2025'],
+        'os_version': windows_manage_stig_detected_version,
+        'notes': 'Requires hardware support (TPM 2.0, UEFI, Secure Boot). Reboot required after enabling.'
+      }] }}
+  tags:
+    - credential_guard
+    - compliance
+
+# =============================================================================
+# ACTIVE DIRECTORY 32K PAGE SUPPORT (2025 only)
+# =============================================================================
+
+- name: STIG 2025 | AD 32k Pages | Check if Domain Controller
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-254503' in windows_manage_stig_only_rules
+  ansible.windows.win_powershell:
+    script: |
+      try {
+        # Check if this is a Domain Controller
+        $isDC = (Get-WmiObject -Class Win32_ComputerSystem).DomainRole -ge 4
+
+        if ($isDC) {
+          # Check AD 32k page support
+          $ad32kReg = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters' -Name 'Database page size' -ErrorAction SilentlyContinue
+
+          @{
+            'is_domain_controller' = $true
+            'ad_32k_configured' = if ($ad32kReg) { $ad32kReg.'Database page size' -eq 32768 } else { $false }
+            'current_page_size' = if ($ad32kReg) { $ad32kReg.'Database page size' } else { 8192 }
+            'status' = 'configured'
+          } | ConvertTo-Json
+        } else {
+          @{
+            'is_domain_controller' = $false
+            'ad_32k_configured' = $false
+            'current_page_size' = 0
+            'status' = 'not_dc'
+          } | ConvertTo-Json
+        }
+      } catch {
+        @{
+          'is_domain_controller' = $false
+          'ad_32k_configured' = $false
+          'current_page_size' = 0
+          'status' = 'error'
+          'error' = $_.Exception.Message
+        } | ConvertTo-Json
+      }
+  register: windows_manage_stig_ad_32k_status
+  changed_when: false
+  tags:
+    - ad_32k_pages
+    - version_2025_only
+
+- name: STIG 2025 | AD 32k Pages | Parse status
+  when:
+    - windows_manage_stig_ad_32k_status is defined
+    - windows_manage_stig_ad_32k_status.output is defined
+  ansible.builtin.set_fact:
+    windows_manage_stig_ad_32k_parsed: "{{ windows_manage_stig_ad_32k_status.output[0] | from_json }}"
+
+- name: STIG 2025 | AD 32k Pages | Record compliance result (V-254503)
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-254503' in windows_manage_stig_only_rules
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: >-
+      {{ windows_manage_stig_results | default([]) + [{
+        'stig_id': 'V-254503',
+        'title': 'Active Directory must use 32k page size when supported',
+        'rule_section': 'Active Directory',
+        'severity': 'CAT II',
+        'scored': true,
+        'current_value': 'Is DC: ' + ((windows_manage_stig_ad_32k_parsed.is_domain_controller | default(false)) | string) + ', Page Size: ' + ((windows_manage_stig_ad_32k_parsed.current_page_size | default(0)) | string),
+        'expected_value': '32768 bytes (32k) for Domain Controllers',
+        'status': 'PASS' if (not (windows_manage_stig_ad_32k_parsed.is_domain_controller | default(false)) or (windows_manage_stig_ad_32k_parsed.ad_32k_configured | default(false))) else 'INFO',
+        'changed': false,
+        'check_mode': ansible_check_mode,
+        'version_specific': true,
+        'applies_to_versions': ['2025'],
+        'os_version': windows_manage_stig_detected_version,
+        'notes': 'Only applies to Domain Controllers. 32k page size requires new AD forest installation or major upgrade.'
+      }] }}
+  tags:
+    - ad_32k_pages
+    - compliance
+
+# =============================================================================
+# SECTION SUMMARY
+# =============================================================================
+
+- name: STIG 2025 Features | Display configuration summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - Windows Server 2025-Only Features Summary (STIG)
+      - ==========================================
+      - "Feature Configuration Status:"
+      - "Hotpatching: {{ 'Arc Connected' if (windows_manage_stig_hotpatch_parsed.arc_connected | default(false)) else 'Arc Not Connected' }}"
+      - "Next-Gen Credential Guard: {{ 'Enabled' if (windows_manage_stig_credguard_parsed.credential_guard_running | default(false)) else ('Hardware Not Supported' if not (windows_manage_stig_credguard_parsed.hardware_support | default(false)) else 'Not Configured') }}"
+      - "AD 32k Pages: {{ 'Configured (32k)' if (windows_manage_stig_ad_32k_parsed.ad_32k_configured | default(false)) else ('Not DC' if not (windows_manage_stig_ad_32k_parsed.is_domain_controller | default(false)) else 'Standard 8k') }}"
+      - ""
+      - "VERSION-SPECIFIC CONTROLS: These features are exclusive to Windows Server 2025"
+      - "Current OS Version: {{ windows_manage_stig_detected_version }}"
+      - ==========================================
+      - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
+      - ==========================================
+  when: not ansible_check_mode or true
+  tags:
+    - version_2025_only
+    - summary

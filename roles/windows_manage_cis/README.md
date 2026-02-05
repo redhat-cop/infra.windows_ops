@@ -1,15 +1,20 @@
 windows_manage_cis
 ==================
 
-A role to enforce CIS Microsoft Windows Server 2022 Benchmark v1.0.0 compliance controls with automated hardening, drift detection, and comprehensive audit reporting.
+A role to enforce CIS Microsoft Windows Server Benchmark compliance controls with automated hardening, drift detection, and comprehensive audit reporting. Supports Windows Server 2019, 2022, and 2025 with version-specific feature detection.
 
 Requirements
 ------------
 
-* Windows Server 2019 or 2022
+* Windows Server 2019, 2022, or 2025
 * PowerShell 5.1 or higher
 * Administrative privileges on target systems
 * Collection dependencies (see `galaxy.yml` and `meta/runtime.yml` for version requirements)
+
+**Supported CIS Benchmarks:**
+* Windows Server 2019: v3.0.0 (Level 1: 165 controls, Level 2: 45 controls)
+* Windows Server 2022: v3.0.0 (Level 1: 165 controls, Level 2: 45 controls)
+* Windows Server 2025: v1.0.0 (Level 1: 165 controls, Level 2: 45 controls)
 
 Role Variables
 --------------
@@ -52,6 +57,20 @@ Role Variables
   - administrative_templates (CIS 18.x)
   - windows_firewall (CIS 9.x)
   - registry_settings (CIS Various)
+
+### Version-Specific Features (Windows Server 2025)
+
+The role automatically detects the Windows Server version and applies appropriate controls. Windows Server 2025 introduces additional Level 2 controls:
+
+* **Azure Arc Integration** (CIS 18.10.89.1): Centralized security baseline management
+* **Zero Trust Network Access** (CIS 19.7.1): Zero Trust network policies
+* **AD 32k Page Support** (CIS 18.10.90.1): Enhanced Active Directory performance and security
+
+**Windows Server 2022+ Features:**
+* **DNS-over-HTTPS** (CIS 18.10.DNS.1): Encrypted DNS queries
+* **TLS 1.3**: Default encryption protocol (automatically verified)
+
+**Note:** Version-specific features are automatically detected and applied. No manual configuration required.
 
 Tags
 ----

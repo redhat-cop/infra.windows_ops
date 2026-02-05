@@ -1,7 +1,8 @@
 ---
 # =============================================================================
 # Full STIG Execution Test
-# Tests complete STIG role execution with all rules and V2R7 validation
+# Tests complete STIG role execution with OS version detection and validation
+# Supports Windows Server 2019 (V3R7), 2022 (V2R7), and 2025 (V1R1)
 # =============================================================================
 - name: Test STIG full execution with all rules
   block:
@@ -39,25 +40,36 @@
       ansible.builtin.set_fact:
         _stig_report: "{{ _stig_report_content.content | b64decode | from_json }}"
 
-    - name: Verify V2R7 benchmark version in report
+    - name: Verify STIG benchmark version matches detected OS
       ansible.builtin.assert:
         that:
-          - _stig_report.version == 'V2R7'
-        fail_msg: "Expected STIG benchmark version V2R7, got {{ _stig_report.version | default('UNDEFINED') }}"
-        success_msg: "STIG benchmark version V2R7 confirmed"
+          - _stig_report.version is defined
+          - |
+            (_stig_report.detected_version == '2019' and _stig_report.version == 'V3R7') or
+            (_stig_report.detected_version == '2022' and _stig_report.version == 'V2R7') or
+            (_stig_report.detected_version == '2025' and _stig_report.version == 'V1R1')
+        fail_msg: "STIG benchmark version mismatch: OS {{ _stig_report.detected_version }} should have version {{ {'2019': 'V3R7', '2022': 'V2R7', '2025': 'V1R1'}[_stig_report.detected_version] }}, got {{ _stig_report.version | default('UNDEFINED') }}"
+        success_msg: "STIG benchmark version {{ _stig_report.version }} correctly matched for OS {{ _stig_report.detected_version }}"
 
-    - name: Verify V2R7 new rules are present in results
+    - name: Verify common STIG rules are present in results (all versions)
       ansible.builtin.assert:
         that:
           - _stig_report.results | selectattr('stig_id', 'equalto', 'V-254282') | list | length > 0  # Orphaned SIDs check
           - _stig_report.results | selectattr('stig_id', 'equalto', 'V-254283') | list | length > 0  # UEFI mode check
           - _stig_report.results | selectattr('stig_id', 'equalto', 'V-254284') | list | length > 0  # Secure Boot check
           - _stig_report.results | selectattr('stig_id', 'equalto', 'V-254294') | list | length > 0  # Audit log backup check
-          - _stig_report.results | selectattr('stig_id', 'equalto', 'V-254333') | list | length > 0  # Lock screen slideshow (WN22-CC)
-          - _stig_report.results | selectattr('stig_id', 'equalto', 'V-254491') | list | length > 0  # New user rights (V2R7)
-          - _stig_report.results | selectattr('stig_id', 'equalto', 'V-271426') | list | length > 0  # DC cert auth (V2R7)
-        fail_msg: "V2R7 new rules not found in compliance report"
-        success_msg: "V2R7 new rules confirmed in compliance report"
+          - _stig_report.results | selectattr('stig_id', 'equalto', 'V-254333') | list | length > 0  # Lock screen slideshow
+        fail_msg: "Common STIG rules not found in compliance report"
+        success_msg: "Common STIG rules confirmed in compliance report"
+
+    - name: Verify version-specific STIG rules (2022+)
+      ansible.builtin.assert:
+        that:
+          - _stig_report.results | selectattr('stig_id', 'equalto', 'V-254491') | list | length > 0  # New user rights (V2R7+)
+          - _stig_report.results | selectattr('stig_id', 'equalto', 'V-271426') | list | length > 0  # DC cert auth (V2R7+)
+        fail_msg: "Version-specific STIG rules (2022+) not found in compliance report"
+        success_msg: "Version-specific STIG rules (2022+) confirmed in compliance report"
+      when: _stig_report.detected_version in ['2022', '2025']
 
     - name: Verify deprecated rule V-254411 is NOT present
       ansible.builtin.assert:
@@ -66,12 +78,13 @@
         fail_msg: "Deprecated rule V-254411 still present in results"
         success_msg: "Deprecated rule V-254411 correctly removed"
 
-    - name: Display V2R7 test summary
+    - name: Display STIG test summary
       ansible.builtin.debug:
         msg:
           - "============================================"
-          - "STIG V2R7 Integration Test Results"
+          - "STIG Integration Test Results"
           - "============================================"
+          - "Detected OS Version: {{ _stig_report.detected_version }}"
           - "Benchmark Version: {{ _stig_report.version }}"
           - "Total Rules Evaluated: {{ _stig_report.results | length }}"
           - "Compliance Score: {{ _stig_report.compliance_score | default(0) }}%"
@@ -80,7 +93,7 @@
           - "Orphaned SIDs: {{ (_stig_report.results | selectattr('stig_id', 'equalto', 'V-254282') | list | first).current_value | default('Not checked') }}"
           - "Log Backup: {{ (_stig_report.results | selectattr('stig_id', 'equalto', 'V-254294') | list | first).current_value | default('Not checked') }}"
           - "============================================"
-          - "V2R7 upgrade validation: PASSED"
+          - "Version detection and validation: PASSED"
           - "============================================"
 
     - name: Display test completion message

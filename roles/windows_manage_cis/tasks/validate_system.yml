@@ -14,9 +14,9 @@
       'Version' = $info.WindowsVersion
       'Build' = $info.WindowsBuildLabEx
       'Edition' = $info.WindowsEditionId
-      'Architecture' = $info.CsProcessorArchitecture
+      'Architecture' = $info.OsArchitecture
       'DomainRole' = $info.CsDomainRole
-      'TotalMemoryGB' = [Math]::Round($info.TotalPhysicalMemory / 1GB, 2)
+      'TotalMemoryGB' = [Math]::Round($info.CsTotalPhysicalMemory / 1GB, 2)
     } | ConvertTo-Json
   register: windows_manage_cis_system_info_raw
   changed_when: false
@@ -49,7 +49,11 @@
 - name: CIS | VALIDATE | Extract Windows Server version
   ansible.builtin.set_fact:
     windows_manage_cis_detected_version: >-
-      {%- if '2022' in windows_manage_cis_system_info.ProductName -%}
+      {%- if '2025' in windows_manage_cis_system_info.ProductName -%}
+        2025
+      {%- elif windows_manage_cis_system_info.Version | regex_search('^10\.0\.26\d{3}') -%}
+        2025
+      {%- elif '2022' in windows_manage_cis_system_info.ProductName -%}
         2022
       {%- elif '2019' in windows_manage_cis_system_info.ProductName -%}
         2019
@@ -58,6 +62,11 @@
       {%- else -%}
         unknown
       {%- endif -%}
+
+- name: CIS | VALIDATE | Update benchmark metadata based on detected version
+  ansible.builtin.set_fact:
+    windows_manage_cis_benchmark_name: "CIS Microsoft Windows Server {{ windows_manage_cis_detected_version }} Benchmark"
+    windows_manage_cis_benchmark_version: "{{ windows_manage_cis_benchmark_versions[windows_manage_cis_detected_version] }}"
 
 - name: CIS | VALIDATE | Check Windows Server version compatibility
   ansible.builtin.assert:
@@ -87,7 +96,7 @@
 - name: CIS | VALIDATE | Check system architecture
   ansible.builtin.assert:
     that:
-      - windows_manage_cis_system_info.Architecture in ['AMD64', 'x64'] or windows_manage_cis_system_info.Architecture == None
+      - windows_manage_cis_system_info.Architecture in ['64-bit', 'AMD64', 'x64'] or windows_manage_cis_system_info.Architecture == None
     fail_msg: |
       Unsupported system architecture: {{ windows_manage_cis_system_info.Architecture }}
       This CIS benchmark role supports x64 architecture only.

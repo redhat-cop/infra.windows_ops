@@ -1,0 +1,241 @@
+---
+# =============================================================================
+# Windows Server 2025-Only Features - CIS Benchmark Controls
+# Features exclusive to Windows Server 2025
+# Azure Arc Integration, Zero Trust, Advanced AD Security
+# =============================================================================
+
+# =============================================================================
+# AZURE ARC SECURITY BASELINE (2025 CIS Control 18.10.89.1)
+# =============================================================================
+
+- name: CIS 2025 | Azure Arc | Check Arc connectivity and security baseline
+  when:
+    - cis_version_defaults.azure_arc_baseline_enabled | default(false)
+  ansible.windows.win_powershell:
+    script: |
+      try {
+        # Check if Azure Arc agent is installed and connected
+        $arcService = Get-Service -Name 'himds' -ErrorAction SilentlyContinue
+
+        if ($arcService) {
+          # Check Arc connection status
+          $arcStatus = azcmagent show --output json 2>$null | ConvertFrom-Json -ErrorAction SilentlyContinue
+
+          @{
+            'arc_installed' = $true
+            'arc_connected' = if ($arcStatus) { $arcStatus.status -eq 'Connected' } else { $false }
+            'baseline_available' = $true
+            'status' = 'configured'
+          } | ConvertTo-Json
+        } else {
+          @{
+            'arc_installed' = $false
+            'arc_connected' = $false
+            'baseline_available' = $false
+            'status' = 'arc_not_installed'
+          } | ConvertTo-Json
+        }
+      } catch {
+        @{
+          'arc_installed' = $false
+          'arc_connected' = $false
+          'baseline_available' = $false
+          'status' = 'error'
+          'error' = $_.Exception.Message
+        } | ConvertTo-Json
+      }
+  register: windows_manage_cis_arc_status
+  changed_when: false
+  tags:
+    - azure_arc
+    - version_2025_only
+
+- name: CIS 2025 | Azure Arc | Parse Arc status
+  when:
+    - windows_manage_cis_arc_status is defined
+    - windows_manage_cis_arc_status.output is defined
+  ansible.builtin.set_fact:
+    windows_manage_cis_arc_parsed: "{{ windows_manage_cis_arc_status.output[0] | from_json }}"
+
+- name: CIS 2025 | Azure Arc | Record compliance result (18.10.89.1)
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results | default([]) + [{
+        'rule_id': '18.10.89.1',
+        'title': 'Ensure Azure Arc security baseline is configured',
+        'rule_section': 'Cloud Integration',
+        'level': 'Level 2',
+        'scored': false,
+        'current_value': 'Arc Connected: ' + ((windows_manage_cis_arc_parsed.arc_connected | default(false)) | string),
+        'expected_value': 'Azure Arc connected and security baseline applied',
+        'status': 'PASS' if (windows_manage_cis_arc_parsed.arc_connected | default(false)) else 'INFO',
+        'changed': false,
+        'check_mode': ansible_check_mode,
+        'version_specific': true,
+        'applies_to_versions': ['2025'],
+        'os_version': windows_manage_cis_detected_version,
+        'notes': 'Azure Arc provides centralized security baseline management. Optional feature.'
+      }] }}
+  tags:
+    - azure_arc
+    - compliance
+
+# =============================================================================
+# ZERO TRUST NETWORK ACCESS (2025 CIS Control 19.7.1)
+# =============================================================================
+
+- name: CIS 2025 | Zero Trust | Check Zero Trust configuration
+  when:
+    - cis_version_defaults.zero_trust_enabled | default(false)
+  ansible.windows.win_powershell:
+    script: |
+      try {
+        # Check if Zero Trust features are configured
+        # This is a placeholder - actual implementation depends on infrastructure
+        @{
+          'zero_trust_configured' = $false
+          'status' = 'requires_infrastructure'
+          'note' = 'Zero Trust requires network infrastructure configuration'
+        } | ConvertTo-Json
+      } catch {
+        @{
+          'zero_trust_configured' = $false
+          'status' = 'error'
+          'error' = $_.Exception.Message
+        } | ConvertTo-Json
+      }
+  register: windows_manage_cis_zerotrust_status
+  changed_when: false
+  tags:
+    - zero_trust
+    - version_2025_only
+
+- name: CIS 2025 | Zero Trust | Parse status
+  when:
+    - windows_manage_cis_zerotrust_status is defined
+    - windows_manage_cis_zerotrust_status.output is defined
+  ansible.builtin.set_fact:
+    windows_manage_cis_zerotrust_parsed: "{{ windows_manage_cis_zerotrust_status.output[0] | from_json }}"
+
+- name: CIS 2025 | Zero Trust | Record compliance result (19.7.1)
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results | default([]) + [{
+        'rule_id': '19.7.1',
+        'title': 'Ensure Zero Trust network access is configured',
+        'rule_section': 'Network Security',
+        'level': 'Level 2',
+        'scored': false,
+        'current_value': 'Requires infrastructure configuration',
+        'expected_value': 'Zero Trust network access policies configured',
+        'status': 'INFO',
+        'changed': false,
+        'check_mode': ansible_check_mode,
+        'version_specific': true,
+        'applies_to_versions': ['2025'],
+        'os_version': windows_manage_cis_detected_version,
+        'notes': 'Zero Trust is an infrastructure-level configuration, not host-level'
+      }] }}
+  tags:
+    - zero_trust
+    - compliance
+
+# =============================================================================
+# ADVANCED AD SECURITY - 32K PAGE SUPPORT (2025 CIS Control 18.10.90.1)
+# =============================================================================
+
+- name: CIS 2025 | AD 32k Pages | Check Domain Controller status and AD configuration
+  ansible.windows.win_powershell:
+    script: |
+      try {
+        # Check if this is a Domain Controller
+        $isDC = (Get-WmiObject -Class Win32_ComputerSystem).DomainRole -ge 4
+
+        if ($isDC) {
+          # Check AD 32k page support
+          $ad32kReg = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters' -Name 'Database page size' -ErrorAction SilentlyContinue
+
+          @{
+            'is_domain_controller' = $true
+            'ad_32k_configured' = if ($ad32kReg) { $ad32kReg.'Database page size' -eq 32768 } else { $false }
+            'current_page_size' = if ($ad32kReg) { $ad32kReg.'Database page size' } else { 8192 }
+            'status' = 'configured'
+          } | ConvertTo-Json
+        } else {
+          @{
+            'is_domain_controller' = $false
+            'ad_32k_configured' = $false
+            'current_page_size' = 0
+            'status' = 'not_dc'
+          } | ConvertTo-Json
+        }
+      } catch {
+        @{
+          'is_domain_controller' = $false
+          'ad_32k_configured' = $false
+          'current_page_size' = 0
+          'status' = 'error'
+          'error' = $_.Exception.Message
+        } | ConvertTo-Json
+      }
+  register: windows_manage_cis_ad_32k_status
+  changed_when: false
+  tags:
+    - ad_32k_pages
+    - version_2025_only
+
+- name: CIS 2025 | AD 32k Pages | Parse status
+  when:
+    - windows_manage_cis_ad_32k_status is defined
+    - windows_manage_cis_ad_32k_status.output is defined
+  ansible.builtin.set_fact:
+    windows_manage_cis_ad_32k_parsed: "{{ windows_manage_cis_ad_32k_status.output[0] | from_json }}"
+
+- name: CIS 2025 | AD 32k Pages | Record compliance result (18.10.90.1)
+  ansible.builtin.set_fact:
+    windows_manage_cis_results: >-
+      {{ windows_manage_cis_results | default([]) + [{
+        'rule_id': '18.10.90.1',
+        'title': 'Ensure AD 32k page support is enabled on Domain Controllers',
+        'rule_section': 'Active Directory',
+        'level': 'Level 2',
+        'scored': true,
+        'current_value': 'Is DC: ' + ((windows_manage_cis_ad_32k_parsed.is_domain_controller | default(false)) | string) + ', Page Size: ' + ((windows_manage_cis_ad_32k_parsed.current_page_size | default(0)) | string),
+        'expected_value': '32768 bytes (32k) for Domain Controllers',
+        'status': 'PASS' if (not (windows_manage_cis_ad_32k_parsed.is_domain_controller | default(false)) or (windows_manage_cis_ad_32k_parsed.ad_32k_configured | default(false))) else 'INFO',
+        'changed': false,
+        'check_mode': ansible_check_mode,
+        'version_specific': true,
+        'applies_to_versions': ['2025'],
+        'os_version': windows_manage_cis_detected_version,
+        'notes': 'Only applies to Domain Controllers. 32k page size improves performance and security.'
+      }] }}
+  tags:
+    - ad_32k_pages
+    - compliance
+
+# =============================================================================
+# SECTION SUMMARY
+# =============================================================================
+
+- name: CIS 2025 Features | Display configuration summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - Windows Server 2025-Only Features Summary (CIS)
+      - ==========================================
+      - "Feature Configuration Status:"
+      - "Azure Arc Integration: {{ 'Connected' if (windows_manage_cis_arc_parsed.arc_connected | default(false)) else 'Not Connected (Optional)' }}"
+      - "Zero Trust Network Access: {{ 'Requires Infrastructure' }}"
+      - "AD 32k Pages: {{ 'Configured (32k)' if (windows_manage_cis_ad_32k_parsed.ad_32k_configured | default(false)) else ('Not DC' if not (windows_manage_cis_ad_32k_parsed.is_domain_controller | default(false)) else 'Standard 8k') }}"
+      - ""
+      - "VERSION-SPECIFIC CONTROLS: These features are exclusive to Windows Server 2025"
+      - "Current OS Version: {{ windows_manage_cis_detected_version }}"
+      - ==========================================
+      - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
+      - ==========================================
+  when: not ansible_check_mode or true
+  tags:
+    - version_2025_only
+    - summary

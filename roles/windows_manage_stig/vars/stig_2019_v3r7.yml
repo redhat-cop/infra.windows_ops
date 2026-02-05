@@ -1,0 +1,31 @@
+---
+# =============================================================================
+# Windows Server 2019 DISA STIG V3R7 Benchmark Data
+# Microsoft Windows Server 2019 Security Technical Implementation Guide
+# =============================================================================
+
+# Metadata for audit trail
+windows_manage_stig_benchmark_metadata:
+  name: "Microsoft Windows Server 2019 Security Technical Implementation Guide"
+  version: "V3R7"
+  total_rules: 276
+
+# Version-specific feature flags
+windows_manage_stig_version_features:
+  has_native_laps: false
+  has_dns_over_https: false
+  has_smb_over_quic: false
+  has_hotpatching: false
+  has_nextgen_credential_guard: false
+  smb_signing_default_enabled: false
+  has_tls_13_default: false
+  has_azure_arc_integration: false
+  has_ad_32k_pages: false
+
+# OS-specific default values
+windows_manage_stig_version_defaults:
+  # LAPS requires MSI installation in 2019
+  laps_installation_method: "msi"
+
+  # TLS 1.2 is the default in 2019
+  tls_minimum_version: "1.2"

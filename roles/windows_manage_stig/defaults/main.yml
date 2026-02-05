@@ -16,8 +16,33 @@ windows_manage_stig_classification: UNCLASSIFIED
 
 # Supported Windows Server versions for STIG compliance
 windows_manage_stig_supported_versions:
-  - "2022"
   - "2019"
+  - "2022"
+  - "2025"
+
+# Benchmark version mapping (auto-loaded based on detected OS)
+windows_manage_stig_benchmark_versions:
+  "2019": "V3R7"
+  "2022": "V2R7"
+  "2025": "V1R1"
+
+# Expected rule counts by version (for validation)
+windows_manage_stig_expected_rule_counts:
+  "2019": 276
+  "2022": 283
+  "2025": 295
+
+# Version-specific feature flags (overridden by var files)
+windows_manage_stig_version_features:
+  has_native_laps: false
+  has_dns_over_https: false
+  has_smb_over_quic: false
+  has_hotpatching: false
+  has_nextgen_credential_guard: false
+  smb_signing_default_enabled: false
+  has_tls_13_default: false
+  has_azure_arc_integration: false
+  has_ad_32k_pages: false
 
 # =============================================================================
 # ROLE EXECUTION CONTROL
@@ -167,3 +192,28 @@ windows_manage_stig_iis_required: false
 windows_manage_stig_search_required: false
 windows_manage_stig_dns_server_required: false
 windows_manage_stig_dhcp_server_required: false
+
+# =============================================================================
+# VERSION-SPECIFIC CONTROL TOGGLES
+# =============================================================================
+
+# LAPS configuration (2019 uses MSI, 2022+ uses native)
+windows_manage_stig_laps_enabled: true
+windows_manage_stig_laps_msi_path: "C:\\temp\\LAPS.x64.msi"  # For 2019 only
+
+# DNS-over-HTTPS (2022+ only)
+windows_manage_stig_dns_over_https_enabled: true
+windows_manage_stig_dns_over_https_mode: 2  # 2=automatic, 3=enforce only
+
+# SMB over QUIC (2022+ only, typically for edge/remote scenarios)
+windows_manage_stig_smb_over_quic_required: false
+
+# TLS Configuration (2022+ defaults to 1.3)
+windows_manage_stig_tls_minimum_version: "1.2"  # Will auto-upgrade to 1.3 on 2022+
+windows_manage_stig_tls_disable_legacy: true
+
+# Hotpatching (2025 only, requires Azure Arc)
+windows_manage_stig_hotpatching_enabled: true
+
+# Next-Gen Credential Guard (2025 only)
+windows_manage_stig_credential_guard_enabled: true

@@ -1,7 +1,7 @@
 ---
 # CIS Microsoft Windows Server 2022 Benchmark v1.0.0
 # Section 5: System Services
-# HARDENED Implementation with Structured JSON and Native Modules
+# Implementation with Structured JSON and Native Modules
 
 # =============================================================================
 # STRUCTURED SYSTEM SERVICES CONFIGURATION - Data-driven approach
@@ -88,7 +88,7 @@
     - setup
 
 # =============================================================================
-# HARDENED AUDIT PHASE - Structured JSON for Service States
+# AUDIT PHASE - Structured JSON for Service States
 # =============================================================================
 
 - name: CIS System Services | AUDIT | Get current service states (structured)
@@ -191,7 +191,7 @@
     - scored
 
 # =============================================================================
-# HARDENED COMPLIANCE TRACKING - Structured Results
+# COMPLIANCE TRACKING - Structured Results
 # =============================================================================
 
 - name: CIS System Services | AUDIT | Record compliance results (structured)
@@ -224,16 +224,12 @@
   ansible.builtin.debug:
     msg:
       - ==========================================
-      - CIS System Services Summary (HARDENED)
+      - CIS System Services Summary
       - ==========================================
       - "Service Configuration Status:"
       - "Critical Security Services: {{ (windows_manage_cis_system_services.critical_disable | length) }} configured"
       - "Conditional Services: {{ (windows_manage_cis_system_services.conditional | length) }} configured"
       - ""
-      - "RELIABILITY: Eliminated fragile shell command parsing with structured JSON"
-      - "IDEMPOTENCY: True declarative state management with native modules"
-      - "MAINTAINABILITY: Future-proof against Windows command output changes"
-      - "PERFORMANCE: Consolidated audit queries and data-driven configuration"
       - ==========================================
       - "Service Audit Source: {{ windows_manage_cis_services_current_all.result.source | default('N/A') }}"
       - "Audit Timestamp: {{ windows_manage_cis_services_current_all.result.timestamp | default('N/A') }}"

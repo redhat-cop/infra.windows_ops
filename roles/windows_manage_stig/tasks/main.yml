@@ -22,6 +22,14 @@
     windows_manage_stig_failed_controls_count: 0
     windows_manage_stig_compliance_score: 0
 
+# =============================================================================
+# SYSTEM VALIDATION AND PREREQUISITES
+# =============================================================================
+
+- name: STIG | Validate system compatibility and prerequisites
+  ansible.builtin.include_tasks: validate_system.yml
+  tags: always
+
 - name: STIG | Display role execution banner
   ansible.builtin.debug:
     msg:
@@ -37,14 +45,6 @@
       - "Execution ID: {{ windows_manage_stig_execution_id }}"
       - "Started: {{ windows_manage_stig_execution_start }}"
       - ==========================================================
-
-# =============================================================================
-# SYSTEM VALIDATION AND PREREQUISITES
-# =============================================================================
-
-- name: STIG | Validate system compatibility and prerequisites
-  ansible.builtin.include_tasks: validate_system.yml
-  tags: always
 
 # =============================================================================
 # STIG CONTROL IMPLEMENTATION BY CATEGORY
@@ -102,6 +102,30 @@
   tags:
     - stig_v254401_v254450
     - system_services
+    - stig
+
+# =============================================================================
+# VERSION-SPECIFIC FEATURES (2022+ and 2025)
+# =============================================================================
+
+- name: STIG | Apply Windows Server 2022+ features (DNS-over-HTTPS, SMB over QUIC, TLS 1.3)
+  ansible.builtin.include_tasks: windows_2022_plus_features.yml
+  when:
+    - windows_manage_stig_detected_version is defined
+    - windows_manage_stig_detected_version in ['2022', '2025']
+  tags:
+    - stig_2022_plus
+    - version_specific
+    - stig
+
+- name: STIG | Apply Windows Server 2025 exclusive features (Hotpatching, Credential Guard, AD 32k)
+  ansible.builtin.include_tasks: windows_2025_features.yml
+  when:
+    - windows_manage_stig_detected_version is defined
+    - windows_manage_stig_detected_version == '2025'
+  tags:
+    - stig_2025
+    - version_specific
     - stig
 
 # =============================================================================

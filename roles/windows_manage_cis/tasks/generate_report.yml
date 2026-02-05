@@ -11,34 +11,45 @@
   ansible.builtin.set_fact:
     windows_manage_cis_compliance_stats:
       total_controls: "{{ windows_manage_cis_results | length }}"
-      passed_controls: "{{ windows_manage_cis_results | selectattr('status', 'equalto', 'PASS') | list | length }}"
-      failed_controls: "{{ windows_manage_cis_results | selectattr('status', 'equalto', 'FAIL') | list | length }}"
-      skipped_controls: "{{ windows_manage_cis_results | selectattr('status', 'equalto', 'SKIPPED') | list | length }}"
-      audited_controls: "{{ windows_manage_cis_results | selectattr('status', 'equalto', 'AUDITED') | list | length }}"
+      passed_controls: "{{ windows_manage_cis_results | selectattr('status', 'defined') | selectattr('status', 'equalto', 'PASS') | list | length }}"
+      failed_controls: "{{ windows_manage_cis_results | selectattr('status', 'defined') | selectattr('status', 'equalto', 'FAIL') | list | length }}"
+      skipped_controls: "{{ windows_manage_cis_results | selectattr('status', 'defined') | selectattr('status', 'equalto', 'SKIPPED') | list | length }}"
+      audited_controls: "{{ windows_manage_cis_results | selectattr('status', 'defined') | selectattr('status', 'equalto', 'AUDITED') | list | length }}"
       not_applicable_controls: >-
         {{
-          windows_manage_cis_results | selectattr('skip_reason', 'search',
-          'not applicable|Not applicable|NOT APPLICABLE') | list | length
+          windows_manage_cis_results |
+          selectattr('skip_reason', 'defined') |
+          selectattr('skip_reason', 'search', 'not applicable|Not applicable|NOT APPLICABLE') |
+          list | length
         }}
       compliance_percentage: >-
         {{
-          ((windows_manage_cis_results | selectattr('status', 'equalto', 'PASS') | list | length) /
+          ((windows_manage_cis_results | selectattr('status', 'defined') | selectattr('status', 'equalto', 'PASS') | list | length) /
           (windows_manage_cis_results | length) * 100) | round(2)
           if windows_manage_cis_results | length > 0 else 0
         }}
       high_severity_failed: >-
         {{
-          windows_manage_cis_results | selectattr('status', 'equalto', 'FAIL') |
+          windows_manage_cis_results |
+          selectattr('status', 'defined') |
+          selectattr('status', 'equalto', 'FAIL') |
+          selectattr('severity', 'defined') |
           selectattr('severity', 'equalto', 'High') | list | length
         }}
       medium_severity_failed: >-
         {{
-          windows_manage_cis_results | selectattr('status', 'equalto', 'FAIL') |
+          windows_manage_cis_results |
+          selectattr('status', 'defined') |
+          selectattr('status', 'equalto', 'FAIL') |
+          selectattr('severity', 'defined') |
           selectattr('severity', 'equalto', 'Medium') | list | length
         }}
       low_severity_failed: >-
         {{
-          windows_manage_cis_results | selectattr('status', 'equalto', 'FAIL') |
+          windows_manage_cis_results |
+          selectattr('status', 'defined') |
+          selectattr('status', 'equalto', 'FAIL') |
+          selectattr('severity', 'defined') |
           selectattr('severity', 'equalto', 'Low') | list | length
         }}
   tags:
@@ -242,10 +253,10 @@
                   </tr>
                   {% for result in windows_manage_cis_results %}
                   {% if result.status == 'FAIL' %}
-                  <tr class="{{ result.severity.lower() }}-severity">
+                  <tr class="{{ (result.severity | default('unknown')).lower() }}-severity">
                       <td><strong>{{ result.rule_id }}</strong></td>
                       <td>{{ (result.rule_title | default(result.title, '')) }}</td>
-                      <td><span class="{{ 'fail' if result.severity == 'High' else 'skip' if result.severity == 'Medium' else 'audit' }}">{{ result.severity }}</span></td>
+                      <td><span class="{{ 'fail' if (result.severity | default('')) == 'High' else 'skip' if (result.severity | default('')) == 'Medium' else 'audit' }}">{{ result.severity | default('Unknown') }}</span></td>
                       <td><code>{{ result.expected_value }}</code></td>
                       <td><code>{{ result.current_value }}</code></td>
                       <td>{{ result.rule_section }}</td>
@@ -273,7 +284,7 @@
                       <td><strong>{{ result.rule_id }}</strong></td>
                       <td>{{ (result.rule_title | default(result.title, '')) }}</td>
                       <td><span class="{{ result.status.lower() }}">{{ result.status }}</span></td>
-                      <td>{{ result.severity }}</td>
+                      <td>{{ result.severity | default('Unknown') }}</td>
                       <td><code>{{ result.expected_value }}</code></td>
                       <td><code>{{ result.current_value }}</code></td>
                       <td>{{ 'Yes' if result.changed else 'No' }}</td>
@@ -335,10 +346,10 @@
       {% if result.status == 'FAIL' %}
       ### {{ result.rule_id }}: {{ (result.rule_title | default(result.title, '')) }}
       - **Section:** {{ result.rule_section }}
-      - **Severity:** {{ 'HIGH High' if result.severity == 'High' else 'MEDIUM Medium' if result.severity == 'Medium' else 'LOW Low' }}
+      - **Severity:** {{ 'HIGH High' if (result.severity | default('')) == 'High' else 'MEDIUM Medium' if (result.severity | default('')) == 'Medium' else 'LOW Low' if (result.severity | default('')) == 'Low' else 'UNKNOWN Unknown' }}
       - **Expected:** `{{ result.expected_value }}`
       - **Actual:** `{{ result.current_value }}`
-      {% if result.skip_reason %}
+      {% if result.skip_reason is defined and result.skip_reason %}
       - **Skip Reason:** {{ result.skip_reason }}
       {% endif %}
 
@@ -351,7 +362,7 @@
       | Rule ID | Control Description | Status | Severity | Expected | Actual | Changed |
       |---------|-------------------|--------|----------|----------|---------|---------|
       {% for result in windows_manage_cis_results %}
-      | **{{ result.rule_id }}** | {{ (result.rule_title | default(result.title, '')) }} | {{ 'PASS' if result.status == 'PASS' else 'FAIL' if result.status == 'FAIL' else 'SKIP' if result.status == 'SKIPPED' else 'AUDIT' }} {{ result.status }} | {{ result.severity }} | `{{ result.expected_value }}` | `{{ result.current_value }}` | {{ 'Yes' if result.changed else 'No' }} |
+      | **{{ result.rule_id }}** | {{ (result.rule_title | default(result.title, '')) }} | {{ 'PASS' if result.status == 'PASS' else 'FAIL' if result.status == 'FAIL' else 'SKIP' if result.status == 'SKIPPED' else 'AUDIT' }} {{ result.status }} | {{ result.severity | default('Unknown') }} | `{{ result.expected_value }}` | `{{ result.current_value }}` | {{ 'Yes' if result.changed else 'No' }} |
       {% endfor %}
 
       ## Report Metadata
@@ -425,7 +436,7 @@
       ### Priority Order (High to Low Severity)
 
       {% for result in windows_manage_cis_results %}
-      {% if result.status == 'FAIL' and result.severity == 'High' %}
+      {% if result.status == 'FAIL' and (result.severity | default('')) == 'High' %}
       #### HIGH {{ result.rule_id }}: {{ (result.rule_title | default(result.title, '')) }}
       - **Section:** {{ result.rule_section }}
       - **Current Value:** `{{ result.current_value }}`
@@ -436,7 +447,7 @@
       {% endfor %}
 
       {% for result in windows_manage_cis_results %}
-      {% if result.status == 'FAIL' and result.severity == 'Medium' %}
+      {% if result.status == 'FAIL' and (result.severity | default('')) == 'Medium' %}
       #### MEDIUM {{ result.rule_id }}: {{ (result.rule_title | default(result.title, '')) }}
       - **Section:** {{ result.rule_section }}
       - **Current Value:** `{{ result.current_value }}`
@@ -446,7 +457,7 @@
       {% endfor %}
 
       {% for result in windows_manage_cis_results %}
-      {% if result.status == 'FAIL' and result.severity == 'Low' %}
+      {% if result.status == 'FAIL' and (result.severity | default('')) == 'Low' %}
       #### LOW {{ result.rule_id }}: {{ (result.rule_title | default(result.title, '')) }}
       - **Section:** {{ result.rule_section }}
       - **Current Value:** `{{ result.current_value }}`
