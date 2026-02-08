@@ -38,7 +38,7 @@
         data: 1
         type: dword
         category: autoplay_media
-        severity: CAT II
+        severity: CAT I
         description: Disabled
       - stig_id: V-254354
         title: Configure Windows Error Reporting - Do not send additional data
@@ -231,7 +231,7 @@
         data: 0
         type: dword
         category: powershell_winrm
-        severity: CAT II
+        severity: CAT I
         description: Disabled
       - stig_id: V-254375
         title: Configure WinRM Service - Disallow unencrypted traffic
@@ -267,7 +267,7 @@
         data: 1
         type: dword
         category: powershell_winrm
-        severity: CAT II
+        severity: CAT I
         description: Enabled
       - stig_id: V-254379
         title: Configure Windows Firewall - Private profile state
@@ -296,7 +296,7 @@
         data: 1
         type: dword
         category: advanced_security
-        severity: CAT II
+        severity: CAT I
         description: Disabled
       - stig_id: V-254382
         title: Configure Camera and Microphone - Disable access

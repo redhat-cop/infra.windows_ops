@@ -131,7 +131,7 @@
         right: SeRemoteShutdownPrivilege
         users: [Administrators]
         expected: Administrators only
-        severity: CAT II
+        severity: CAT I
         description: Administrators only
       - stig_id: V-254468
         title: Generate security audits
@@ -188,7 +188,7 @@
         right: SeProfileSingleProcessPrivilege
         users: [Administrators]
         expected: Administrators only
-        severity: CAT II
+        severity: CAT I
         description: Administrators only
       - stig_id: V-254476
         title: Profile system performance
