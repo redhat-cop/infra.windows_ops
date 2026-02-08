@@ -463,7 +463,7 @@
 - name: STIG Audit Policies | SCORED | Configure audit policies (modernized loop)
   ansible.windows.win_powershell:
     script: |
-      param($SubcategoryName, $SuccessEnabled, $FailureEnabled, $RuleId, $DcOnly)
+      param($SubcategoryName, $SuccessEnabled, $FailureEnabled, $RuleId, $DcOnly, $ExpectedValue)
 
       $ErrorActionPreference = 'Stop'
       try {
@@ -482,9 +482,44 @@
           }
         }
 
-        # Build auditpol command parameters
-        $successParam = if ($SuccessEnabled) { "enable" } else { "disable" }
-        $failureParam = if ($FailureEnabled) { "enable" } else { "disable" }
+        # Query current audit policy state to preserve paired controls
+        $currentAuditOutput = auditpol /get /subcategory:"$SubcategoryName" /r
+        $currentAudit = $currentAuditOutput | ConvertFrom-Csv
+        $currentSetting = $currentAudit.'Inclusion Setting'
+
+        # Determine current state
+        $currentSuccessEnabled = $currentSetting -match 'Success'
+        $currentFailureEnabled = $currentSetting -match 'Failure'
+
+        # Build auditpol command parameters - preserve existing settings for parameters not being changed
+        # Only modify the parameter that needs to change based on the expected value
+        switch ($ExpectedValue) {
+          'Success and Failure' {
+            # Both success and failure should be enabled
+            $successParam = if ($SuccessEnabled) { "enable" } else { "disable" }
+            $failureParam = if ($FailureEnabled) { "enable" } else { "disable" }
+          }
+          'Success' {
+            # Only success should be enabled, preserve current failure state
+            $successParam = if ($SuccessEnabled) { "enable" } else { "disable" }
+            $failureParam = if ($currentFailureEnabled) { "enable" } else { "disable" }
+          }
+          'Failure' {
+            # Only failure should be enabled, preserve current success state
+            $successParam = if ($currentSuccessEnabled) { "enable" } else { "disable" }
+            $failureParam = if ($FailureEnabled) { "enable" } else { "disable" }
+          }
+          'No Auditing' {
+            # Both should be disabled
+            $successParam = "disable"
+            $failureParam = "disable"
+          }
+          default {
+            # Fallback to original behavior if expected value is unexpected
+            $successParam = if ($SuccessEnabled) { "enable" } else { "disable" }
+            $failureParam = if ($FailureEnabled) { "enable" } else { "disable" }
+          }
+        }
 
         # Execute auditpol command
         $result = auditpol /set /subcategory:"$SubcategoryName" /success:$successParam /failure:$failureParam
@@ -496,6 +531,8 @@
             rule_id = $RuleId
             success_setting = $successParam
             failure_setting = $failureParam
+            previous_setting = $currentSetting
+            preserved_paired_control = ($ExpectedValue -in @('Success', 'Failure'))
             command_output = $result
             status = "success"
           }
@@ -521,6 +558,7 @@
       FailureEnabled: "{{ item.failure }}"
       RuleId: "{{ item.stig_id }}"
       DcOnly: "{{ item.dc_only }}"
+      ExpectedValue: "{{ item.expected }}"
   loop: "{{ windows_manage_stig_audit_policies }}"
   register: windows_manage_stig_audit_results
   when:
