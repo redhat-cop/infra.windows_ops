@@ -1,3 +1,0 @@
----
-major_changes:
-  - windows_manage_stig - Updated to DISA STIG Version 2 Release 7 (V2R7) released January 23, 2026. This major update adds 79 new security controls and removes 1 deprecated rule (V-254411) (total 283 rules, up from 205), and significantly expands audit policies coverage with 34 new audit configuration rules. The update maintains backward compatibility with existing variables while introducing enhanced compliance coverage across all STIG categories.

@@ -1,3 +1,0 @@
----
-minor_changes:
-  - windows_manage_stig - Added integration tests for ``windows_manage_stig_only_rules`` filtering functionality.

@@ -1,3 +1,0 @@
----
-bugfixes:
-  - windows_manage_stig - Fixed ``windows_manage_stig_only_rules`` filtering to properly restrict rule execution to only specified STIG IDs.

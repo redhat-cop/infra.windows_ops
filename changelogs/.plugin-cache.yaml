@@ -1,24 +1,10 @@
-objects:
-  role:
-    windows_manage_iis:
-      description: A role to Create/Delete an IIS Web server.
-      name: windows_manage_iis
-      version_added: 1.0.0
-    windows_manage_service:
-      description: A role to Manage Windows Services.
-      name: windows_manage_service
-      version_added: 1.0.0
-    windows_manage_updates:
-      description: A role to Manage Windows Updates.
-      name: windows_manage_updates
-      version_added: 1.0.0
+objects: {}
 plugins:
   become: {}
   cache: {}
   callback: {}
   cliconf: {}
   connection: {}
-  filter: {}
   httpapi: {}
   inventory: {}
   lookup: {}
@@ -26,6 +12,5 @@ plugins:
   netconf: {}
   shell: {}
   strategy: {}
-  test: {}
   vars: {}
-version: 1.2.0
+version: 2.0.0
