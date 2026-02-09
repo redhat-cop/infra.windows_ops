@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - windows_manage_stig - Fixed critical V-ID to registry mapping errors affecting 33 controls in registry_settings.yml. Controls were mapping to completely wrong registry paths and value names, causing remediation to appear successful while DISA SCC scans continued to fail. All mappings verified against official DISA STIG V2R7 XCCDF (https://github.com/redhat-cop/infra.windows_ops/issues/41).

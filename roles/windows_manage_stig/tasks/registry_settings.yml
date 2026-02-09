@@ -12,15 +12,14 @@
 - name: STIG Registry Settings | SETUP | Define registry configuration matrix
   ansible.builtin.set_fact:
     windows_manage_stig_registry_settings:
-      # AUTOPLAY & MEDIA CONTROLS (V-254351 to V-254360)
       - stig_id: V-254351
-        title: Configure Autoplay - Disable Autoplay for all drives
-        path: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer
-        name: NoDriveTypeAutoRun
-        data: 255
+        title: Windows Server 2022 Application Compatibility Program Inventory must be prevented from collecting data and sending the information to Microsoft.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppCompat
+        name: DisableInventory
+        data: 1
         type: dword
         category: autoplay_media
-        severity: CAT II
+        severity: CAT III
         description: Disable for all drive types
       - stig_id: V-254352
         title: Configure Autoplay - Turn off Autoplay for non-volume devices
@@ -32,294 +31,288 @@
         severity: CAT II
         description: Disabled
       - stig_id: V-254353
-        title: Configure Windows Error Reporting - Disable Windows Error Reporting
-        path: HKLM:\Software\Policies\Microsoft\Windows\Windows Error Reporting
-        name: Disabled
+        title: Windows Server 2022 default AutoRun behavior must be configured to prevent AutoRun commands.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer
+        name: NoAutorun
         data: 1
         type: dword
         category: autoplay_media
         severity: CAT I
         description: Disabled
       - stig_id: V-254354
-        title: Configure Windows Error Reporting - Do not send additional data
-        path: HKLM:\Software\Policies\Microsoft\Windows\Windows Error Reporting
-        name: DontSendAdditionalData
-        data: 1
+        title: Windows Server 2022 AutoPlay must be disabled for all drives.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\policies\Explorer
+        name: NoDriveTypeAutoRun
+        data: 255
         type: dword
         category: autoplay_media
-        severity: CAT II
+        severity: CAT I
         description: Enabled
       - stig_id: V-254355
-        title: Configure Remote Desktop Services - Always prompt for password upon connection
-        path: HKLM:\Software\Policies\Microsoft\Windows NT\Terminal Services
-        name: fPromptForPassword
-        data: 1
+        title: Windows Server 2022 administrator accounts must not be enumerated during elevation.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\CredUI
+        name: EnumerateAdministrators
+        data: 0
         type: dword
         category: autoplay_media
         severity: CAT II
         description: Enabled
       - stig_id: V-254356
-        title: Configure Remote Desktop Services - Require secure RPC communication
-        path: HKLM:\Software\Policies\Microsoft\Windows NT\Terminal Services
-        name: fEncryptRPCTraffic
+        title: Windows Server 2022 Diagnostic Data must be configured to send "required diagnostic data" or "optional diagnostic data".
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection
+        name: AllowTelemetry
         data: 1
         type: dword
         category: autoplay_media
         severity: CAT II
         description: Enabled
       - stig_id: V-254357
-        title: Configure Remote Desktop Services - Set client connection encryption level
-        path: HKLM:\Software\Policies\Microsoft\Windows NT\Terminal Services
-        name: MinEncryptionLevel
-        data: 3
+        title: Windows Server 2022 Windows Update must not obtain updates from other PCs on the internet.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization
+        name: DODownloadMode
+        data: 0
         type: dword
         category: autoplay_media
-        severity: CAT II
+        severity: CAT III
         description: High
       - stig_id: V-254358
-        title: Configure Remote Desktop Services - Do not allow drive redirection
-        path: HKLM:\Software\Policies\Microsoft\Windows NT\Terminal Services
-        name: fDisableCdm
-        data: 1
+        title: Windows Server 2022 Application event log size must be configured to 32768 KB or greater.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\EventLog\Application
+        name: MaxSize
+        data: 32768
         type: dword
         category: autoplay_media
         severity: CAT II
         description: Disabled
       - stig_id: V-254359
-        title: Configure Remote Desktop Services - Do not allow LPT port redirection
-        path: HKLM:\Software\Policies\Microsoft\Windows NT\Terminal Services
-        name: fDisableLPT
-        data: 1
+        title: Windows Server 2022 Security event log size must be configured to 196608 KB or greater.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\EventLog\Security
+        name: MaxSize
+        data: 196608
         type: dword
         category: autoplay_media
         severity: CAT II
         description: Disabled
       - stig_id: V-254360
-        title: Configure Remote Desktop Services - Do not allow COM port redirection
-        path: HKLM:\Software\Policies\Microsoft\Windows NT\Terminal Services
-        name: fDisableCcm
-        data: 1
+        title: Windows Server 2022 System event log size must be configured to 32768 KB or greater.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\EventLog\System
+        name: MaxSize
+        data: 32768
         type: dword
         category: autoplay_media
         severity: CAT II
         description: Disabled
-
-      # INTERNET EXPLORER & BROWSER CONTROLS (V-254361 to V-254370)
       - stig_id: V-254361
-        title: Configure Internet Explorer - Block outdated ActiveX controls
-        path: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\Ext
-        name: VersionCheckEnabled
+        title: Windows Server 2022 Microsoft Defender antivirus SmartScreen must be enabled.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\System
+        name: EnableSmartScreen
         data: 1
         type: dword
         category: ie_browser
         severity: CAT II
         description: Enabled
       - stig_id: V-254362
-        title: Configure Internet Explorer - Disable password caching
-        path: HKLM:\Software\Microsoft\Windows\CurrentVersion\Internet Settings
-        name: DisablePasswordCaching
-        data: 1
+        title: Windows Server 2022 Explorer Data Execution Prevention must be enabled.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer
+        name: NoDataExecutionPrevention
+        data: 0
         type: dword
         category: ie_browser
         severity: CAT II
         description: Disabled
       - stig_id: V-254363
-        title: Configure Internet Explorer - Enable SmartScreen Filter
-        path: HKLM:\Software\Policies\Microsoft\Internet Explorer\PhishingFilter
-        name: EnabledV9
-        data: 1
+        title: Windows Server 2022 Turning off File Explorer heap termination on corruption must be disabled.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer
+        name: NoHeapTerminationOnCorruption
+        data: 0
         type: dword
         category: ie_browser
-        severity: CAT II
+        severity: CAT III
         description: Enabled
       - stig_id: V-254364
-        title: Configure Internet Explorer - Prevent bypassing SmartScreen Filter warnings
-        path: HKLM:\Software\Policies\Microsoft\Internet Explorer\PhishingFilter
-        name: PreventOverride
-        data: 1
+        title: Windows Server 2022 File Explorer shell protocol must run in protected mode.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer
+        name: PreXPSP2ShellProtocolBehavior
+        data: 0
         type: dword
         category: ie_browser
         severity: CAT II
         description: Enabled
       - stig_id: V-254365
-        title: Configure Internet Explorer - Turn on Enhanced Protected Mode
-        path: HKLM:\Software\Policies\Microsoft\Internet Explorer\Main
-        name: Isolation64Bit
+        title: Windows Server 2022 must not save passwords in the Remote Desktop Client.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+        name: DisablePasswordSaving
         data: 1
         type: dword
         category: ie_browser
         severity: CAT II
         description: Enabled
       - stig_id: V-254366
-        title: Configure Windows Defender - Enable real-time protection
-        path: HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection
-        name: DisableRealtimeMonitoring
-        data: 0
+        title: Windows Server 2022 Remote Desktop Services must prevent drive redirection.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+        name: fDisableCdm
+        data: 1
         type: dword
         category: ie_browser
         severity: CAT II
         description: Enabled
       - stig_id: V-254367
-        title: Configure Windows Defender - Enable script scanning
-        path: HKLM:\Software\Policies\Microsoft\Windows Defender\Real-Time Protection
-        name: DisableScriptScanning
-        data: 0
+        title: Windows Server 2022 Remote Desktop Services must always prompt a client for passwords upon connection.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+        name: fPromptForPassword
+        data: 1
         type: dword
         category: ie_browser
         severity: CAT II
         description: Enabled
       - stig_id: V-254368
-        title: Configure Windows Update - Configure Automatic Updates behavior
-        path: HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\AU
-        name: AUOptions
-        data: 4
+        title: Windows Server 2022 Remote Desktop Services must require secure Remote Procedure Call (RPC) communications.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+        name: fEncryptRPCTraffic
+        data: 1
         type: dword
         category: ie_browser
         severity: CAT II
         description: Auto download and schedule install
       - stig_id: V-254369
-        title: Configure Windows Update - Enable Automatic Updates
-        path: HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\AU
-        name: NoAutoUpdate
-        data: 0
+        title: Windows Server 2022 Remote Desktop Services must be configured with the client connection encryption set to High Level.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+        name: MinEncryptionLevel
+        data: 3
         type: dword
         category: ie_browser
         severity: CAT II
         description: Enabled
       - stig_id: V-254370
-        title: Configure Windows Update - Schedule install day
-        path: HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\AU
-        name: ScheduledInstallDay
-        data: 0
+        title: Windows Server 2022 must prevent attachments from being downloaded from RSS feeds.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Internet Explorer\Feeds
+        name: DisableEnclosureDownload
+        data: 1
         type: dword
         category: ie_browser
         severity: CAT II
         description: Every day
-
-      # POWERSHELL & WINRM CONTROLS (V-254371 to V-254380)
       - stig_id: V-254371
-        title: Configure PowerShell - Enable PowerShell script block logging
-        path: HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging
-        name: EnableScriptBlockLogging
-        data: 1
+        title: Windows Server 2022 must disable Basic authentication for RSS feeds over HTTP.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Internet Explorer\Feeds
+        name: AllowBasicAuthInClear
+        data: 0
         type: dword
         category: powershell_winrm
         severity: CAT II
         description: Enabled
       - stig_id: V-254372
-        title: Configure PowerShell - Enable PowerShell transcription
-        path: HKLM:\Software\Policies\Microsoft\Windows\PowerShell\Transcription
-        name: EnableTranscripting
-        data: 1
+        title: Windows Server 2022 must prevent Indexing of encrypted files.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search
+        name: AllowIndexingEncryptedStoresOrItems
+        data: 0
         type: dword
         category: powershell_winrm
         severity: CAT II
         description: Enabled
       - stig_id: V-254373
-        title: Configure PowerShell - Configure PowerShell execution policy
-        path: HKLM:\Software\Policies\Microsoft\Windows\PowerShell
-        name: ExecutionPolicy
-        data: RemoteSigned
-        type: string
+        title: Windows Server 2022 must prevent users from changing installation options.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer
+        name: EnableUserControl
+        data: 0
+        type: dword
         category: powershell_winrm
         severity: CAT II
         description: RemoteSigned
       - stig_id: V-254374
-        title: Configure WinRM Service - Disallow Digest authentication
-        path: HKLM:\Software\Policies\Microsoft\Windows\WinRM\Service
-        name: AllowDigest
+        title: Windows Server 2022 must disable the Windows Installer Always install with elevated privileges option.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer
+        name: AlwaysInstallElevated
         data: 0
         type: dword
         category: powershell_winrm
         severity: CAT I
         description: Disabled
       - stig_id: V-254375
-        title: Configure WinRM Service - Disallow unencrypted traffic
-        path: HKLM:\Software\Policies\Microsoft\Windows\WinRM\Service
-        name: AllowUnencryptedTraffic
+        title: Windows Server 2022 users must be notified if a web-based program attempts to install software.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer
+        name: SafeForScripting
         data: 0
         type: dword
         category: powershell_winrm
         severity: CAT II
         description: Disabled
       - stig_id: V-254376
-        title: Configure WinRM Client - Disallow Digest authentication
-        path: HKLM:\Software\Policies\Microsoft\Windows\WinRM\Client
-        name: AllowDigest
-        data: 0
+        title: Windows Server 2022 must disable automatically signing in the last interactive user after a system-initiated restart.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: DisableAutomaticRestartSignOn
+        data: 1
         type: dword
         category: powershell_winrm
         severity: CAT II
         description: Disabled
       - stig_id: V-254377
-        title: Configure WinRM Client - Disallow unencrypted traffic
-        path: HKLM:\Software\Policies\Microsoft\Windows\WinRM\Client
-        name: AllowUnencryptedTraffic
-        data: 0
+        title: Windows Server 2022 PowerShell script block logging must be enabled.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging
+        name: EnableScriptBlockLogging
+        data: 1
         type: dword
         category: powershell_winrm
         severity: CAT II
         description: Disabled
       - stig_id: V-254378
-        title: Configure Windows Firewall - Domain profile state
-        path: HKLM:\Software\Policies\Microsoft\WindowsFirewall\DomainProfile
-        name: EnableFirewall
-        data: 1
+        title: Windows Server 2022 Windows Remote Management (WinRM) client must not use Basic authentication.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client
+        name: AllowBasic
+        data: 0
         type: dword
         category: powershell_winrm
         severity: CAT I
         description: Enabled
       - stig_id: V-254379
-        title: Configure Windows Firewall - Private profile state
-        path: HKLM:\Software\Policies\Microsoft\WindowsFirewall\PrivateProfile
-        name: EnableFirewall
-        data: 1
+        title: Windows Server 2022 Windows Remote Management (WinRM) client must not allow unencrypted traffic.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client
+        name: AllowUnencryptedTraffic
+        data: 0
         type: dword
         category: powershell_winrm
         severity: CAT II
         description: Enabled
       - stig_id: V-254380
-        title: Configure Windows Firewall - Public profile state
-        path: HKLM:\Software\Policies\Microsoft\WindowsFirewall\PublicProfile
-        name: EnableFirewall
-        data: 1
+        title: Windows Server 2022 Windows Remote Management (WinRM) client must not use Digest authentication.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client
+        name: AllowDigest
+        data: 0
         type: dword
         category: powershell_winrm
         severity: CAT II
         description: Enabled
-
-      # ADVANCED SECURITY CONTROLS (V-254381 to V-254390)
       - stig_id: V-254381
-        title: Configure Windows Search - Disable indexer backoff
-        path: HKLM:\Software\Policies\Microsoft\Windows\Windows Search
-        name: DisableBackoff
-        data: 1
+        title: Windows Server 2022 Windows Remote Management (WinRM) service must not use Basic authentication.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service
+        name: AllowBasic
+        data: 0
         type: dword
         category: advanced_security
         severity: CAT I
         description: Disabled
       - stig_id: V-254382
-        title: Configure Camera and Microphone - Disable access
-        path: HKLM:\Software\Policies\Microsoft\Windows\AppPrivacy
-        name: LetAppsAccessCamera
-        data: 2
+        title: Windows Server 2022 Windows Remote Management (WinRM) service must not allow unencrypted traffic.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service
+        name: AllowUnencryptedTraffic
+        data: 0
         type: dword
         category: advanced_security
         severity: CAT II
         description: Disabled
       - stig_id: V-254383
-        title: Configure App Privacy - Disable microphone access
-        path: HKLM:\Software\Policies\Microsoft\Windows\AppPrivacy
-        name: LetAppsAccessMicrophone
-        data: 2
+        title: Windows Server 2022 Windows Remote Management (WinRM) service must not store RunAs credentials.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service
+        name: DisableRunAs
+        data: 1
         type: dword
         category: advanced_security
         severity: CAT II
         description: Disabled
       - stig_id: V-254384
-        title: Configure OneDrive - Prevent the usage of OneDrive for file storage
-        path: HKLM:\Software\Policies\Microsoft\Windows\OneDrive
-        name: DisableFileSyncNGSC
+        title: Windows Server 2022 must have PowerShell Transcription enabled.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\Transcription
+        name: EnableTranscripting
         data: 1
         type: dword
         category: advanced_security
@@ -379,7 +372,6 @@
         category: advanced_security
         severity: CAT II
         description: Disabled
-      # FINAL REGISTRY CONTROLS (V-254391 to V-254400)
       - stig_id: V-254391
         title: Configure Data Collection - Turn off Microsoft consumer experiences
         path: HKLM:\Software\Policies\Microsoft\Windows\CloudContent
@@ -470,7 +462,6 @@
         category: privacy_controls
         severity: CAT II
         description: Disabled
-      # V2R7 NEW RULES - WN22-CC (V-254333 to V-254349)
       - stig_id: V-254333
         title: Prevent display of slide shows on lock screen
         path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization
@@ -554,7 +545,7 @@
         description: Good only
       - stig_id: V-254345
         title: Reprocess group policy objects
-        path: 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Group Policy\{35378EAC-683F-11D2-A89A-00C04FBBCFA2}'
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Group Policy\{35378EAC-683F-11D2-A89A-00C04FBBCFA2}
         name: NoGPOListChanges
         data: 0
         type: dword
@@ -563,7 +554,7 @@
         description: Enabled
       - stig_id: V-254346
         title: Disable downloading print driver packages over HTTP
-        path: 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Printers'
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Printers
         name: DisableWebPnPDownload
         data: 1
         type: dword
@@ -572,7 +563,7 @@
         description: Disabled
       - stig_id: V-254347
         title: Disable printing over HTTP
-        path: 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Printers'
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Printers
         name: DisableHTTPPrinting
         data: 1
         type: dword
@@ -590,14 +581,13 @@
         description: Disabled
       - stig_id: V-254349
         title: Prompt for authentication when system wakes from sleep
-        path: 'HKLM:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\0e796bdb-100d-47d6-a2d5-f7d2daa51f51'
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\0e796bdb-100d-47d6-a2d5-f7d2daa51f51
         name: DCSettingIndex
         data: 1
         type: dword
         category: power_management
         severity: CAT II
         description: Enabled
-      # V2R7 NEW RULES - WN22-DC Domain Controller (V-271426 to V-271427)
       - stig_id: V-271426
         title: Configure strong certificate binding enforcement for DCs
         path: HKLM:\SYSTEM\CurrentControlSet\Services\Kdc
@@ -607,25 +597,15 @@
         category: domain_controller
         severity: CAT II
         description: Enabled (DC only)
-        dc_only: true
       - stig_id: V-271427
         title: Allow name-based strong mappings for certificates
-        path: 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System\KDC'
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\System\KDC
         name: UseSubjectAltName
         data: 1
         type: dword
         category: domain_controller
         severity: CAT II
         description: Enabled (DC only)
-        dc_only: true
-  tags:
-    - registry_settings
-    - setup
-
-# =============================================================================
-# AUDIT-THEN-REMEDIATE PHASE - Following CIS role pattern
-# =============================================================================
-
 - name: STIG Registry Settings | AUDIT | Get current registry values
   ansible.windows.win_reg_stat:
     path: "{{ item.path }}"
