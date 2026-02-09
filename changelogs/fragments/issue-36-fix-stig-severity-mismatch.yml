@@ -1,3 +1,0 @@
----
-bugfixes:
-  - windows_manage_stig - Fixed 6 STIG controls that were incorrectly classified as CAT II instead of CAT I per official DISA documentation.

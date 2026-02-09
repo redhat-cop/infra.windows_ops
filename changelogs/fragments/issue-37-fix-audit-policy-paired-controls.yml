@@ -1,3 +1,0 @@
----
-bugfixes:
-  - windows_manage_stig - Fixed audit policy remediation to preserve paired success/failure controls, preventing "whack-a-mole" effect where fixing one control inadvertently breaks its paired control.
