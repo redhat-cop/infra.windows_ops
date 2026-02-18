@@ -50,81 +50,81 @@
 # STIG CONTROL IMPLEMENTATION BY CATEGORY
 # =============================================================================
 
-- name: STIG | Apply account policies controls (Password & Lockout)
-  ansible.builtin.include_tasks: account_policies.yml
+- name: STIG | Apply account policies controls (version-specific)
+  ansible.builtin.include_tasks: "{{ windows_manage_stig_detected_version }}/account_policies.yml"
   when:
+    - windows_manage_stig_detected_version is defined
     - "'account_policies' in windows_manage_stig_categories"
   tags:
-    - stig_v254240_v254246
     - account_policies
     - stig
 
-- name: STIG | Apply audit policies controls (Security Auditing)
-  ansible.builtin.include_tasks: audit_policies.yml
+- name: STIG | Apply audit policies controls (version-specific)
+  ansible.builtin.include_tasks: "{{ windows_manage_stig_detected_version }}/audit_policies.yml"
   when:
+    - windows_manage_stig_detected_version is defined
     - "'audit_policies' in windows_manage_stig_categories"
   tags:
-    - stig_v254247_v254258
     - audit_policies
     - stig
 
-- name: STIG | Apply user rights assignment controls
-  ansible.builtin.include_tasks: user_rights_assignment.yml
+- name: STIG | Apply user rights assignment controls (version-specific)
+  ansible.builtin.include_tasks: "{{ windows_manage_stig_detected_version }}/user_rights_assignment.yml"
   when:
+    - windows_manage_stig_detected_version is defined
     - "'user_rights' in windows_manage_stig_categories"
   tags:
-    - stig_v254451_v254500
     - user_rights
     - stig
 
-- name: STIG | Apply security options controls
-  ansible.builtin.include_tasks: security_options.yml
+- name: STIG | Apply security options controls (version-specific)
+  ansible.builtin.include_tasks: "{{ windows_manage_stig_detected_version }}/security_options.yml"
   when:
+    - windows_manage_stig_detected_version is defined
     - "'security_options' in windows_manage_stig_categories"
   tags:
-    - stig_v254259_v254350
     - security_options
     - stig
 
-- name: STIG | Apply registry settings controls
-  ansible.builtin.include_tasks: registry_settings.yml
+- name: STIG | Apply registry settings controls (version-specific)
+  ansible.builtin.include_tasks: "{{ windows_manage_stig_detected_version }}/registry_settings.yml"
   when:
+    - windows_manage_stig_detected_version is defined
     - "'registry_settings' in windows_manage_stig_categories"
   tags:
-    - stig_v254351_v254400
     - registry_settings
     - stig
 
-- name: STIG | Apply system services controls
-  ansible.builtin.include_tasks: system_services.yml
+- name: STIG | Apply system services controls (version-specific)
+  ansible.builtin.include_tasks: "{{ windows_manage_stig_detected_version }}/system_services.yml"
   when:
+    - windows_manage_stig_detected_version is defined
     - "'system_services' in windows_manage_stig_categories"
   tags:
-    - stig_v254401_v254450
     - system_services
     - stig
 
+- name: STIG | Display manual controls documentation (version-specific)
+  ansible.builtin.include_tasks: "{{ windows_manage_stig_detected_version }}/manual_controls.yml"
+  when:
+    - windows_manage_stig_detected_version is defined
+    - windows_manage_stig_detected_version in ['2019', '2022', '2025']
+  tags:
+    - manual_controls
+    - documentation
+    - stig
+
 # =============================================================================
-# VERSION-SPECIFIC FEATURES (2022+ and 2025)
+# VERSION-SPECIFIC ADVANCED FEATURES (2022 and 2025)
 # =============================================================================
 
-- name: STIG | Apply Windows Server 2022+ features (DNS-over-HTTPS, SMB over QUIC, TLS 1.3)
-  ansible.builtin.include_tasks: windows_2022_plus_features.yml
+- name: STIG | Apply advanced features (DNS-over-HTTPS, SMB QUIC, TLS 1.3, Hotpatching, etc.)
+  ansible.builtin.include_tasks: "{{ windows_manage_stig_detected_version }}/advanced_features.yml"
   when:
     - windows_manage_stig_detected_version is defined
     - windows_manage_stig_detected_version in ['2022', '2025']
   tags:
-    - stig_2022_plus
-    - version_specific
-    - stig
-
-- name: STIG | Apply Windows Server 2025 exclusive features (Hotpatching, Credential Guard, AD 32k)
-  ansible.builtin.include_tasks: windows_2025_features.yml
-  when:
-    - windows_manage_stig_detected_version is defined
-    - windows_manage_stig_detected_version == '2025'
-  tags:
-    - stig_2025
+    - advanced_features
     - version_specific
     - stig
 
@@ -146,6 +146,87 @@
         (windows_manage_stig_total_controls | int)) | round(1)
         if windows_manage_stig_total_controls | int > 0 else 0
       }}
+
+- name: STIG | Identify failed controls
+  ansible.builtin.set_fact:
+    windows_manage_stig_failed_controls: "{{ windows_manage_stig_results | selectattr('status', 'equalto', 'FAIL') | list }}"
+
+- name: STIG | Construct failed controls message list
+  ansible.builtin.set_fact:
+    windows_manage_stig_failed_msg_lines:
+      - "=========================================================="
+      - "FAILED CONTROLS SUMMARY - {{ windows_manage_stig_failed_controls | length }} CONTROLS"
+      - "=========================================================="
+      - "The following controls failed automated verification:"
+      - ""
+  when: windows_manage_stig_failed_controls | length > 0
+
+- name: STIG | Add failed controls to message list
+  ansible.builtin.set_fact:
+    windows_manage_stig_failed_msg_lines: "{{ windows_manage_stig_failed_msg_lines + [
+        (loop_index + 1) | string ~ '. [' ~ control.stig_id ~ '] ' ~ control.title,
+        '   Severity: ' ~ control.severity,
+        '   Expected: ' ~ control.expected_value,
+        '   Current:  ' ~ control.current_value,
+        ''
+      ] }}"
+  loop: "{{ windows_manage_stig_failed_controls }}"
+  loop_control:
+    loop_var: control
+    index_var: loop_index
+  when: windows_manage_stig_failed_controls | length > 0
+
+- name: STIG | Add footer to failed controls message list
+  ansible.builtin.set_fact:
+    windows_manage_stig_failed_msg_lines: "{{ windows_manage_stig_failed_msg_lines + ['=========================================================='] }}"
+  when: windows_manage_stig_failed_controls | length > 0
+
+- name: STIG | Display failed controls summary
+  ansible.builtin.debug:
+    msg: "{{ windows_manage_stig_failed_msg_lines }}"
+  when: windows_manage_stig_failed_controls | length > 0
+
+- name: STIG | Identify controls requiring manual verification
+  ansible.builtin.set_fact:
+    windows_manage_stig_manual_controls: "{{ windows_manage_stig_results | selectattr('manual_remediation', 'defined') | selectattr('manual_remediation', 'equalto', true) | list }}"
+
+- name: STIG | Construct manual controls message list
+  ansible.builtin.set_fact:
+    windows_manage_stig_manual_msg_lines:
+      - "=========================================================="
+      - "MANUAL VERIFICATION REQUIRED - {{ windows_manage_stig_manual_controls | length }} CONTROLS"
+      - "=========================================================="
+      - "The following DISA STIG controls cannot be automated and"
+      - "require manual verification or configuration by administrators:"
+      - ""
+  when: windows_manage_stig_manual_controls | length > 0
+
+- name: STIG | Add manual controls to message list
+  ansible.builtin.set_fact:
+    windows_manage_stig_manual_msg_lines: "{{ windows_manage_stig_manual_msg_lines + [
+        (loop_index + 1) | string ~ '. [' ~ control.stig_id ~ '] ' ~ control.title,
+        '   Severity: ' ~ control.severity,
+        '   Status: ' ~ control.status,
+        '   Current: ' ~ control.current_value,
+        '   Required: ' ~ control.expected_value,
+        '   Action: ' ~ control.remediation_notes,
+        ''
+      ] }}"
+  loop: "{{ windows_manage_stig_manual_controls }}"
+  loop_control:
+    loop_var: control
+    index_var: loop_index
+  when: windows_manage_stig_manual_controls | length > 0
+
+- name: STIG | Add footer to manual controls message list
+  ansible.builtin.set_fact:
+    windows_manage_stig_manual_msg_lines: "{{ windows_manage_stig_manual_msg_lines + ['For detailed procedures, see MANUAL_CONTROLS.md documentation', '=========================================================='] }}"
+  when: windows_manage_stig_manual_controls | length > 0
+
+- name: STIG | Display manual controls requiring user action
+  ansible.builtin.debug:
+    msg: "{{ windows_manage_stig_manual_msg_lines }}"
+  when: windows_manage_stig_manual_controls | length > 0
 
 - name: STIG | Display execution summary
   ansible.builtin.debug:

@@ -1,0 +1,721 @@
+---
+# =============================================================================
+# DISA STIG V-254247 through V-254258 - Audit Policies
+# Security Auditing Controls for Government Compliance
+# Enterprise Implementation using structured win_powershell approach
+# =============================================================================
+
+# =============================================================================
+# STRUCTURED AUDIT POLICY CONFIGURATION - Data-driven approach
+# =============================================================================
+
+- name: STIG Audit Policies | SETUP | Define audit policy configuration matrix
+  ansible.builtin.set_fact:
+    windows_manage_stig_audit_policies:
+      - stig_id: V-254247
+        title: Configure audit account logon events
+        subcategory: Credential Validation
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254248-1
+        title: Configure audit account management - Security Group Management
+        subcategory: Security Group Management
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254248-2
+        title: Configure audit account management - User Account Management
+        subcategory: User Account Management
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254249
+        title: Configure audit detailed tracking
+        subcategory: Process Creation
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254250
+        title: Configure audit directory service access
+        subcategory: Directory Service Access
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: CAT II
+        dc_only: true
+      - stig_id: V-254251-1
+        title: Configure audit logon events - Logon
+        subcategory: Logon
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254251-2
+        title: Configure audit logon events - Logoff
+        subcategory: Logoff
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254252-1
+        title: Configure audit object access - File System
+        subcategory: File System
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254252-2
+        title: Configure audit object access - Registry
+        subcategory: Registry
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254253-1
+        title: Configure audit policy change - Audit Policy Change
+        subcategory: Audit Policy Change
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254253-2
+        title: Configure audit policy change - Authentication Policy Change
+        subcategory: Authentication Policy Change
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254254
+        title: Configure audit privilege use
+        subcategory: Sensitive Privilege Use
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254255
+        title: Configure audit process tracking
+        subcategory: Process Creation
+        success: false
+        failure: false
+        expected: No Auditing
+        severity: CAT III
+        dc_only: false
+      - stig_id: V-254256-1
+        title: Configure audit system events - Security System Extension
+        subcategory: Security System Extension
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254256-2
+        title: Configure audit system events - System Integrity
+        subcategory: System Integrity
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254257
+        title: Configure audit Kerberos authentication service
+        subcategory: Kerberos Authentication Service
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: CAT II
+        dc_only: true
+      - stig_id: V-254258
+        title: Configure audit other account logon events
+        subcategory: Other Account Logon Events
+        success: true
+        failure: true
+        expected: Success and Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254301
+        title: Windows Server 2022 must be configured to audit Account Logon - Credential Validation failures.
+        subcategory: Credential Validation
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254302
+        title: Windows Server 2022 must be configured to audit Account Management - Other Account Management Events successes.
+        subcategory: Other Account Management Events
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254303
+        title: Windows Server 2022 must be configured to audit Account Management - Security Group Management successes.
+        subcategory: Security Group Management
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254304
+        title: Windows Server 2022 must be configured to audit Account Management - User Account Management successes.
+        subcategory: User Account Management
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254305
+        title: Windows Server 2022 must be configured to audit Account Management - User Account Management failures.
+        subcategory: User Account Management
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254306
+        title: Windows Server 2022 must be configured to audit Detailed Tracking - Plug and Play Events successes.
+        subcategory: Plug and Play Events
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254307
+        title: Windows Server 2022 must be configured to audit Detailed Tracking - Process Creation successes.
+        subcategory: Process Creation
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254309
+        title: Windows Server 2022 must be configured to audit Logon/Logoff - Account Lockout failures.
+        subcategory: Account Lockout
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254313
+        title: Windows Server 2022 must be configured to audit logon failures.
+        subcategory: Logon
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254314
+        title: Windows Server 2022 must be configured to audit Logon/Logoff - Special Logon successes.
+        subcategory: Special Logon
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254315
+        title: Windows Server 2022 must be configured to audit Object Access - Other Object Access Events successes.
+        subcategory: Other Object Access Events
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254316
+        title: Windows Server 2022 must be configured to audit Object Access - Other Object Access Events failures.
+        subcategory: Other Object Access Events
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254317
+        title: Windows Server 2022 must be configured to audit Object Access - Removable Storage successes.
+        subcategory: Removable Storage
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254318
+        title: Windows Server 2022 must be configured to audit Object Access - Removable Storage failures.
+        subcategory: Removable Storage
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254319
+        title: Windows Server 2022 must be configured to audit Policy Change - Audit Policy Change successes.
+        subcategory: Audit Policy Change
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254320
+        title: Windows Server 2022 must be configured to audit Policy Change - Audit Policy Change failures.
+        subcategory: Audit Policy Change
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254321
+        title: Windows Server 2022 must be configured to audit Policy Change - Authentication Policy Change successes.
+        subcategory: Authentication Policy Change
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254322
+        title: Windows Server 2022 must be configured to audit Policy Change - Authorization Policy Change successes.
+        subcategory: Authorization Policy Change
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254323
+        title: Windows Server 2022 must be configured to audit Privilege Use - Sensitive Privilege Use successes.
+        subcategory: Sensitive Privilege Use
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254324
+        title: Windows Server 2022 must be configured to audit Privilege Use - Sensitive Privilege Use failures.
+        subcategory: Sensitive Privilege Use
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254328
+        title: Windows Server 2022 must be configured to audit System - Other System Events failures.
+        subcategory: Other System Events
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254329
+        title: Windows Server 2022 must be configured to audit System - Security State Change successes.
+        subcategory: Security State Change
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254330
+        title: Windows Server 2022 must be configured to audit System - Security System Extension successes.
+        subcategory: Security System Extension
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254331
+        title: Windows Server 2022 must be configured to audit System - System Integrity successes.
+        subcategory: System Integrity
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-254332
+        title: Windows Server 2022 must be configured to audit System - System Integrity failures.
+        subcategory: System Integrity
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-278942
+        title: Windows Server 2022 must be configured to audit file system failures.
+        subcategory: File System
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-278943
+        title: Windows Server 2022 must be configured to audit file system successes.
+        subcategory: File System
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-278944
+        title: Windows Server 2022 must be configured to audit handle manipulation failures.
+        subcategory: Handle Manipulation
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-278945
+        title: Windows Server 2022 must be configured to audit handle manipulation successes.
+        subcategory: Handle Manipulation
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-278946
+        title: Windows Server 2022 must be configured to audit registry failures.
+        subcategory: Registry
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-278947
+        title: Windows Server 2022 must be configured to audit registry successes.
+        subcategory: Registry
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-278948
+        title: Windows Server 2022 must be configured to audit sensitive privilege use successes.
+        subcategory: Sensitive Privilege Use
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-278949
+        title: Windows Server 2022 must be configured to audit sensitive privilege use failures.
+        subcategory: Sensitive Privilege Use
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+  tags:
+    - audit_policies
+    - setup
+
+# =============================================================================
+# AUDIT PHASE - Single PowerShell Query
+# =============================================================================
+
+- name: STIG Audit Policies | AUDIT | Get all current audit policy settings (consolidated)
+  ansible.windows.win_powershell:
+    script: |
+      $ErrorActionPreference = 'Stop'
+      try {
+        # Get all audit policy settings in one call
+        $auditOutput = auditpol /get /category:* /r
+        $auditData = $auditOutput | ConvertFrom-Csv
+
+        # Create structured return data
+        $result = @{}
+        foreach ($line in $auditData) {
+          $subcategory = $line.'Subcategory'
+          $setting = $line.'Inclusion Setting'
+          $result[$subcategory] = $setting
+        }
+
+        $Ansible.Result = @{
+          audit_policies = $result
+          raw_output = $auditOutput
+        }
+      }
+      catch {
+        $Ansible.Failed = $true
+        $Ansible.Result = @{
+          error = $_.Exception.Message
+          line_number = $_.InvocationInfo.ScriptLineNumber
+        }
+      }
+  register: windows_manage_stig_audit_current_all
+  check_mode: false
+  tags:
+    - audit_policies
+    - audit
+    - consolidated
+
+# =============================================================================
+# REMEDIATION PHASE - Structured PowerShell Configuration
+# =============================================================================
+
+- name: STIG Audit Policies | SCORED | Configure audit policies (modernized loop)
+  ansible.windows.win_powershell:
+    script: |
+      param($SubcategoryName, $SuccessEnabled, $FailureEnabled, $RuleId, $DcOnly, $ExpectedValue)
+
+      $ErrorActionPreference = 'Stop'
+      try {
+        # Check if this is a Domain Controller specific setting
+        if ($DcOnly) {
+          $isDc = (Get-WmiObject -Class Win32_OperatingSystem).ProductType -eq 2
+          if (-not $isDc) {
+            $Ansible.Changed = $false
+            $Ansible.Result = @{
+              subcategory = $SubcategoryName
+              rule_id = $RuleId
+              status = "skipped"
+              reason = "Not applicable - Not a Domain Controller"
+            }
+            return
+          }
+        }
+
+        # Query current audit policy state to preserve paired controls
+        $currentAuditOutput = auditpol /get /subcategory:"$SubcategoryName" /r
+        $currentAudit = $currentAuditOutput | ConvertFrom-Csv
+        $currentSetting = $currentAudit.'Inclusion Setting'
+
+        # Determine current state
+        $currentSuccessEnabled = $currentSetting -match 'Success'
+        $currentFailureEnabled = $currentSetting -match 'Failure'
+
+        # Build auditpol command parameters - preserve existing settings for parameters not being changed
+        # Only modify the parameter that needs to change based on the expected value
+        switch ($ExpectedValue) {
+          'Success and Failure' {
+            # Both success and failure should be enabled
+            $successParam = if ($SuccessEnabled) { "enable" } else { "disable" }
+            $failureParam = if ($FailureEnabled) { "enable" } else { "disable" }
+          }
+          'Success' {
+            # Only success should be enabled, preserve current failure state
+            $successParam = if ($SuccessEnabled) { "enable" } else { "disable" }
+            $failureParam = if ($currentFailureEnabled) { "enable" } else { "disable" }
+          }
+          'Failure' {
+            # Only failure should be enabled, preserve current success state
+            $successParam = if ($currentSuccessEnabled) { "enable" } else { "disable" }
+            $failureParam = if ($FailureEnabled) { "enable" } else { "disable" }
+          }
+          'No Auditing' {
+            # Both should be disabled
+            $successParam = "disable"
+            $failureParam = "disable"
+          }
+          default {
+            # Fallback to original behavior if expected value is unexpected
+            $successParam = if ($SuccessEnabled) { "enable" } else { "disable" }
+            $failureParam = if ($FailureEnabled) { "enable" } else { "disable" }
+          }
+        }
+
+        # Execute auditpol command
+        $result = auditpol /set /subcategory:"$SubcategoryName" /success:$successParam /failure:$failureParam
+
+        if ($LASTEXITCODE -eq 0) {
+          $Ansible.Changed = $true
+          $Ansible.Result = @{
+            subcategory = $SubcategoryName
+            rule_id = $RuleId
+            success_setting = $successParam
+            failure_setting = $failureParam
+            previous_setting = $currentSetting
+            preserved_paired_control = ($ExpectedValue -in @('Success', 'Failure'))
+            command_output = $result
+            status = "success"
+          }
+        } else {
+          $Ansible.Failed = $true
+          $Ansible.Result = @{
+            error = "Auditpol command failed with exit code $LASTEXITCODE"
+            output = $result
+          }
+        }
+      }
+      catch {
+        $Ansible.Failed = $true
+        $Ansible.Result = @{
+          error = $_.Exception.Message
+          subcategory = $SubcategoryName
+          rule_id = $RuleId
+        }
+      }
+    parameters:
+      SubcategoryName: "{{ item.subcategory }}"
+      SuccessEnabled: "{{ item.success }}"
+      FailureEnabled: "{{ item.failure }}"
+      RuleId: "{{ item.stig_id }}"
+      DcOnly: "{{ item.dc_only }}"
+      ExpectedValue: "{{ item.expected }}"
+  loop: "{{ windows_manage_stig_audit_policies }}"
+  register: windows_manage_stig_audit_results
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
+    - windows_manage_stig_audit_current_all.result.audit_policies[item.subcategory] | default('No Auditing') != item.expected
+  tags:
+    - audit_policies
+    - scored
+    - remediation
+
+# =============================================================================
+# STRUCTURED COMPLIANCE TRACKING
+# =============================================================================
+
+- name: STIG Audit Policies | AUDIT | Record all audit policy compliance results (consolidated)
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [windows_manage_stig_current_result] }}"
+  vars:
+    windows_manage_stig_current_audit_value: "{{ windows_manage_stig_audit_current_all.result.audit_policies[audit_policy.subcategory] | default('No Auditing') }}"
+    windows_manage_stig_current_result:
+      stig_id: "{{ audit_policy.stig_id }}"
+      title: "{{ audit_policy.title }}"
+      subcategory: "{{ audit_policy.subcategory }}"
+      success: "{{ audit_policy.success }}"
+      failure: "{{ audit_policy.failure }}"
+      expected: "{{ audit_policy.expected }}"
+      severity: "{{ audit_policy.severity }}"
+      dc_only: "{{ audit_policy.dc_only }}"
+      rule_section: Audit Policies
+      scored: true
+      current_value: "{{ windows_manage_stig_current_audit_value }}"
+      expected_value: "{{ audit_policy.expected }}"
+      status: "{{ 'PASS' if ((windows_manage_stig_current_audit_value == audit_policy.expected) or (audit_policy.expected == 'Success' and windows_manage_stig_current_audit_value == 'Success and Failure') or (audit_policy.expected == 'Failure' and windows_manage_stig_current_audit_value == 'Success and Failure')) else 'FAIL' }}"
+      changed: "{{ windows_manage_stig_audit_results.results[ansible_loop.index0].changed | default(false) }}"
+      skip_reason: "{{ 'User configured skip' if audit_policy.stig_id in windows_manage_stig_skip_rules else ('Not applicable - Domain Controller only' if audit_policy.dc_only and ansible_facts.get('env_type', '') != 'domain_controller' else '') }}"
+      check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or audit_policy.stig_id in windows_manage_stig_only_rules
+  loop: "{{ windows_manage_stig_audit_policies }}"
+  loop_control:
+    loop_var: audit_policy
+    extended: true
+  tags:
+    - audit_policies
+    - compliance
+
+# =============================================================================
+# V2R7 NEW RULE - AUDIT LOG BACKUP CHECK (V-254294)
+# =============================================================================
+
+- name: STIG V-254294 | AUDIT | Check for audit log forwarding or backup configuration
+  ansible.windows.win_powershell:
+    script: |
+      $Ansible.Changed = $false
+      $logForwardingConfigured = $false
+      $forwardingMethods = @()
+
+      # Check for Windows Event Forwarding (WEF) subscriptions
+      try {
+        $wefSubscriptions = Get-ChildItem -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\EventCollector\Subscriptions' -ErrorAction SilentlyContinue
+        if ($wefSubscriptions) {
+          $logForwardingConfigured = $true
+          $forwardingMethods += "Windows Event Forwarding (WEF)"
+        }
+      } catch {}
+
+      # Check for common log forwarding agents
+      $logAgents = @(
+        @{ Name = "Splunk Universal Forwarder"; Service = "SplunkForwarder" },
+        @{ Name = "Winlogbeat"; Service = "winlogbeat" },
+        @{ Name = "Filebeat"; Service = "filebeat" },
+        @{ Name = "NXLog"; Service = "nxlog" },
+        @{ Name = "Fluentd"; Service = "fluentdwinsvc" }
+      )
+
+      foreach ($agent in $logAgents) {
+        try {
+          $service = Get-Service -Name $agent.Service -ErrorAction SilentlyContinue
+          if ($service -and $service.Status -eq 'Running') {
+            $logForwardingConfigured = $true
+            $forwardingMethods += "$($agent.Name) (Running)"
+          }
+        } catch {}
+      }
+
+      # Check for Event Log subscriptions (forwarding sources)
+      try {
+        $eventSubscriptions = wecutil es 2>$null
+        if ($eventSubscriptions -and $eventSubscriptions.Count -gt 0) {
+          $logForwardingConfigured = $true
+          $forwardingMethods += "Event Subscriptions ($($eventSubscriptions.Count) configured)"
+        }
+      } catch {}
+
+      if ($logForwardingConfigured) {
+        @{
+          'status' = 'PASS'
+          'compliant' = $true
+          'forwarding_configured' = $true
+          'methods' = $forwardingMethods
+        }
+      } else {
+        @{
+          'status' = 'FAIL'
+          'compliant' = $false
+          'forwarding_configured' = $false
+          'methods' = @()
+        }
+      }
+  register: windows_manage_stig_audit_backup_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - audit_policies
+    - audit
+
+- name: STIG V-254294 | AUDIT | Record audit log backup compliance result
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: >-
+      {{ windows_manage_stig_results | default([]) + [
+        {
+          'stig_id': 'V-254294',
+          'title': 'Audit records must be backed up to different system or media',
+          'rule_section': 'Audit Policies',
+          'severity': 'CAT II',
+          'scored': false,
+          'current_value': ((windows_manage_stig_audit_backup_check.output.methods | default([]) | join(', ')) if (windows_manage_stig_audit_backup_check.output.forwarding_configured | default(false)) else 'No log forwarding/backup detected'),
+          'expected_value': 'Log forwarding or backup configured',
+          'status': windows_manage_stig_audit_backup_check.output.status | default('UNKNOWN'),
+          'changed': false,
+          'manual_remediation': true,
+          'remediation_notes': 'Manual configuration required - Configure Windows Event Forwarding or install/configure a log shipping agent (Splunk, Winlogbeat, etc.)',
+          'check_mode': ansible_check_mode,
+          'details': windows_manage_stig_audit_backup_check.output.methods | default([])
+        }
+      ] }}
+  tags:
+    - audit_policies
+    - compliance
+
+# =============================================================================
+# SECTION SUMMARY
+# =============================================================================
+
+- name: STIG Audit Policies | Display audit policy summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - STIG Audit Policies Summary
+      - ==========================================
+      - "Audit Policies Configured: {{ windows_manage_stig_audit_policies | length }} total controls"
+      - "Domain Controller Policies: {{ (windows_manage_stig_audit_policies | selectattr('dc_only', 'equalto', true) | list | length) }} DC-specific controls"
+      - ==========================================
+      - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
+      - ==========================================
+  when: not ansible_check_mode or true
+  tags:
+    - audit_policies
+    - summary

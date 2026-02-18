@@ -642,10 +642,10 @@
 
 - name: STIG Registry Settings | AUDIT | Record compliance results
   ansible.builtin.set_fact:
-    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [current_result] }}"
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [windows_manage_stig_current_result] }}"
   vars:
-    current_registry_value: "{{ windows_manage_stig_registry_current.results[ansible_loop.index0].value | default('Not Configured') }}"
-    current_result:
+    windows_manage_stig_current_registry_value: "{{ windows_manage_stig_registry_current.results[ansible_loop.index0].value | default('Not Configured') }}"
+    windows_manage_stig_current_result:
       stig_id: "{{ registry_setting.stig_id }}"
       title: "{{ registry_setting.title }}"
       path: "{{ registry_setting.path }}"
@@ -658,9 +658,9 @@
       dc_only: "{{ registry_setting.dc_only | default(false) }}"
       rule_section: Registry Settings
       scored: true
-      current_value: "{{ current_registry_value }}"
+      current_value: "{{ windows_manage_stig_current_registry_value }}"
       expected_value: "{{ registry_setting.description }}"
-      status: "{{ 'PASS' if (current_registry_value | default('') | string == registry_setting.data | string) else 'FAIL' }}"
+      status: "{{ 'PASS' if (windows_manage_stig_current_registry_value | default('') | string == registry_setting.data | string) else 'FAIL' }}"
       changed: "{{ windows_manage_stig_registry_results.results[ansible_loop.index0].changed | default(false) }}"
       skip_reason: "{{ 'User configured skip' if registry_setting.stig_id in windows_manage_stig_skip_rules else '' }}"
       check_mode: "{{ ansible_check_mode }}"

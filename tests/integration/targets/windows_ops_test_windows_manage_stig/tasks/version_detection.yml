@@ -89,7 +89,7 @@
           - |
             (_version_report.detected_version == '2019' and _version_report.benchmark_version == 'V3R7') or
             (_version_report.detected_version == '2022' and _version_report.benchmark_version == 'V2R7') or
-            (_version_report.detected_version == '2025' and _version_report.benchmark_version == 'V1R1')
+            (_version_report.detected_version == '2025' and _version_report.benchmark_version == 'V1R0-1')
         fail_msg: "Benchmark version mapping incorrect for {{ _version_report.detected_version }}"
         success_msg: "Benchmark version correctly mapped: {{ _version_report.benchmark_version }}"
 
@@ -153,6 +153,10 @@
           - "============================================"
           - "Version detection validation: PASSED"
           - "============================================"
+
+    - name: Record version detection results to history
+      ansible.builtin.set_fact:
+        stig_test_history: "{{ stig_test_history + [_version_report | combine({'stage_name': 'Version Detection Check', 'notes': 'Minimal category run for version ID'})] }}"
 
     - name: Display test completion message
       ansible.builtin.debug:

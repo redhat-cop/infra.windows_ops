@@ -1,0 +1,231 @@
+---
+# =============================================================================
+# DISA STIG Windows Server 2019 V3R7 - Security Options
+# Registry-based Security Policy Controls
+# Generated from Windows 2019 XCCDF authoritative source
+# =============================================================================
+
+# =============================================================================
+# STRUCTURED SECURITY OPTIONS CONFIGURATION - Data-driven approach
+# Only includes TRUE registry-based security options (15 controls)
+# Note: V-205909 and V-205910 are manual controls (account renaming)
+# Note: V-205709 moved to account_policies.yml (uses win_user, not registry)
+# =============================================================================
+
+- name: STIG Security Options | SETUP | Define security options configuration matrix
+  ansible.builtin.set_fact:
+    windows_manage_stig_security_options:
+      # PROCESS AUDITING
+      process_auditing:
+        - stig_id: V-205638
+          title: Command line data must be included in process creation events
+          path: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System\Audit
+          name: ProcessCreationIncludeCmdLine_Enabled
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Include command line in process creation
+        - stig_id: V-205644
+          title: Windows Server 2019 must force audit policy subcategory settings to override audit policy category settings.
+          path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+          name: SCENoApplyLegacyAuditPolicy
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Force audit policy subcategory settings to override category settings
+      # ACCOUNT MANAGEMENT
+      account_management: []
+      # SMB PROTOCOLS
+      smb_protocols:
+        - stig_id: V-205683
+          title: Server Message Block (SMB) v1 protocol must be disabled on the SMB server
+          path: HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters
+          name: SMB1
+          data: 0
+          type: dword
+          severity: CAT II
+          description: Disable SMB v1 server
+        - stig_id: V-205684
+          title: Server Message Block (SMB) v1 protocol must be disabled on the SMB client
+          path: HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters
+          name: DependOnService
+          data: [Bowser, MRxSmb20, NSI]
+          type: multistring
+          severity: CAT II
+          description: Disable SMB v1 client
+      # ANONYMOUS ACCESS CONTROLS
+      anonymous_access_controls:
+        - stig_id: V-205724
+          title: Must not allow anonymous enumeration of shares
+          path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+          name: RestrictAnonymous
+          data: 1
+          type: dword
+          severity: CAT I
+          description: Do not allow anonymous share enumeration
+        - stig_id: V-205725
+          title: Must restrict anonymous access to Named Pipes and Shares
+          path: HKLM:\SYSTEM\CurrentControlSet\Services\LanManServer\Parameters
+          name: RestrictNullSessAccess
+          data: 1
+          type: dword
+          severity: CAT I
+          description: Restrict anonymous access to Named Pipes and Shares
+        - stig_id: V-205914
+          title: Must not allow anonymous enumeration of Security Account Manager (SAM) accounts
+          path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+          name: RestrictAnonymousSAM
+          data: 1
+          type: dword
+          severity: CAT I
+          description: Do not allow anonymous SAM enumeration
+      # NETWORK SECURITY
+      network_security:
+        - stig_id: V-205862
+          title: Hardened UNC paths must be defined to require mutual authentication and integrity
+          path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\NetworkProvider\HardenedPaths
+          name: \\*\SYSVOL
+          data: RequireMutualAuthentication=1,RequireIntegrity=1
+          type: string
+          severity: CAT II
+          description: Harden UNC paths (SYSVOL)
+        - stig_id: V-205863
+          title: Must be configured to enable Remote host allows delegation of non-exportable credentials
+          path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation
+          name: AllowProtectedCreds
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Allow delegation of non-exportable credentials
+      # POWER MANAGEMENT
+      power_management:
+        - stig_id: V-205868
+          title: Users must be prompted to authenticate when the system wakes from sleep (plugged in)
+          path: HKLM:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\0e796bdb-100d-47d6-a2d5-f7d2daa51f51
+          name: ACSettingIndex
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Require authentication when waking from sleep (AC power)
+      # CREDENTIAL PROTECTION
+      credential_protection:
+        - stig_id: V-205907
+          title: Must be running Credential Guard on domain-joined member servers
+          path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard
+          name: LsaCfgFlags
+          data: 1
+          type: dword
+          severity: CAT I
+          description: Enable Credential Guard
+        - stig_id: V-205908
+          title: Must prevent local accounts with blank passwords from being used from the network
+          path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+          name: LimitBlankPasswordUse
+          data: 1
+          type: dword
+          severity: CAT I
+          description: Prevent blank password use from network
+      # AUTHENTICATION
+      authentication: []
+  tags:
+    - security_options
+    - setup
+
+# =============================================================================
+# AUDIT-THEN-REMEDIATE PHASE - Registry Settings
+# =============================================================================
+
+- name: STIG Security Options | AUDIT | Get current registry security options
+  ansible.windows.win_reg_stat:
+    path: "{{ item.path }}"
+    name: "{{ item.name }}"
+  register: windows_manage_stig_security_registry_current
+  loop: "{{ windows_manage_stig_security_options | dict2items | map(attribute='value') | flatten }}"
+  check_mode: false
+  tags:
+    - security_options
+    - audit
+
+- name: STIG Security Options | SCORED | Configure registry security options
+  ansible.windows.win_regedit:
+    path: "{{ item.path }}"
+    name: "{{ item.name }}"
+    data: "{{ item.data }}"
+    type: "{{ item.type }}"
+  register: windows_manage_stig_security_registry_results
+  loop: "{{ windows_manage_stig_security_options | dict2items | map(attribute='value') | flatten }}"
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
+    - windows_manage_stig_security_registry_current.results[ansible_loop.index0].value | default('') | string != item.data | string
+  loop_control:
+    extended: true
+  tags:
+    - security_options
+    - registry
+    - scored
+    - remediation
+
+# =============================================================================
+# COMPLIANCE TRACKING
+# =============================================================================
+
+- name: STIG Security Options | AUDIT | Record compliance results
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [windows_manage_stig_current_result] }}"
+  vars:
+    windows_manage_stig_all_security_options: "{{ windows_manage_stig_security_options | dict2items | map(attribute='value') | flatten }}"
+    windows_manage_stig_registry_results: "{{ windows_manage_stig_security_registry_current.results | default([]) }}"
+    windows_manage_stig_current_registry_value: "{{ windows_manage_stig_registry_results[ansible_loop.index0].value | default('Not Configured') }}"
+    windows_manage_stig_current_result:
+      stig_id: "{{ security_option.stig_id }}"
+      title: "{{ security_option.title }}"
+      path: "{{ security_option.path }}"
+      name: "{{ security_option.name }}"
+      data: "{{ security_option.data }}"
+      type: "{{ security_option.type }}"
+      severity: "{{ security_option.severity }}"
+      description: "{{ security_option.description }}"
+      rule_section: Security Options
+      scored: true
+      current_value: "{{ windows_manage_stig_current_registry_value | string }}"
+      expected_value: "{{ security_option.data | string }}"
+      status: "{{ 'PASS' if (windows_manage_stig_current_registry_value | default('') | string == security_option.data | string) else 'FAIL' }}"
+      changed: false
+      skip_reason: "{{ 'User configured skip' if security_option.stig_id in windows_manage_stig_skip_rules else '' }}"
+      check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or security_option.stig_id in windows_manage_stig_only_rules
+  loop: "{{ windows_manage_stig_all_security_options }}"
+  loop_control:
+    loop_var: security_option
+    extended: true
+  tags:
+    - security_options
+    - compliance
+
+# =============================================================================
+# SECTION SUMMARY
+# =============================================================================
+
+- name: STIG Security Options | Display configuration summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - STIG Security Options Summary
+      - ==========================================
+      - "Security Categories Configured:"
+      - "Process Auditing: {{ (windows_manage_stig_security_options.process_auditing | length) }} controls"
+      - "SMB Protocols: {{ (windows_manage_stig_security_options.smb_protocols | length) }} controls"
+      - "Anonymous Access Controls: {{ (windows_manage_stig_security_options.anonymous_access_controls | length) }} controls"
+      - "Network Security: {{ (windows_manage_stig_security_options.network_security | length) }} controls"
+      - "Power Management: {{ (windows_manage_stig_security_options.power_management | length) }} controls"
+      - "Credential Protection: {{ (windows_manage_stig_security_options.credential_protection | length) }} controls"
+      - "Authentication: {{ (windows_manage_stig_security_options.authentication | length) }} controls"
+      - ==========================================
+      - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
+      - ==========================================
+  when: not ansible_check_mode or true
+  tags:
+    - security_options
+    - summary

@@ -24,13 +24,13 @@ windows_manage_stig_supported_versions:
 windows_manage_stig_benchmark_versions:
   "2019": "V3R7"
   "2022": "V2R7"
-  "2025": "V1R1"
+  "2025": "V1R0-1"
 
 # Expected rule counts by version (for validation)
 windows_manage_stig_expected_rule_counts:
   "2019": 276
   "2022": 283
-  "2025": 295
+  "2025": 281
 
 # Version-specific feature flags (overridden by var files)
 windows_manage_stig_version_features:

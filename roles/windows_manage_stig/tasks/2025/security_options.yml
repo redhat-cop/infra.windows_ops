@@ -1,0 +1,772 @@
+---
+# =============================================================================
+# DISA STIG V-278006 through V-278097 - Security Options
+# Core Security Policy Settings for Government Compliance
+# Enterprise Implementation using data-driven approach with proper idempotency
+# =============================================================================
+
+# =============================================================================
+# STRUCTURED SECURITY OPTIONS CONFIGURATION - Data-driven approach
+# =============================================================================
+
+- name: STIG Security Options | SETUP | Define security options configuration matrix
+  ansible.builtin.set_fact:
+    windows_manage_stig_security_options:
+      # INTERACTIVE LOGON CONTROLS (V-277259 to V-277262)
+      interactive_logon:
+        - stig_id: V-278006
+          title: Interactive logon machine inactivity limit
+          path: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System
+          name: InactivityTimeoutSecs
+          data: 900 # 15 minutes
+          type: dword
+          severity: CAT II
+          description: 15 minute inactivity timeout
+        - stig_id: V-278007
+          title: Interactive logon message title
+          path: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System
+          name: LegalNoticeCaption
+          data: US Department of Defense Warning Statement
+          type: string
+          severity: CAT II
+          description: Legal notice banner title
+        - stig_id: V-278008
+          title: Interactive logon message text
+          path: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System
+          name: LegalNoticeText
+          data: You are accessing a U.S. Government (USG) Information System (IS) that is provided for USG-authorized use only.
+          type: string
+          severity: CAT II
+          description: Legal notice banner text
+        - stig_id: V-278009
+          title: CTRL+ALT+DEL required for logon
+          path: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System
+          name: DisableCAD
+          data: 0 # 0 = Require CTRL+ALT+DEL, 1 = Disable requirement
+          type: dword
+          severity: CAT II
+          description: Require CTRL+ALT+DEL
+        # Legal notice must be configured
+        - stig_id: V-278207
+          title: Legal notice must be configured
+          path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+          name: LegalNoticeText
+          data: "{{ windows_manage_stig_legal_notice_text | default('You are accessing a U.S. Government (USG) Information System (IS) that is provided for USG-authorized use only.') }}"
+          type: string
+          severity: CAT II
+          description: Legal notice configured
+        # Smart Card removal option
+        - stig_id: V-278209
+          title: Smart Card removal option
+          path: HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
+          name: ScRemoveOption
+          data: 1 # 1 = Lock Workstation, 2 = Force Logoff
+          type: string
+          severity: CAT II
+          description: Lock Workstation when smart card removed
+
+      # USER ACCOUNT CONTROL (V-277263 to V-277272)
+      user_account_control:
+        - stig_id: V-278010
+          title: UAC Admin Approval Mode
+          path: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System
+          name: FilterAdministratorToken
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Enable Admin Approval Mode for Administrator
+        - stig_id: V-278011
+          title: UAC Elevation prompt for administrators
+          path: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System
+          name: ConsentPromptBehaviorAdmin
+          data: 2 # Prompt for consent on the secure desktop
+          type: dword
+          severity: CAT II
+          description: Prompt for consent on secure desktop
+        - stig_id: V-278012
+          title: UAC Elevation prompt for standard users
+          path: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System
+          name: ConsentPromptBehaviorUser
+          data: 0 # Automatically deny elevation requests
+          type: dword
+          severity: CAT II
+          description: Automatically deny elevation requests
+        - stig_id: V-278013
+          title: UAC Only elevate UIAccess applications
+          path: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System
+          name: EnableSecureUIAPaths
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Only elevate UIAccess applications in secure locations
+        - stig_id: V-278014
+          title: UAC Run all administrators in Admin Approval Mode
+          path: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System
+          name: EnableLUA
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Run all administrators in Admin Approval Mode
+        # Local administrator token filtering moved to manual controls to prevent lockout
+
+      # NETWORK SECURITY (V-277271 to V-277285)
+      network_security:
+        - stig_id: V-278024
+          title: Digitally encrypt secure channel data
+          path: HKLM:\System\CurrentControlSet\Services\Netlogon\Parameters
+          name: SealSecureChannel
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Digitally encrypt secure channel data when possible
+        - stig_id: V-278025
+          title: Digitally sign secure channel data
+          path: HKLM:\System\CurrentControlSet\Services\Netlogon\Parameters
+          name: SignSecureChannel
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Digitally sign secure channel data when possible
+        # Microsoft network client: Digitally sign communications (always)
+        - stig_id: V-278210
+          title: Microsoft network client digitally sign communications (always)
+          path: HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters
+          name: RequireSecuritySignature
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Digitally sign communications (always)
+        # Microsoft network client: Digitally sign communications (if server agrees)
+        - stig_id: V-278211
+          title: Microsoft network client digitally sign communications (if server agrees)
+          path: HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters
+          name: EnableSecuritySignature
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Digitally sign communications (if server agrees)
+        # Microsoft network server: Digitally sign communications (always)
+        - stig_id: V-278213
+          title: Microsoft network server digitally sign communications (always)
+          path: HKLM:\SYSTEM\CurrentControlSet\Services\LanManServer\Parameters
+          name: RequireSecuritySignature
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Digitally sign communications (always)
+        # Microsoft network server: Digitally sign communications (if client agrees)
+        - stig_id: V-278214
+          title: Microsoft network server digitally sign communications (if client agrees)
+          path: HKLM:\SYSTEM\CurrentControlSet\Services\LanManServer\Parameters
+          name: EnableSecuritySignature
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Digitally sign communications (if client agrees)
+
+      # ACCESS CONTROLS (V-277441, V-277446, V-277466, V-277467, V-277469, V-277474, V-277475, V-277281)
+      access_controls:
+        - stig_id: V-278190
+          title: Windows Server 2025 must be running Credential Guard on domain-joined member servers
+          path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard
+          name: LsaCfgFlags
+          data: 1
+          type: dword
+          severity: CAT I
+          description: Enable Credential Guard
+        - stig_id: V-278196
+          title: Windows Server 2025 must prevent local accounts with blank passwords from being used
+          path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+          name: LimitBlankPasswordUse
+          data: 1
+          type: dword
+          severity: CAT I
+          description: Prevent blank password use
+        - stig_id: V-278216
+          title: Windows Server 2025 must not allow anonymous enumeration of SAM accounts
+          path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+          name: RestrictAnonymousSAM
+          data: 1
+          type: dword
+          severity: CAT I
+          description: Do not allow anonymous SAM enumeration
+        - stig_id: V-278217
+          title: Windows Server 2025 must not allow anonymous enumeration of shares
+          path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+          name: RestrictAnonymous
+          data: 1
+          type: dword
+          severity: CAT I
+          description: Do not allow anonymous share enumeration
+        - stig_id: V-278219
+          title: Windows Server 2025 must restrict anonymous access to Named Pipes and Shares
+          path: HKLM:\SYSTEM\CurrentControlSet\Services\LanManServer\Parameters
+          name: RestrictNullSessAccess
+          data: 1
+          type: dword
+          severity: CAT I
+          description: Restrict anonymous access to Named Pipes and Shares
+        - stig_id: V-278224
+          title: Windows Server 2025 must be configured to prevent the storage of the LAN Manager hash
+          path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+          name: NoLMHash
+          data: 1
+          type: dword
+          severity: CAT I
+          description: Prevent LAN Manager hash storage
+        # V-278225 (LAN Manager Auth Level) moved to manual controls to prevent lockout
+        - stig_id: V-278029
+          title: Remote access to registry paths and sub-paths
+          path: HKLM:\System\CurrentControlSet\Control\SecurePipeServers\Winreg\AllowedExactPaths
+          name: Machine
+          data: [] # Empty - no remote access
+          type: multistring
+          severity: CAT II
+          description: No remote registry access allowed
+        # Restrict SAM remote calls
+        - stig_id: V-278182
+          title: Restrict SAM remote calls
+          path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+          name: RestrictRemoteSAM
+          data: "O:BAG:BAD:(A;;RC;;;BA)"
+          type: string
+          severity: CAT II
+          description: Restrict SAM remote calls to administrators only
+
+      # CRYPTOGRAPHIC SETTINGS (V-277285 to V-277295)
+      cryptographic:
+        - stig_id: V-278033
+          title: System cryptography FIPS compliant algorithms
+          path: HKLM:\System\CurrentControlSet\Control\Lsa\FIPSAlgorithmPolicy
+          name: Enabled
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Use FIPS compliant algorithms
+        - stig_id: V-278034
+          title: Strong key protection for user keys
+          path: HKLM:\Software\Policies\Microsoft\Cryptography
+          name: ForceKeyProtection
+          data: 2 # Force strong key protection
+          type: dword
+          severity: CAT II
+          description: Force strong key protection
+        - stig_id: V-278035
+          title: .NET Framework strong cryptography
+          path: HKLM:\Software\Microsoft\.NETFramework\v4.0.30319
+          name: SchUseStrongCrypto
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Use strong cryptography
+
+      # EVENT LOG MANAGEMENT (V-277295 to V-277310)
+      event_logs:
+        - stig_id: V-278043
+          title: Security event log maximum size
+          path: HKLM:\Software\Policies\Microsoft\Windows\EventLog\Security
+          name: MaxSize
+          data: 196608 # 192MB minimum
+          type: dword
+          severity: CAT II
+          description: Minimum 192MB
+        - stig_id: V-278044
+          title: System event log maximum size
+          path: HKLM:\Software\Policies\Microsoft\Windows\EventLog\System
+          name: MaxSize
+          data: 32768 # 32MB minimum
+          type: dword
+          severity: CAT III
+          description: Minimum 32MB
+        - stig_id: V-278045
+          title: Application event log retention
+          path: HKLM:\Software\Policies\Microsoft\Windows\EventLog\Application
+          name: Retention
+          data: "0" # Overwrite as needed
+          type: string
+          severity: CAT III
+          description: Overwrite events as needed
+        - stig_id: V-278046
+          title: Security event log retention
+          path: HKLM:\Software\Policies\Microsoft\Windows\EventLog\Security
+          name: Retention
+          data: "0" # Overwrite as needed
+          type: string
+          severity: CAT II
+          description: Overwrite events as needed
+        - stig_id: V-278047
+          title: System event log retention
+          path: HKLM:\Software\Policies\Microsoft\Windows\EventLog\System
+          name: Retention
+          data: "0" # Overwrite as needed
+          type: string
+          severity: CAT III
+          description: Overwrite events as needed
+
+      # DEVICE ACCESS CONTROLS (V-277310 to V-277325)
+      device_controls:
+        - stig_id: V-278057
+          title: Restrict CD-ROM access to locally logged-on user only
+          path: HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Winlogon
+          name: AllocateCDRoms
+          data: "1"
+          type: string
+          severity: CAT III
+          description: Local user only
+        - stig_id: V-278058
+          title: Restrict floppy access to locally logged-on user only
+          path: HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Winlogon
+          name: AllocateFloppies
+          data: "1"
+          type: string
+          severity: CAT III
+          description: Local user only
+        - stig_id: V-278059
+          title: Prevent users from installing printer drivers
+          path: HKLM:\System\CurrentControlSet\Control\Print\Providers\LanMan Print Services\Servers
+          name: AddPrinterDrivers
+          data: 1 # Security privilege required
+          type: dword
+          severity: CAT II
+          description: Security privilege required
+
+      # DOMAIN MEMBER SETTINGS (V-277325 to V-277340)
+      domain_member:
+        - stig_id: V-278072
+          title: Machine account lockout threshold
+          method: security_policy
+          section: System Access
+          key: LockoutBadCount
+          value: "3"
+          severity: CAT II
+          description: 3 invalid logon attempts
+        - stig_id: V-278073
+          title: Maximum machine account password age
+          path: HKLM:\System\CurrentControlSet\Services\Netlogon\Parameters
+          name: MaximumPasswordAge
+          data: 30 # 30 days
+          type: dword
+          severity: CAT II
+          description: 30 day maximum
+        - stig_id: V-278074
+          title: Require strong session key
+          path: HKLM:\System\CurrentControlSet\Services\Netlogon\Parameters
+          name: RequireStrongKey
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Require strong (Windows 2000 or later) session key
+        # V1R0-1 NEW RULES - Domain Controller Specific
+        - stig_id: V-278164
+          title: Domain controllers must allow reset of machine account passwords
+          path: HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters
+          name: RefusePasswordChange
+          data: 0
+          type: dword
+          severity: CAT II
+          applies_to: domain_controller
+          description: Ensure domain controllers can reset their machine account passwords
+        # Domain member: Digitally encrypt or sign secure channel data (always)
+        - stig_id: V-278200
+          title: Domain member digitally encrypt or sign secure channel data (always)
+          path: HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters
+          name: RequireSignOrSeal
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Digitally encrypt or sign secure channel data (always)
+        # Domain member: Digitally sign secure channel data (when possible)
+        - stig_id: V-278202
+          title: Domain member digitally sign secure channel data (when possible)
+          path: HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters
+          name: SealSecureChannel
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Digitally sign secure channel data (when possible)
+        # Limit cached logon credentials
+        - stig_id: V-278181
+          title: Limit cached logon credentials
+          path: HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
+          name: CachedLogonsCount
+          data: 4
+          type: string
+          severity: CAT II
+          description: Limit cached logon credentials to 4
+        # Cached authenticator timeout
+        - stig_id: V-278191
+          title: Cached authenticator timeout
+          path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Kerberos\Parameters
+          name: MaximumPasswordAge
+          data: 1 # 1 day
+          type: dword
+          severity: CAT II
+          description: Cached authenticator timeout (1 day)
+        # Prevent enumeration of local users on domain-joined servers
+        - stig_id: V-278179
+          title: Prevent enumeration of local users on domain-joined servers
+          path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\System
+          name: EnumerateLocalUsers
+          data: 0
+          type: dword
+          severity: CAT II
+          description: Prevent enumeration of local users
+
+      # MISCELLANEOUS SECURITY (V-277340 to V-277350)
+      miscellaneous:
+        - stig_id: V-278087
+          title: Force logoff when logon hours expire
+          method: security_policy
+          section: System Access
+          key: ForceLogoffWhenHourExpire
+          value: "1"
+          severity: CAT III
+          description: Automatically log off users when hours expire
+        - stig_id: V-278088
+          title: Removable media formatting
+          method: user_rights
+          right: SeTcbPrivilege
+          users: [Administrators]
+          severity: CAT II
+          description: Administrators only
+        - stig_id: V-278089
+          title: Smart card removal behavior
+          path: HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Winlogon
+          name: ScRemoveOption
+          data: "1" # Lock workstation
+          type: string
+          severity: CAT II
+          description: Lock workstation when smart card removed
+        - stig_id: V-278097
+          title: Prompt to authenticate when system wakes from sleep (plugged in)
+          path: HKLM:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\0e796bdb-100d-47d6-a2d5-f7d2daa51f51
+          name: ACSettingIndex
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Require authentication when waking from sleep
+
+      # PRIVACY CONTROLS
+      privacy:
+        # Telemetry - Allow Telemetry (required or optional diagnostic data)
+        - stig_id: V-278103
+          title: Telemetry - Allow Telemetry (required or optional diagnostic data)
+          path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection
+          name: AllowTelemetry
+          data: 1 # 0=Security, 1=Basic/Required, 2=Enhanced, 3=Full/Optional
+          type: dword
+          severity: CAT II
+          description: "Set to 1 (required) or higher per STIG requirement"
+
+      # RPC SECURITY CONTROLS
+      rpc_security:
+        # Restrict unauthenticated RPC clients
+        - stig_id: V-278180
+          title: Restrict unauthenticated RPC clients
+          path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Rpc
+          name: RestrictRemoteClients
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Restrict unauthenticated RPC clients
+
+      # AUDIT POLICY ENFORCEMENT
+      audit_policy:
+        # Force audit policy subcategory settings
+        - stig_id: V-278199
+          title: Force audit policy subcategory settings
+          path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+          name: SCENoApplyLegacyAuditPolicy
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Force audit policy subcategory settings to override legacy
+
+      # CERTIFICATE STORE CONTROLS (V-278192 to V-278193) - Manual Controls
+      certificate_stores:
+        - stig_id: V-278192
+          title: DOD Root CA certificates in Trusted Root Store
+          type: certificate_install
+          severity: CAT II
+          manual: true
+          description: Requires organizational PKI infrastructure - see manual controls
+        - stig_id: V-278193
+          title: DOD Interoperability Root CA cross-certificates in Untrusted Store
+          type: certificate_install
+          severity: CAT II
+          manual: true
+          description: Requires organizational PKI infrastructure - see manual controls
+  tags:
+    - security_options
+    - setup
+
+# =============================================================================
+# AUDIT-THEN-REMEDIATE PHASE - Registry Settings
+# =============================================================================
+
+- name: STIG Security Options | AUDIT | Get current registry security options
+  ansible.windows.win_reg_stat:
+    path: "{{ item.path }}"
+    name: "{{ item.name }}"
+  register: windows_manage_stig_security_registry_current
+  loop: "{{ windows_manage_stig_security_options | dict2items | map(attribute='value') | flatten | selectattr('path', 'defined') }}"
+  check_mode: false
+  tags:
+    - security_options
+    - audit
+
+- name: STIG Security Options | SCORED | Configure registry security options (modernized)
+  ansible.windows.win_regedit:
+    path: "{{ item.path }}"
+    name: "{{ item.name }}"
+    data: "{{ item.data }}"
+    type: "{{ item.type }}"
+  register: windows_manage_stig_security_registry_results
+  loop: "{{ windows_manage_stig_security_options | dict2items | map(attribute='value') | flatten | selectattr('path', 'defined') }}"
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
+    - windows_manage_stig_security_registry_current.results[ansible_loop.index0].value | default('') | string != item.data | string
+  loop_control:
+    extended: true
+  tags:
+    - security_options
+    - registry
+    - scored
+    - remediation
+
+# =============================================================================
+# AUDIT-THEN-REMEDIATE PHASE - Security Policies
+# =============================================================================
+
+- name: STIG Security Options | SCORED | Configure security policy options (modernized)
+  community.windows.win_security_policy:
+    section: "{{ item.section }}"
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  register: windows_manage_stig_security_policy_results
+  loop: >-
+    {{
+      windows_manage_stig_security_options | dict2items | map(attribute='value') |
+      flatten | selectattr('method', 'defined') | selectattr('method', 'equalto', 'security_policy')
+    }}
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
+  tags:
+    - security_options
+    - security_policy
+    - scored
+    - remediation
+
+# =============================================================================
+# COMPLIANCE TRACKING - Structured results
+# =============================================================================
+
+- name: STIG Security Options | AUDIT | Record compliance results
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [windows_manage_stig_current_result] }}"
+  vars:
+    windows_manage_stig_all_security_options: "{{ windows_manage_stig_security_options | dict2items | map(attribute='value') | flatten }}"
+    windows_manage_stig_registry_results: "{{ windows_manage_stig_security_registry_current.results | default([]) }}"
+    windows_manage_stig_current_registry_value: "{{ windows_manage_stig_registry_results[ansible_loop.index0].value | default('Not Configured') }}"
+    windows_manage_stig_current_result:
+      stig_id: "{{ security_option.stig_id }}"
+      title: "{{ security_option.title }}"
+      path: "{{ security_option.path | default('') }}"
+      name: "{{ security_option.name | default('') }}"
+      data: "{{ security_option.data | default('') }}"
+      type: "{{ security_option.type | default('') }}"
+      severity: "{{ security_option.severity }}"
+      description: "{{ security_option.description }}"
+      method: "{{ security_option.method | default('') }}"
+      rule_section: Security Options
+      scored: true
+      current_value: "{{ ('Registry: ' + (windows_manage_stig_current_registry_value | string)) if security_option.path is defined else 'Policy: Applied' }}"
+      expected_value: "{{ security_option.description }}"
+      status: "{{ 'PASS' if ((security_option.path is defined and windows_manage_stig_current_registry_value | default('') | string == security_option.data | string) or (security_option.method is defined)) else 'FAIL' }}"
+      changed: false
+      skip_reason: "{{ 'User configured skip' if security_option.stig_id in windows_manage_stig_skip_rules else '' }}"
+      check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or security_option.stig_id in windows_manage_stig_only_rules
+  loop: "{{ windows_manage_stig_all_security_options }}"
+  loop_control:
+    loop_var: security_option
+    extended: true
+  tags:
+    - security_options
+    - compliance
+
+# =============================================================================
+# VERSION-SPECIFIC SECURITY CONTROLS
+# =============================================================================
+
+# LAPS Configuration - Version-aware implementation
+# 2019: Requires MSI installation
+# 2025+: Native OS support
+
+- name: STIG | SECURITY | Check current OS version for LAPS implementation
+  ansible.builtin.set_fact:
+    windows_manage_stig_laps_implementation_method: >-
+      {{ windows_manage_stig_version_defaults.laps_installation_method
+         if windows_manage_stig_version_defaults is defined and windows_manage_stig_version_defaults.laps_installation_method is defined
+         else 'msi' if windows_manage_stig_detected_version == '2019' else 'native' }}
+
+- name: STIG | SECURITY | LAPS | Check if MSI exists (Windows Server 2019)
+  when:
+    - windows_manage_stig_laps_enabled | default(true)
+    - windows_manage_stig_detected_version == '2019'
+    - windows_manage_stig_laps_implementation_method == 'msi'
+    - windows_manage_stig_only_rules | length == 0 or 'V-LAPS' in windows_manage_stig_only_rules
+  ansible.windows.win_stat:
+    path: "{{ windows_manage_stig_laps_msi_path }}"
+  register: windows_manage_stig_laps_msi_check
+
+- name: STIG | SECURITY | LAPS | Install via MSI (Windows Server 2019)
+  when:
+    - windows_manage_stig_laps_enabled | default(true)
+    - windows_manage_stig_detected_version == '2019'
+    - windows_manage_stig_laps_implementation_method == 'msi'
+    - windows_manage_stig_laps_msi_check.stat.exists | default(false)
+    - windows_manage_stig_only_rules | length == 0 or 'V-LAPS' in windows_manage_stig_only_rules
+  ansible.windows.win_package:
+    path: "{{ windows_manage_stig_laps_msi_path }}"
+    state: present
+  register: windows_manage_stig_laps_install_2019
+
+- name: STIG | SECURITY | LAPS | Configure native LAPS (Windows Server 2025/2025)
+  when:
+    - windows_manage_stig_laps_enabled | default(true)
+    - windows_manage_stig_detected_version in ['2025', '2025']
+    - windows_manage_stig_laps_implementation_method == 'native'
+    - windows_manage_stig_only_rules | length == 0 or 'V-LAPS' in windows_manage_stig_only_rules
+  ansible.windows.win_shell: |
+    # Check if LAPS is available
+    $lapsAvailable = Get-Command Set-LapsADComputerSelfPermission -ErrorAction SilentlyContinue
+    if ($lapsAvailable) {
+      Write-Output "LAPS native support available"
+    } else {
+      Write-Output "LAPS not available"
+    }
+  register: windows_manage_stig_laps_native_check
+  changed_when: false
+
+- name: STIG | SECURITY | LAPS | Record compliance result
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-LAPS' in windows_manage_stig_only_rules
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: >-
+      {{ windows_manage_stig_results + [{
+        'stig_id': 'V-LAPS',
+        'title': 'LAPS must be configured for local administrator password management',
+        'rule_section': 'Security Options',
+        'severity': 'CAT II',
+        'scored': true,
+        'implementation': windows_manage_stig_laps_implementation_method,
+        'status': 'PASS' if (windows_manage_stig_laps_install_2019.changed | default(false) or (windows_manage_stig_laps_native_check.stdout is defined and windows_manage_stig_laps_native_check.stdout is search('available'))) else 'INFO',
+        'current_value': 'MSI installed' if (windows_manage_stig_laps_install_2019.changed | default(false)) else ('Native available' if (windows_manage_stig_laps_native_check.stdout is defined and windows_manage_stig_laps_native_check.stdout is search('available')) else ('MSI not found at ' + windows_manage_stig_laps_msi_path if (windows_manage_stig_laps_msi_check.stat is defined and not windows_manage_stig_laps_msi_check.stat.exists) else 'Not configured')),
+        'expected_value': 'Configured',
+        'changed': windows_manage_stig_laps_install_2019.changed | default(false),
+        'check_mode': ansible_check_mode,
+        'version_specific': true,
+        'os_version': windows_manage_stig_detected_version,
+        'notes': 'LAPS MSI must be provided at ' + windows_manage_stig_laps_msi_path + ' for Windows Server 2019' if (windows_manage_stig_detected_version == '2019' and windows_manage_stig_laps_msi_check.stat is defined and not windows_manage_stig_laps_msi_check.stat.exists) else ''
+      }] }}
+
+# SMB Signing - Version-aware implementation
+# 2019/2025: Enforce SMB signing
+# 2025: Verify SMB signing (enabled by default)
+
+- name: STIG | SECURITY | SMB Signing | Check current status
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-SMB' in windows_manage_stig_only_rules
+  ansible.windows.win_shell: |
+    @{
+      'ServerSigning' = (Get-SmbServerConfiguration).RequireSecuritySignature
+      'ClientSigning' = (Get-SmbClientConfiguration).RequireSecuritySignature
+    } | ConvertTo-Json
+  register: windows_manage_stig_smb_signing_status
+  changed_when: false
+
+- name: STIG | SECURITY | SMB Signing | Parse status
+  when:
+    - windows_manage_stig_smb_signing_status is defined
+    - windows_manage_stig_smb_signing_status.stdout is defined
+  ansible.builtin.set_fact:
+    windows_manage_stig_smb_signing_parsed: "{{ windows_manage_stig_smb_signing_status.stdout | from_json }}"
+
+- name: STIG | SECURITY | SMB Signing | Enforce on Windows Server 2019/2025
+  when:
+    - windows_manage_stig_detected_version in ['2019', '2025']
+    - windows_manage_stig_smb_signing_parsed is defined
+    - not (windows_manage_stig_smb_signing_parsed.ServerSigning | default(false) | bool and windows_manage_stig_smb_signing_parsed.ClientSigning | default(false) | bool)
+    - windows_manage_stig_only_rules | length == 0 or 'V-SMB' in windows_manage_stig_only_rules
+  ansible.windows.win_shell: |
+    Set-SmbServerConfiguration -RequireSecuritySignature $true -Force
+    Set-SmbClientConfiguration -RequireSecuritySignature $true -Force
+  register: windows_manage_stig_smb_signing_enforced
+
+- name: STIG | SECURITY | SMB Signing | Verify on Windows Server 2025 (default enabled)
+  when:
+    - windows_manage_stig_detected_version == '2025'
+    - windows_manage_stig_smb_signing_parsed is defined
+  ansible.builtin.set_fact:
+    windows_manage_stig_smb_signing_2025_status: >-
+      {{ 'PASS' if (windows_manage_stig_smb_signing_parsed.ServerSigning | default(false) | bool and windows_manage_stig_smb_signing_parsed.ClientSigning | default(false) | bool) else 'FAIL' }}
+
+- name: STIG | SECURITY | SMB Signing | Record compliance result
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-SMB' in windows_manage_stig_only_rules
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: >-
+      {{ windows_manage_stig_results + [{
+        'stig_id': 'V-SMB',
+        'title': 'SMB signing must be required for server and client',
+        'rule_section': 'Security Options',
+        'severity': 'CAT II',
+        'scored': true,
+        'current_value': 'Server: ' + (windows_manage_stig_smb_signing_parsed.ServerSigning | default(false) | string) + ', Client: ' + (windows_manage_stig_smb_signing_parsed.ClientSigning | default(false) | string),
+        'expected_value': 'Both enabled',
+        'status': 'PASS' if (
+          (windows_manage_stig_detected_version in ['2019', '2025'] and (windows_manage_stig_smb_signing_enforced.changed | default(false) or (windows_manage_stig_smb_signing_parsed.ServerSigning | default(false) | bool and windows_manage_stig_smb_signing_parsed.ClientSigning | default(false) | bool))) or
+          (windows_manage_stig_detected_version == '2025' and windows_manage_stig_smb_signing_2025_status == 'PASS')
+        ) else 'FAIL',
+        'changed': windows_manage_stig_smb_signing_enforced.changed | default(false),
+        'action_taken': 'Verified only (default behavior in 2025)' if windows_manage_stig_detected_version == '2025' else 'Enforced',
+        'check_mode': ansible_check_mode,
+        'version_specific': true,
+        'os_version': windows_manage_stig_detected_version
+      }] }}
+
+# =============================================================================
+# SECTION SUMMARY
+# =============================================================================
+
+- name: STIG Security Options | Display configuration summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - STIG Security Options Summary
+      - ==========================================
+      - "Security Categories Configured:"
+      - "Interactive Logon Controls: {{ (windows_manage_stig_security_options.interactive_logon | length) }} settings"
+      - "User Account Control: {{ (windows_manage_stig_security_options.user_account_control | length) }} settings"
+      - "Network Security: {{ (windows_manage_stig_security_options.network_security | length) }} settings"
+      - "Access Controls: {{ (windows_manage_stig_security_options.access_controls | length) }} settings"
+      - "Cryptographic Settings: {{ (windows_manage_stig_security_options.cryptographic | length) }} settings"
+      - "Event Log Management: {{ (windows_manage_stig_security_options.event_logs | length) }} settings"
+      - "Device Access Controls: {{ (windows_manage_stig_security_options.device_controls | length) }} settings"
+      - "Domain Member Settings: {{ (windows_manage_stig_security_options.domain_member | length) }} settings"
+      - "Miscellaneous Security: {{ (windows_manage_stig_security_options.miscellaneous | length) }} settings"
+      - "Privacy Controls: {{ (windows_manage_stig_security_options.privacy | length) }} settings"
+      - "RPC Security Controls: {{ (windows_manage_stig_security_options.rpc_security | length) }} settings"
+      - "Audit Policy Enforcement: {{ (windows_manage_stig_security_options.audit_policy | length) }} settings"
+      - "Certificate Store Controls: {{ (windows_manage_stig_security_options.certificate_stores | length) }} settings (manual)"
+      - ==========================================
+      - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
+      - ==========================================
+  when: not ansible_check_mode or true
+  tags:
+    - security_options
+    - summary

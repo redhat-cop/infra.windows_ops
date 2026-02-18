@@ -116,14 +116,6 @@
 
       # NETWORK SECURITY (V-254271 to V-254285)
       network_security:
-        - stig_id: V-254271
-          title: LAN Manager authentication level
-          method: security_policy
-          section: System Access
-          key: LsaAnonymousNameLookup
-          value: "0"
-          severity: CAT I
-          description: Send NTLMv2 response only - refuse LM & NTLM
         - stig_id: V-254272
           title: LDAP client signing requirements
           path: HKLM:\System\CurrentControlSet\Services\LDAP
@@ -173,32 +165,57 @@
           severity: CAT II
           description: Digitally sign secure channel data when possible
 
-      # ACCESS CONTROLS (V-254278 to V-254290)
+      # ACCESS CONTROLS (V-254441, V-254446, V-254466, V-254467, V-254469, V-254474, V-254475, V-254281)
       access_controls:
-        - stig_id: V-254278
-          title: Anonymous enumeration of SAM accounts
-          path: HKLM:\System\CurrentControlSet\Control\Lsa
+        - stig_id: V-254441
+          title: Windows Server 2022 must be running Credential Guard on domain-joined member servers
+          path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard
+          name: LsaCfgFlags
+          data: 1
+          type: dword
+          severity: CAT I
+          description: Enable Credential Guard
+        - stig_id: V-254446
+          title: Windows Server 2022 must prevent local accounts with blank passwords from being used
+          path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+          name: LimitBlankPasswordUse
+          data: 1
+          type: dword
+          severity: CAT I
+          description: Prevent blank password use
+        - stig_id: V-254466
+          title: Windows Server 2022 must not allow anonymous enumeration of SAM accounts
+          path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
           name: RestrictAnonymousSAM
           data: 1
           type: dword
-          severity: CAT II
-          description: Do not allow anonymous enumeration
-        - stig_id: V-254279
-          title: Anonymous enumeration of shares
-          path: HKLM:\System\CurrentControlSet\Control\Lsa
+          severity: CAT I
+          description: Do not allow anonymous SAM enumeration
+        - stig_id: V-254467
+          title: Windows Server 2022 must not allow anonymous enumeration of shares
+          path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
           name: RestrictAnonymous
           data: 1
           type: dword
-          severity: CAT II
-          description: Do not allow anonymous enumeration
-        - stig_id: V-254280
-          title: Anonymous access to Named Pipes and Shares
-          path: HKLM:\System\CurrentControlSet\Control\Lsa
-          name: RestrictAnonymous
-          data: 2 # No access without explicit anonymous permissions
+          severity: CAT I
+          description: Do not allow anonymous share enumeration
+        - stig_id: V-254469
+          title: Windows Server 2022 must restrict anonymous access to Named Pipes and Shares
+          path: HKLM:\SYSTEM\CurrentControlSet\Services\LanManServer\Parameters
+          name: RestrictNullSessAccess
+          data: 1
           type: dword
-          severity: CAT II
-          description: No access without explicit permissions
+          severity: CAT I
+          description: Restrict anonymous access to Named Pipes and Shares
+        - stig_id: V-254474
+          title: Windows Server 2022 must be configured to prevent the storage of the LAN Manager hash
+          path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+          name: NoLMHash
+          data: 1
+          type: dword
+          severity: CAT I
+          description: Prevent LAN Manager hash storage
+        # V-254475 (LAN Manager Auth Level) moved to manual controls to prevent lockout
         - stig_id: V-254281
           title: Remote access to registry paths and sub-paths
           path: HKLM:\System\CurrentControlSet\Control\SecurePipeServers\Winreg\AllowedExactPaths
@@ -365,6 +382,14 @@
           type: string
           severity: CAT II
           description: Lock workstation when smart card removed
+        - stig_id: V-254350
+          title: Prompt to authenticate when system wakes from sleep (plugged in)
+          path: HKLM:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\0e796bdb-100d-47d6-a2d5-f7d2daa51f51
+          name: ACSettingIndex
+          data: 1
+          type: dword
+          severity: CAT II
+          description: Require authentication when waking from sleep
   tags:
     - security_options
     - setup
@@ -434,12 +459,12 @@
 
 - name: STIG Security Options | AUDIT | Record compliance results
   ansible.builtin.set_fact:
-    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [current_result] }}"
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [windows_manage_stig_current_result] }}"
   vars:
-    all_security_options: "{{ windows_manage_stig_security_options | dict2items | map(attribute='value') | flatten }}"
-    registry_results: "{{ windows_manage_stig_security_registry_current.results | default([]) }}"
-    current_registry_value: "{{ registry_results[ansible_loop.index0].value | default('Not Configured') }}"
-    current_result:
+    windows_manage_stig_all_security_options: "{{ windows_manage_stig_security_options | dict2items | map(attribute='value') | flatten }}"
+    windows_manage_stig_registry_results: "{{ windows_manage_stig_security_registry_current.results | default([]) }}"
+    windows_manage_stig_current_registry_value: "{{ windows_manage_stig_registry_results[ansible_loop.index0].value | default('Not Configured') }}"
+    windows_manage_stig_current_result:
       stig_id: "{{ security_option.stig_id }}"
       title: "{{ security_option.title }}"
       path: "{{ security_option.path | default('') }}"
@@ -451,15 +476,15 @@
       method: "{{ security_option.method | default('') }}"
       rule_section: Security Options
       scored: true
-      current_value: "{{ ('Registry: ' + (current_registry_value | string)) if security_option.path is defined else 'Policy: Applied' }}"
+      current_value: "{{ ('Registry: ' + (windows_manage_stig_current_registry_value | string)) if security_option.path is defined else 'Policy: Applied' }}"
       expected_value: "{{ security_option.description }}"
-      status: "{{ 'PASS' if ((security_option.path is defined and current_registry_value | default('') | string == security_option.data | string) or (security_option.method is defined)) else 'FAIL' }}"
+      status: "{{ 'PASS' if ((security_option.path is defined and windows_manage_stig_current_registry_value | default('') | string == security_option.data | string) or (security_option.method is defined)) else 'FAIL' }}"
       changed: false
       skip_reason: "{{ 'User configured skip' if security_option.stig_id in windows_manage_stig_skip_rules else '' }}"
       check_mode: "{{ ansible_check_mode }}"
   when:
     - windows_manage_stig_only_rules | length == 0 or security_option.stig_id in windows_manage_stig_only_rules
-  loop: "{{ all_security_options }}"
+  loop: "{{ windows_manage_stig_all_security_options }}"
   loop_control:
     loop_var: security_option
     extended: true

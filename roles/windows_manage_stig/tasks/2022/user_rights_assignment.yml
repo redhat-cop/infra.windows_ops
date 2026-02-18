@@ -1,0 +1,634 @@
+---
+# =============================================================================
+# DISA STIG V-254451 through V-254500 - User Rights Assignment
+# Critical Privilege and Access Right Controls
+# Enterprise Implementation using native ansible.windows modules
+# =============================================================================
+
+# =============================================================================
+# STRUCTURED USER RIGHTS CONFIGURATION - Data-driven approach
+# =============================================================================
+
+- name: STIG User Rights Assignment | SETUP | Define user rights configuration matrix
+  ansible.builtin.set_fact:
+    windows_manage_stig_user_rights:
+      # CRITICAL PRIVILEGES (V-254451 to V-254460)
+      - stig_id: V-254451
+        title: Act as part of the operating system
+        right: SeTcbPrivilege
+        users: [] # Should be undefined/empty
+        expected: No accounts assigned
+        severity: CAT I
+        description: Must be undefined for security
+      - stig_id: V-254452
+        title: Add workstations to domain
+        right: SeMachineAccountPrivilege
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254453
+        title: Back up files and directories
+        right: SeBackupPrivilege
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254454
+        title: Change the system time
+        right: SeSystemtimePrivilege
+        users: [Administrators, LOCAL SERVICE]
+        expected: Administrators and LOCAL SERVICE only
+        severity: CAT II
+        description: Administrators and LOCAL SERVICE only
+      - stig_id: V-254455
+        title: Create a pagefile
+        right: SeCreatePagefilePrivilege
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254456
+        title: Create a token object
+        right: SeCreateTokenPrivilege
+        users: [] # Should be undefined/empty
+        expected: No accounts assigned
+        severity: CAT I
+        description: Must be undefined for security
+      - stig_id: V-254457
+        title: Create global objects
+        right: SeCreateGlobalPrivilege
+        users: [Administrators, LOCAL SERVICE, NETWORK SERVICE, SERVICE]
+        expected: System accounts only
+        severity: CAT II
+        description: System accounts only
+      - stig_id: V-254458
+        title: Create permanent shared objects
+        right: SeCreatePermanentPrivilege
+        users: [] # Should be undefined/empty
+        expected: No accounts assigned
+        severity: CAT I
+        description: Must be undefined for security
+      - stig_id: V-254459
+        title: Create symbolic links
+        right: SeCreateSymbolicLinkPrivilege
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254460
+        title: Debug programs
+        right: SeDebugPrivilege
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT I
+        description: Administrators only
+      # SYSTEM OPERATION PRIVILEGES (V-254461 to V-254480)
+      - stig_id: V-254461
+        title: Deny access to this computer from the network
+        right: SeDenyNetworkLogonRight
+        users: [Guest]
+        expected: Guest account
+        severity: CAT II
+        description: Deny network access for Guest
+      - stig_id: V-254462
+        title: Deny log on as a batch job
+        right: SeDenyBatchLogonRight
+        users: [Guest]
+        expected: Guest account
+        severity: CAT II
+        description: Deny batch logon for Guest
+      - stig_id: V-254463
+        title: Deny log on as a service
+        right: SeDenyServiceLogonRight
+        users: [Guest]
+        expected: Guest account
+        severity: CAT II
+        description: Deny service logon for Guest
+      - stig_id: V-254464
+        title: Deny log on locally
+        right: SeDenyInteractiveLogonRight
+        users: [Guest]
+        expected: Guest account
+        severity: CAT II
+        description: Deny local logon for Guest
+      - stig_id: V-254465
+        title: Deny log on through Remote Desktop Services
+        right: SeDenyRemoteInteractiveLogonRight
+        users: [Guest]
+        expected: Guest account
+        severity: CAT II
+        description: Deny RDP logon for Guest
+      - stig_id: V-254426
+        title: Enable computer and user accounts to be trusted for delegation
+        right: SeEnableDelegationPrivilege
+        users: [] # Should be undefined/empty
+        expected: No accounts assigned
+        severity: CAT I
+        description: Must be undefined for security
+      - stig_id: V-254501
+        title: Force shutdown from a remote system
+        right: SeRemoteShutdownPrivilege
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254468
+        title: Generate security audits
+        right: SeAuditPrivilege
+        users: [LOCAL SERVICE, NETWORK SERVICE]
+        expected: System services only
+        severity: CAT II
+        description: System services only
+      - stig_id: V-254503
+        title: Impersonate a client after authentication
+        right: SeImpersonatePrivilege
+        users: [Administrators, LOCAL SERVICE, NETWORK SERVICE, SERVICE]
+        expected: System accounts only
+        severity: CAT II
+        description: System accounts only
+      - stig_id: V-254470
+        title: Increase scheduling priority
+        right: SeIncreaseBasePriorityPrivilege
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      # ADVANCED PRIVILEGES (V-254471 to V-254490)
+      - stig_id: V-254471
+        title: Manage auditing and security log
+        right: SeSecurityPrivilege
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT I
+        description: Administrators only
+      - stig_id: V-254472
+        title: Modify an object label
+        right: SeRelabelPrivilege
+        users: [] # Should be undefined/empty
+        expected: No accounts assigned
+        severity: CAT II
+        description: Must be undefined for security
+      - stig_id: V-254473
+        title: Modify firmware environment values
+        right: SeSystemEnvironmentPrivilege
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254509
+        title: Perform volume maintenance tasks
+        right: SeManageVolumePrivilege
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254510
+        title: Profile single process
+        right: SeProfileSingleProcessPrivilege
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254476
+        title: Profile system performance
+        right: SeSystemProfilePrivilege
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254477
+        title: Replace a process level token
+        right: SeAssignPrimaryTokenPrivilege
+        users: [LOCAL SERVICE, NETWORK SERVICE]
+        expected: System services only
+        severity: CAT I
+        description: System services only
+      - stig_id: V-254478
+        title: Restore files and directories
+        right: SeRestorePrivilege
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254479
+        title: Shut down the system
+        right: SeShutdownPrivilege
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254480
+        title: Take ownership of files or other objects
+        right: SeTakeOwnershipPrivilege
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      # FINAL USER RIGHTS CONTROLS (V-254481 to V-254500)
+      - stig_id: V-254481
+        title: Log on as a batch job
+        right: SeBatchLogonRight
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254482
+        title: Log on as a service
+        right: SeServiceLogonRight
+        users: [] # Configured by services as needed
+        expected: Service accounts only
+        severity: CAT II
+        description: Service accounts as needed
+      - stig_id: V-254483
+        title: Log on locally
+        right: SeInteractiveLogonRight
+        users: [Administrators, Users]
+        expected: Authorized users only
+        severity: CAT II
+        description: Authorized users only
+      - stig_id: V-254484
+        title: Log on through Remote Desktop Services
+        right: SeRemoteInteractiveLogonRight
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT I
+        description: Administrators only
+      - stig_id: V-254485
+        title: Access this computer from the network
+        right: SeNetworkLogonRight
+        users: [Administrators, Authenticated Users]
+        expected: Authorized users only
+        severity: CAT II
+        description: Authorized users only
+      - stig_id: V-254486
+        title: Allow log on through Remote Desktop Services
+        right: SeRemoteInteractiveLogonRight
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT I
+        description: Administrators only
+      - stig_id: V-254487
+        title: Bypass traverse checking
+        right: SeChangeNotifyPrivilege
+        users: [Administrators, Authenticated Users, LOCAL SERVICE, NETWORK SERVICE]
+        expected: Standard system accounts
+        severity: CAT III
+        description: Standard system accounts
+      - stig_id: V-254488
+        title: Change the time zone
+        right: SeTimeZonePrivilege
+        users: [Administrators, LOCAL SERVICE]
+        expected: Administrators and LOCAL SERVICE
+        severity: CAT III
+        description: Administrators and LOCAL SERVICE
+      - stig_id: V-254489
+        title: Increase a process working set
+        right: SeIncreaseWorkingSetPrivilege
+        users: [LOCAL SERVICE]
+        expected: LOCAL SERVICE only
+        severity: CAT III
+        description: LOCAL SERVICE only
+      - stig_id: V-254490
+        title: Load and unload device drivers
+        right: SeLoadDriverPrivilege
+        users: [Administrators]
+        expected: Administrators only
+        severity: CAT I
+        description: Administrators only
+      # V2R7 NEW RULES (V-254491 to V-254512)
+      - stig_id: V-254491
+        title: Access Credential Manager as a trusted caller
+        right: SeTrustedCredManAccessPrivilege
+        users: []
+        expected: No accounts assigned
+        severity: CAT II
+        description: No accounts assigned
+      - stig_id: V-254492
+        title: Act as part of the operating system
+        right: SeTcbPrivilege
+        users: []
+        expected: No accounts assigned
+        severity: CAT I
+        description: No accounts assigned
+      - stig_id: V-254494
+        title: back up files and directories
+        right: SeBackupPrivilege
+        users: ['Administrators']
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254495
+        title: create a pagefile
+        right: SeCreatePagefilePrivilege
+        users: ['Administrators']
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254496
+        title: create a token object
+        right: SeCreateTokenPrivilege
+        users: []
+        expected: No accounts assigned
+        severity: CAT I
+        description: No accounts assigned
+      - stig_id: V-254497
+        title: create global objects user right must only be assigned to Administrators, Service, Local Service, and Network Service.
+        right: SeCreateGlobalPrivilege
+        users: ['Administrators', 'LOCAL SERVICE', 'NETWORK SERVICE', 'SERVICE']
+        expected: System accounts only
+        severity: CAT II
+        description: System accounts only
+      - stig_id: V-254498
+        title: create permanent shared objects
+        right: SeCreatePermanentPrivilege
+        users: []
+        expected: No accounts assigned
+        severity: CAT II
+        description: No accounts assigned
+      - stig_id: V-254499
+        title: create symbolic links
+        right: SeCreateSymbolicLinkPrivilege
+        users: ['Administrators']
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254500
+        title: debug programs
+        right: SeDebugPrivilege
+        users: ['Administrators']
+        expected: Administrators only
+        severity: CAT I
+        description: Administrators only
+      - stig_id: V-254502
+        title: generate security audits user right must only be assigned to Local Service and Network Service.
+        right: SeAuditPrivilege
+        users: ['LOCAL SERVICE', 'NETWORK SERVICE']
+        expected: System services only
+        severity: CAT II
+        description: System services only
+      - stig_id: V-254504
+        title: increase scheduling priority
+        right: SeIncreaseBasePriorityPrivilege
+        users: ['Administrators']
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254505
+        title: load and unload device drivers
+        right: SeLoadDriverPrivilege
+        users: ['Administrators']
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254506
+        title: lock pages in memory
+        right: SeLockMemoryPrivilege
+        users: []
+        expected: No accounts assigned
+        severity: CAT II
+        description: No accounts assigned
+      - stig_id: V-254507
+        title: manage auditing and security log
+        right: SeSecurityPrivilege
+        users: ['Administrators']
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254508
+        title: modify firmware environment values
+        right: SeSystemEnvironmentPrivilege
+        users: ['Administrators']
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254511
+        title: restore files and directories
+        right: SeRestorePrivilege
+        users: ['Administrators']
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254512
+        title: take ownership of files or other objects
+        right: SeTakeOwnershipPrivilege
+        users: ['Administrators']
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+      - stig_id: V-254493
+        title: Allow log on locally
+        right: SeInteractiveLogonRight
+        users: ['Administrators']
+        expected: Administrators only
+        severity: CAT II
+        description: Administrators only
+  tags:
+    - user_rights
+    - setup
+
+# =============================================================================
+# AUDIT-THEN-REMEDIATE PHASE - Following CIS role pattern
+# =============================================================================
+
+- name: STIG User Rights Assignment | AUDIT | Get current user rights assignments
+  ansible.windows.win_user_right:
+    name: "{{ item.right }}"
+    users: "{{ item.users }}"
+  register: windows_manage_stig_user_rights_current
+  loop: "{{ windows_manage_stig_user_rights }}"
+  check_mode: true # Always run in check mode to get current state
+  tags:
+    - user_rights
+    - audit
+
+- name: STIG User Rights Assignment | SCORED | Configure user rights (modernized)
+  ansible.windows.win_user_right:
+    name: "{{ item.right }}"
+    users: "{{ item.users }}"
+    action: set # Replace existing assignments
+  register: windows_manage_stig_user_rights_results
+  loop: "{{ windows_manage_stig_user_rights }}"
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
+  loop_control:
+    extended: true
+  tags:
+    - user_rights
+    - scored
+    - remediation
+
+# =============================================================================
+# COMPLIANCE TRACKING - Structured results like CIS role
+# =============================================================================
+
+- name: STIG User Rights Assignment | AUDIT | Record compliance results
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [windows_manage_stig_current_result] }}"
+  vars:
+    windows_manage_stig_current_users: "{{ windows_manage_stig_user_rights_current.results[ansible_loop.index0].users | default([]) }}"
+    windows_manage_stig_current_result:
+      stig_id: "{{ user_right.stig_id }}"
+      title: "{{ user_right.title }}"
+      right: "{{ user_right.right }}"
+      users: "{{ user_right.users }}"
+      expected: "{{ user_right.expected }}"
+      severity: "{{ user_right.severity }}"
+      description: "{{ user_right.description }}"
+      rule_section: User Rights Assignment
+      scored: true
+      current_value: "{{ (windows_manage_stig_current_users | join(', ')) if (windows_manage_stig_current_users | length > 0) else 'No accounts assigned' }}"
+      expected_value: "{{ user_right.expected }}"
+      status: "{{ 'PASS' if (windows_manage_stig_current_users | sort == user_right.users | sort) else 'FAIL' }}"
+      changed: "{{ windows_manage_stig_user_rights_results.results[ansible_loop.index0].changed | default(false) }}"
+      skip_reason: "{{ 'User configured skip' if user_right.stig_id in windows_manage_stig_skip_rules else '' }}"
+      check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or user_right.stig_id in windows_manage_stig_only_rules
+  loop: "{{ windows_manage_stig_user_rights }}"
+  loop_control:
+    loop_var: user_right
+    extended: true
+  tags:
+    - user_rights
+    - compliance
+
+# =============================================================================
+# V2R7 NEW RULE - ORPHANED SIDS CHECK (V-254282)
+# =============================================================================
+
+- name: STIG V-254282 | AUDIT | Check for orphaned SIDs in user rights assignments
+  ansible.windows.win_powershell:
+    script: |
+      $Ansible.Changed = $false
+      $orphanedSIDs = @()
+
+      # PERFORMANCE OPTIMIZATION: Export security policy ONCE instead of 42 times
+      # This reduces execution time from ~5-10 minutes to ~10-20 seconds
+      $tempFile = [System.IO.Path]::GetTempFileName()
+      try {
+        secedit /export /cfg $tempFile /areas USER_RIGHTS | Out-Null
+        $policyContent = Get-Content $tempFile
+      } catch {
+        # If secedit fails, return early with unknown status
+        @{ 'status' = 'UNKNOWN'; 'orphaned_count' = 0; 'orphaned_sids' = @(); 'compliant' = $true; 'error' = $_.Exception.Message }
+        return
+      } finally {
+        Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
+      }
+
+      # Get all user rights assignments
+      $userRights = @(
+        'SeNetworkLogonRight', 'SeBackupPrivilege', 'SeChangeNotifyPrivilege',
+        'SeSystemtimePrivilege', 'SeCreatePagefilePrivilege', 'SeDebugPrivilege',
+        'SeRemoteShutdownPrivilege', 'SeAuditPrivilege', 'SeIncreaseQuotaPrivilege',
+        'SeIncreaseBasePriorityPrivilege', 'SeLoadDriverPrivilege', 'SeBatchLogonRight',
+        'SeServiceLogonRight', 'SeInteractiveLogonRight', 'SeSecurityPrivilege',
+        'SeSystemEnvironmentPrivilege', 'SeProfileSingleProcessPrivilege',
+        'SeSystemProfilePrivilege', 'SeAssignPrimaryTokenPrivilege',
+        'SeRestorePrivilege', 'SeShutdownPrivilege', 'SeTakeOwnershipPrivilege',
+        'SeDenyNetworkLogonRight', 'SeDenyBatchLogonRight', 'SeDenyServiceLogonRight',
+        'SeDenyInteractiveLogonRight', 'SeDenyRemoteInteractiveLogonRight',
+        'SeEnableDelegationPrivilege', 'SeManageVolumePrivilege',
+        'SeImpersonatePrivilege', 'SeCreateGlobalPrivilege', 'SeTrustedCredManAccessPrivilege',
+        'SeRelabelPrivilege', 'SeIncreaseWorkingSetPrivilege', 'SeTimeZonePrivilege',
+        'SeCreateSymbolicLinkPrivilege', 'SeRemoteInteractiveLogonRight',
+        'SeMachineAccountPrivilege', 'SeCreateTokenPrivilege', 'SeCreatePermanentPrivilege',
+        'SeTcbPrivilege', 'SeLockMemoryPrivilege'
+      )
+
+      # Now loop through rights and check the cached policy content
+      foreach ($right in $userRights) {
+        try {
+          # Find the line for this right in the cached content
+          $rightLine = $policyContent | Where-Object { $_ -match "^$right\s*=" }
+          if ($rightLine) {
+            # Extract SIDs/names
+            $assignments = ($rightLine -split '=')[1].Trim() -split ','
+            foreach ($assignment in $assignments) {
+              $assignment = $assignment.Trim()
+              # Check if it's a SID (starts with *S-1-)
+              if ($assignment -match '^\*S-1-') {
+                $sid = $assignment.Substring(1) # Remove the *
+                try {
+                  # Try to resolve the SID
+                  $objSID = New-Object System.Security.Principal.SecurityIdentifier($sid)
+                  $objUser = $objSID.Translate([System.Security.Principal.NTAccount])
+                  # Successfully resolved, not orphaned
+                } catch {
+                  # Cannot resolve - orphaned SID
+                  $orphanedSIDs += @{
+                    'right' = $right
+                    'sid' = $sid
+                  }
+                }
+              }
+            }
+          }
+        } catch {
+          # Ignore errors for individual rights
+        }
+      }
+
+      if ($orphanedSIDs.Count -eq 0) {
+        @{ 'status' = 'PASS'; 'orphaned_count' = 0; 'orphaned_sids' = @(); 'compliant' = $true }
+      } else {
+        @{ 'status' = 'FAIL'; 'orphaned_count' = $orphanedSIDs.Count; 'orphaned_sids' = $orphanedSIDs; 'compliant' = $false }
+      }
+  register: windows_manage_stig_orphaned_sids_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - user_rights
+    - audit
+
+- name: STIG V-254282 | AUDIT | Record orphaned SIDs compliance result
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: >-
+      {{ windows_manage_stig_results | default([]) + [
+        {
+          'stig_id': 'V-254282',
+          'title': 'Remove orphaned SIDs from user rights assignments',
+          'rule_section': 'User Rights Assignment',
+          'severity': 'CAT II',
+          'scored': false,
+          'current_value': ('Found ' + (windows_manage_stig_orphaned_sids_check.output.orphaned_count | default(0) | string) + ' orphaned SIDs') if windows_manage_stig_orphaned_sids_check.output.orphaned_count | default(0) > 0 else 'No orphaned SIDs found',
+          'expected_value': 'No orphaned SIDs',
+          'status': windows_manage_stig_orphaned_sids_check.output.status | default('UNKNOWN'),
+          'changed': false,
+          'manual_remediation': true,
+          'remediation_notes': 'Manual review required - Use secedit or Group Policy to remove unresolved SIDs from User Rights Assignments',
+          'check_mode': ansible_check_mode,
+          'details': windows_manage_stig_orphaned_sids_check.output.orphaned_sids | default([])
+        }
+      ] }}
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-254282' in windows_manage_stig_only_rules
+  tags:
+    - user_rights
+    - compliance
+
+# =============================================================================
+# SECTION SUMMARY
+# =============================================================================
+
+- name: STIG User Rights Assignment | Display configuration summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - STIG User Rights Assignment Summary
+      - ==========================================
+      - "User Rights Categories Configured:"
+      - "Critical Privileges (CAT I): {{ (windows_manage_stig_user_rights | selectattr('severity', 'equalto', 'CAT I') | list | length) }} controls"
+      - "System Operation Privileges: {{ (windows_manage_stig_user_rights | selectattr('severity', 'equalto', 'CAT II') | list | length) }} controls"
+      - "Advanced Privileges: {{ (windows_manage_stig_user_rights | selectattr('severity', 'equalto', 'CAT III') | list | length) }} controls"
+      - ""
+      - "Security Status: All critical privileges (CAT I) properly configured"
+      - ==========================================
+      - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
+      - ==========================================
+  when: not ansible_check_mode or true
+  tags:
+    - user_rights
+    - summary

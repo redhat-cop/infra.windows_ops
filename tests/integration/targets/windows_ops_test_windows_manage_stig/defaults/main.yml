@@ -9,3 +9,15 @@ test_stig_filtered_output_dir: 'C:\temp\stig_filtered_test'
 # Role-specific test variables
 windows_manage_stig_generate_report: true
 windows_manage_stig_report_format: "json"
+
+# Ensure all categories are tested in this target
+windows_manage_stig_categories:
+  - account_policies
+  - audit_policies
+  - user_rights
+  - security_options
+  - registry_settings
+  - system_services
+
+# Skip connection-breaking rules in the test environment
+windows_manage_stig_skip_rules: ['V-205676', 'V-254483', 'V-278233', 'V-278243', 'V-278072', 'V-278087', 'V-254325', 'V-254340']

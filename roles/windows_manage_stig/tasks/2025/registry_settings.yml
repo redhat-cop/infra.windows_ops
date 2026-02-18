@@ -1,0 +1,701 @@
+---
+# =============================================================================
+# DISA STIG V-278098 through V-278147 - Registry Settings
+# Windows Registry Security Controls for Enhanced Protection
+# Enterprise Implementation using data-driven approach
+# =============================================================================
+
+# =============================================================================
+# STRUCTURED REGISTRY CONFIGURATION - Data-driven approach
+# =============================================================================
+
+- name: STIG Registry Settings | SETUP | Define registry configuration matrix
+  ansible.builtin.set_fact:
+    windows_manage_stig_registry_settings:
+      - stig_id: V-278098
+        title: Windows Server 2025 Application Compatibility Program Inventory must be prevented from collecting data and sending the information to Microsoft.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppCompat
+        name: DisableInventory
+        data: 1
+        type: dword
+        category: autoplay_media
+        severity: CAT III
+        description: Disable for all drive types
+      - stig_id: V-278099
+        title: Configure Autoplay - Turn off Autoplay for non-volume devices
+        path: HKLM:\Software\Policies\Microsoft\Windows\Explorer
+        name: NoAutoplayfornonVolume
+        data: 1
+        type: dword
+        category: autoplay_media
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278100
+        title: Windows Server 2025 default AutoRun behavior must be configured to prevent AutoRun commands.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer
+        name: NoAutorun
+        data: 1
+        type: dword
+        category: autoplay_media
+        severity: CAT I
+        description: Disabled
+      - stig_id: V-278101
+        title: Windows Server 2025 AutoPlay must be disabled for all drives.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\policies\Explorer
+        name: NoDriveTypeAutoRun
+        data: 255
+        type: dword
+        category: autoplay_media
+        severity: CAT I
+        description: Enabled
+      - stig_id: V-278102
+        title: Windows Server 2025 administrator accounts must not be enumerated during elevation.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\CredUI
+        name: EnumerateAdministrators
+        data: 0
+        type: dword
+        category: autoplay_media
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-278104
+        title: Windows Server 2025 Windows Update must not obtain updates from other PCs on the internet.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization
+        name: DODownloadMode
+        data: 0
+        type: dword
+        category: autoplay_media
+        severity: CAT III
+        description: High
+      - stig_id: V-278105
+        title: Windows Server 2025 Application event log size must be configured to 32768 KB or greater.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\EventLog\Application
+        name: MaxSize
+        data: 32768
+        type: dword
+        category: autoplay_media
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278106
+        title: Windows Server 2025 Security event log size must be configured to 196608 KB or greater.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\EventLog\Security
+        name: MaxSize
+        data: 196608
+        type: dword
+        category: autoplay_media
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278107
+        title: Windows Server 2025 System event log size must be configured to 32768 KB or greater.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\EventLog\System
+        name: MaxSize
+        data: 32768
+        type: dword
+        category: autoplay_media
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278108
+        title: Windows Server 2025 Microsoft Defender antivirus SmartScreen must be enabled.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\System
+        name: EnableSmartScreen
+        data: 1
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-278109
+        title: Windows Server 2025 Explorer Data Execution Prevention must be enabled.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer
+        name: NoDataExecutionPrevention
+        data: 0
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278110
+        title: Windows Server 2025 Turning off File Explorer heap termination on corruption must be disabled.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer
+        name: NoHeapTerminationOnCorruption
+        data: 0
+        type: dword
+        category: ie_browser
+        severity: CAT III
+        description: Enabled
+      - stig_id: V-278111
+        title: Windows Server 2025 File Explorer shell protocol must run in protected mode.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer
+        name: PreXPSP2ShellProtocolBehavior
+        data: 0
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-278112
+        title: Windows Server 2025 must not save passwords in the Remote Desktop Client.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+        name: DisablePasswordSaving
+        data: 1
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-278113
+        title: Windows Server 2025 Remote Desktop Services must prevent drive redirection.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+        name: fDisableCdm
+        data: 1
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-278114
+        title: Windows Server 2025 Remote Desktop Services must always prompt a client for passwords upon connection.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+        name: fPromptForPassword
+        data: 1
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-278115
+        title: Windows Server 2025 Remote Desktop Services must require secure Remote Procedure Call (RPC) communications.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+        name: fEncryptRPCTraffic
+        data: 1
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Auto download and schedule install
+      - stig_id: V-278116
+        title: Windows Server 2025 Remote Desktop Services must be configured with the client connection encryption set to High Level.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+        name: MinEncryptionLevel
+        data: 3
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-278117
+        title: Windows Server 2025 must prevent attachments from being downloaded from RSS feeds.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Internet Explorer\Feeds
+        name: DisableEnclosureDownload
+        data: 1
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Every day
+      - stig_id: V-278118
+        title: Windows Server 2025 must disable Basic authentication for RSS feeds over HTTP.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Internet Explorer\Feeds
+        name: AllowBasicAuthInClear
+        data: 0
+        type: dword
+        category: powershell_winrm
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-278119
+        title: Windows Server 2025 must prevent Indexing of encrypted files.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search
+        name: AllowIndexingEncryptedStoresOrItems
+        data: 0
+        type: dword
+        category: powershell_winrm
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-278120
+        title: Windows Server 2025 must prevent users from changing installation options.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer
+        name: EnableUserControl
+        data: 0
+        type: dword
+        category: powershell_winrm
+        severity: CAT II
+        description: RemoteSigned
+      - stig_id: V-278121
+        title: Windows Server 2025 must disable the Windows Installer Always install with elevated privileges option.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer
+        name: AlwaysInstallElevated
+        data: 0
+        type: dword
+        category: powershell_winrm
+        severity: CAT I
+        description: Disabled
+      - stig_id: V-278122
+        title: Windows Server 2025 users must be notified if a web-based program attempts to install software.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer
+        name: SafeForScripting
+        data: 0
+        type: dword
+        category: powershell_winrm
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278123
+        title: Windows Server 2025 must disable automatically signing in the last interactive user after a system-initiated restart.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: DisableAutomaticRestartSignOn
+        data: 1
+        type: dword
+        category: powershell_winrm
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278124
+        title: Windows Server 2025 PowerShell script block logging must be enabled.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging
+        name: EnableScriptBlockLogging
+        data: 1
+        type: dword
+        category: powershell_winrm
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278125
+        title: Windows Server 2025 Windows Remote Management (WinRM) client must not use Basic authentication.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client
+        name: AllowBasic
+        data: 0
+        type: dword
+        category: powershell_winrm
+        severity: CAT I
+        description: Enabled
+      - stig_id: V-278126
+        title: Windows Server 2025 Windows Remote Management (WinRM) client must not allow unencrypted traffic.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client
+        name: AllowUnencryptedTraffic
+        data: 0
+        type: dword
+        category: powershell_winrm
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-278127
+        title: Windows Server 2025 Windows Remote Management (WinRM) client must not use Digest authentication.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client
+        name: AllowDigest
+        data: 0
+        type: dword
+        category: powershell_winrm
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-278128
+        title: Windows Server 2025 Windows Remote Management (WinRM) service must not use Basic authentication.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service
+        name: AllowBasic
+        data: 0
+        type: dword
+        category: advanced_security
+        severity: CAT I
+        description: Disabled
+      - stig_id: V-278129
+        title: Windows Server 2025 Windows Remote Management (WinRM) service must not allow unencrypted traffic.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service
+        name: AllowUnencryptedTraffic
+        data: 0
+        type: dword
+        category: advanced_security
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278130
+        title: Windows Server 2025 Windows Remote Management (WinRM) service must not store RunAs credentials.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service
+        name: DisableRunAs
+        data: 1
+        type: dword
+        category: advanced_security
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278131
+        title: Windows Server 2025 must have PowerShell Transcription enabled.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\Transcription
+        name: EnableTranscripting
+        data: 1
+        type: dword
+        category: advanced_security
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278132
+        title: Configure Microsoft Store - Disable automatic download and install of updates
+        path: HKLM:\Software\Policies\Microsoft\WindowsStore
+        name: AutoDownload
+        data: 2
+        type: dword
+        category: advanced_security
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278133
+        title: Configure Microsoft Store - Disable the Store application
+        path: HKLM:\Software\Policies\Microsoft\WindowsStore
+        name: RemoveWindowsStore
+        data: 1
+        type: dword
+        category: advanced_security
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278134
+        title: Configure Windows Games - Turn off Game DVR
+        path: HKLM:\Software\Policies\Microsoft\Windows\GameDVR
+        name: AllowGameDVR
+        data: 0
+        type: dword
+        category: advanced_security
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278135
+        title: Configure Credential Manager - Turn off picture password sign-in
+        path: HKLM:\Software\Policies\Microsoft\Windows\System
+        name: BlockDomainPicturePassword
+        data: 1
+        type: dword
+        category: advanced_security
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278136
+        title: Configure Windows Hello - Turn off biometric sign-in
+        path: HKLM:\Software\Policies\Microsoft\Biometrics
+        name: Enabled
+        data: 0
+        type: dword
+        category: advanced_security
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278137
+        title: Configure Windows PIN - Turn off PIN sign-in
+        path: HKLM:\Software\Policies\Microsoft\Windows\System
+        name: AllowDomainPINLogon
+        data: 0
+        type: dword
+        category: advanced_security
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278139
+        title: Configure Cortana - Disable Cortana
+        path: HKLM:\Software\Policies\Microsoft\Windows\Windows Search
+        name: AllowCortana
+        data: 0
+        type: dword
+        category: privacy_controls
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278140
+        title: Configure Location Services - Turn off location
+        path: HKLM:\Software\Policies\Microsoft\Windows\LocationAndSensors
+        name: DisableLocation
+        data: 1
+        type: dword
+        category: privacy_controls
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278141
+        title: Configure Privacy - Turn off advertising ID
+        path: HKLM:\Software\Policies\Microsoft\Windows\AdvertisingInfo
+        name: DisabledByGroupPolicy
+        data: 1
+        type: dword
+        category: privacy_controls
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278142
+        title: Configure Telemetry - Set telemetry level to Security
+        path: HKLM:\Software\Policies\Microsoft\Windows\DataCollection
+        name: AllowTelemetry
+        data: 0
+        type: dword
+        category: privacy_controls
+        severity: CAT I
+        description: Security (0)
+      - stig_id: V-278143
+        title: Configure App Compatibility - Turn off Application Compatibility Program Inventory
+        path: HKLM:\Software\Policies\Microsoft\Windows\AppCompat
+        name: DisableInventory
+        data: 1
+        type: dword
+        category: privacy_controls
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278144
+        title: Configure Digital Locker - Disable Windows Store over WAN
+        path: HKLM:\Software\Policies\Microsoft\Windows\DeliveryOptimization
+        name: DODownloadMode
+        data: 0
+        type: dword
+        category: privacy_controls
+        severity: CAT II
+        description: No peering
+      - stig_id: V-278145
+        title: Configure Handwriting Recognition - Turn off handwriting personalization data sharing
+        path: HKLM:\Software\Policies\Microsoft\Windows\TabletPC
+        name: PreventHandwritingDataSharing
+        data: 1
+        type: dword
+        category: privacy_controls
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278146
+        title: Configure Speech Recognition - Turn off online speech recognition
+        path: HKLM:\Software\Policies\Microsoft\Speech
+        name: AllowSpeechModelUpdate
+        data: 0
+        type: dword
+        category: privacy_controls
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278147
+        title: Configure Font Loading - Disable downloading of fonts over HTTP
+        path: HKLM:\Software\Policies\Microsoft\Windows\System
+        name: EnableFontProviders
+        data: 0
+        type: dword
+        category: privacy_controls
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278080
+        title: Prevent display of slide shows on lock screen
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization
+        name: NoLockScreenSlideshow
+        data: 1
+        type: dword
+        category: ui_controls
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278081
+        title: Disable WDigest Authentication
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\Wdigest
+        name: UseLogonCredential
+        data: 0
+        type: dword
+        category: authentication
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278082
+        title: Configure IPv6 source routing protection
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters
+        name: DisableIPSourceRouting
+        data: 2
+        type: dword
+        category: network_security
+        severity: CAT III
+        description: Highest protection
+      - stig_id: V-278083
+        title: Configure IP source routing protection
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+        name: DisableIPSourceRouting
+        data: 2
+        type: dword
+        category: network_security
+        severity: CAT III
+        description: Highest protection
+      - stig_id: V-278084
+        title: Prevent ICMP redirects
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+        name: EnableICMPRedirect
+        data: 0
+        type: dword
+        category: network_security
+        severity: CAT III
+        description: Disabled
+      - stig_id: V-278085
+        title: Ignore NetBIOS name release requests
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Netbt\Parameters
+        name: NoNameReleaseOnDemand
+        data: 1
+        type: dword
+        category: network_security
+        severity: CAT III
+        description: Enabled
+      - stig_id: V-278086
+        title: Disable insecure logons to SMB server
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\LanmanWorkstation
+        name: AllowInsecureGuestAuth
+        data: 0
+        type: dword
+        category: network_security
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278090
+        title: Enable virtualization-based security
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard
+        name: EnableVirtualizationBasedSecurity
+        data: 1
+        type: dword
+        category: device_guard
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-278091
+        title: Configure Early Launch Antimalware driver policy
+        path: HKLM:\SYSTEM\CurrentControlSet\Policies\EarlyLaunch
+        name: DriverLoadPolicy
+        data: 1
+        type: dword
+        category: device_guard
+        severity: CAT II
+        description: Good only
+      - stig_id: V-278092
+        title: Reprocess group policy objects
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Group Policy\{35378EAC-683F-11D2-A89A-00C04FBBCFA2}
+        name: NoGPOListChanges
+        data: 0
+        type: dword
+        category: group_policy
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-278093
+        title: Disable downloading print driver packages over HTTP
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Printers
+        name: DisableWebPnPDownload
+        data: 1
+        type: dword
+        category: printing
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278094
+        title: Disable printing over HTTP
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Printers
+        name: DisableHTTPPrinting
+        data: 1
+        type: dword
+        category: printing
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278095
+        title: Do not display network selection UI
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\System
+        name: DontDisplayNetworkSelectionUI
+        data: 1
+        type: dword
+        category: ui_controls
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-278096
+        title: Prompt for authentication when system wakes from sleep
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\0e796bdb-100d-47d6-a2d5-f7d2daa51f51
+        name: DCSettingIndex
+        data: 1
+        type: dword
+        category: power_management
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-278172
+        title: Configure strong certificate binding enforcement for DCs
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Kdc
+        name: StrongCertificateBindingEnforcement
+        data: 1
+        type: dword
+        category: domain_controller
+        severity: CAT II
+        description: Enabled (DC only)
+      - stig_id: V-278173
+        title: Allow name-based strong mappings for certificates
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\System\KDC
+        name: UseSubjectAltName
+        data: 1
+        type: dword
+        category: domain_controller
+        severity: CAT II
+        description: Enabled (DC only)
+- name: STIG Registry Settings | AUDIT | Get current registry values
+  ansible.windows.win_reg_stat:
+    path: "{{ item.path }}"
+    name: "{{ item.name }}"
+  register: windows_manage_stig_registry_current
+  loop: "{{ windows_manage_stig_registry_settings }}"
+  check_mode: false
+  tags:
+    - registry_settings
+    - audit
+
+- name: STIG Registry Settings | SCORED | Configure registry settings (modernized)
+  ansible.windows.win_regedit:
+    path: "{{ item.path }}"
+    name: "{{ item.name }}"
+    data: "{{ item.data }}"
+    type: "{{ item.type }}"
+  register: windows_manage_stig_registry_results
+  loop: "{{ windows_manage_stig_registry_settings }}"
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
+    - windows_manage_stig_registry_current.results[ansible_loop.index0].value | default('') | string != item.data | string
+  loop_control:
+    extended: true
+  tags:
+    - registry_settings
+    - scored
+    - remediation
+
+# =============================================================================
+# COMPLIANCE TRACKING - Structured results like CIS role
+# =============================================================================
+
+- name: STIG Registry Settings | AUDIT | Record compliance results
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [windows_manage_stig_current_result] }}"
+  vars:
+    windows_manage_stig_current_registry_value: "{{ windows_manage_stig_registry_current.results[ansible_loop.index0].value | default('Not Configured') }}"
+    windows_manage_stig_current_result:
+      stig_id: "{{ registry_setting.stig_id }}"
+      title: "{{ registry_setting.title }}"
+      path: "{{ registry_setting.path }}"
+      name: "{{ registry_setting.name }}"
+      data: "{{ registry_setting.data }}"
+      type: "{{ registry_setting.type }}"
+      category: "{{ registry_setting.category }}"
+      severity: "{{ registry_setting.severity }}"
+      description: "{{ registry_setting.description }}"
+      dc_only: "{{ registry_setting.dc_only | default(false) }}"
+      rule_section: Registry Settings
+      scored: true
+      current_value: "{{ windows_manage_stig_current_registry_value }}"
+      expected_value: "{{ registry_setting.description }}"
+      status: "{{ 'PASS' if (windows_manage_stig_current_registry_value | default('') | string == registry_setting.data | string) else 'FAIL' }}"
+      changed: "{{ windows_manage_stig_registry_results.results[ansible_loop.index0].changed | default(false) }}"
+      skip_reason: "{{ 'User configured skip' if registry_setting.stig_id in windows_manage_stig_skip_rules else '' }}"
+      check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or registry_setting.stig_id in windows_manage_stig_only_rules
+  loop: "{{ windows_manage_stig_registry_settings }}"
+  loop_control:
+    loop_var: registry_setting
+    extended: true
+  tags:
+    - registry_settings
+    - compliance
+
+# =============================================================================
+# SECTION SUMMARY
+# =============================================================================
+
+- name: STIG Registry Settings | Display configuration summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - STIG Registry Settings Summary
+      - ==========================================
+      - "Registry Categories Configured:"
+      - >-
+        AutoPlay & Media Controls:
+        {{ 'COMPLIANT' if (windows_manage_stig_registry_settings |
+        selectattr('category', 'equalto', 'autoplay_media') | list | length) > 0
+        else 'NOT CONFIGURED' }}
+      - >-
+        Internet Explorer & Browser:
+        {{ 'COMPLIANT' if (windows_manage_stig_registry_settings |
+        selectattr('category', 'equalto', 'ie_browser') | list | length) > 0
+        else 'NOT CONFIGURED' }}
+      - >-
+        PowerShell & WinRM:
+        {{ 'COMPLIANT' if (windows_manage_stig_registry_settings |
+        selectattr('category', 'equalto', 'powershell_winrm') | list | length) > 0
+        else 'NOT CONFIGURED' }}
+      - >-
+        Advanced Security Controls:
+        {{ 'COMPLIANT' if (windows_manage_stig_registry_settings |
+        selectattr('category', 'equalto', 'advanced_security') | list | length) > 0
+        else 'NOT CONFIGURED' }}
+      - >-
+        Privacy Controls:
+        {{ 'COMPLIANT' if (windows_manage_stig_registry_settings |
+        selectattr('category', 'equalto', 'privacy_controls') | list | length) > 0
+        else 'NOT CONFIGURED' }}
+      - ==========================================
+      - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
+      - ==========================================
+  when: not ansible_check_mode or true
+  tags:
+    - registry_settings
+    - summary
