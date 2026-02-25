@@ -1,0 +1,149 @@
+---
+# =============================================================================
+# DISA STIG V-205xxx - System Services
+# Windows Server 2019 Service Installation Controls
+# Enterprise Implementation using Windows Feature Management
+# =============================================================================
+
+# =============================================================================
+# STRUCTURED SYSTEM SERVICES CONFIGURATION - Data-driven approach
+# =============================================================================
+
+- name: STIG System Services | SETUP | Define Windows features to remove/disable
+  ansible.builtin.set_fact:
+    windows_manage_stig_features_to_remove:
+      - name: Fax-Server
+        stig_id: V-205678
+        severity: CAT II
+        description: Fax Server role must not be installed
+        feature_name: Fax
+      - name: PNRP
+        stig_id: V-205679
+        severity: CAT II
+        description: Peer Name Resolution Protocol must not be installed
+        feature_name: PNRP
+      - name: SimpleTcp
+        stig_id: V-205680
+        severity: CAT II
+        description: Simple TCP/IP Services must not be installed
+        feature_name: Simple-TCPIP
+      - name: TFTP-Client
+        stig_id: V-205681
+        severity: CAT II
+        description: TFTP Client must not be installed
+        feature_name: TFTP-Client
+      - name: SMB-v1
+        stig_id: V-205682
+        severity: CAT II
+        description: SMB v1 protocol must not be installed
+        feature_name: FS-SMB1
+      - name: PowerShell-2
+        stig_id: V-205685
+        severity: CAT II
+        description: PowerShell 2.0 must not be installed
+        feature_name: PowerShell-V2
+      - name: Web-Ftp-Server
+        stig_id: V-205697
+        severity: CAT II
+        description: Microsoft FTP service must not be installed unless required
+        feature_name: Web-Ftp-Server
+      - name: Telnet-Client
+        stig_id: V-205698
+        severity: CAT II
+        description: Telnet Client must not be installed
+        feature_name: Telnet-Client
+  tags:
+    - system_services
+    - setup
+
+# =============================================================================
+# AUDIT-THEN-REMEDIATE PHASE
+# =============================================================================
+
+- name: STIG System Services | AUDIT | Check if features are installed
+  ansible.windows.win_shell: |
+    $features = @()
+    $featureList = @('Fax', 'PNRP', 'Simple-TCPIP', 'TFTP-Client', 'FS-SMB1', 'PowerShell-V2', 'Web-Ftp-Server', 'Telnet-Client')
+    foreach ($feature in $featureList) {
+      $state = Get-WindowsFeature -Name $feature -ErrorAction SilentlyContinue
+      if ($state) {
+        $features += @{
+          Name = $feature
+          Installed = $state.Installed
+        }
+      }
+    }
+    $features | ConvertTo-Json
+  register: windows_manage_stig_features_audit
+  changed_when: false
+  check_mode: false
+  tags:
+    - system_services
+    - audit
+
+- name: STIG System Services | SCORED | Remove prohibited Windows features
+  ansible.windows.win_feature:
+    name: "{{ item.feature_name }}"
+    state: absent
+  register: windows_manage_stig_features_results
+  loop: "{{ windows_manage_stig_features_to_remove }}"
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
+  tags:
+    - system_services
+    - scored
+    - remediation
+
+# =============================================================================
+# COMPLIANCE TRACKING
+# =============================================================================
+
+- name: STIG System Services | AUDIT | Record compliance results
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [windows_manage_stig_current_result] }}"
+  vars:
+    windows_manage_stig_feature_state: "{{ (windows_manage_stig_features_audit.stdout | from_json | selectattr('Name', 'equalto', feature.feature_name) | first).Installed | default(false) }}"
+    windows_manage_stig_current_result:
+      stig_id: "{{ feature.stig_id }}"
+      title: "{{ feature.description }}"
+      feature_name: "{{ feature.feature_name }}"
+      severity: "{{ feature.severity }}"
+      rule_section: System Services
+      scored: true
+      current_value: "{{ 'Installed' if windows_manage_stig_feature_state else 'Not Installed' }}"
+      expected_value: Not Installed
+      status: "{{ 'FAIL' if windows_manage_stig_feature_state else 'PASS' }}"
+      changed: "{{ windows_manage_stig_features_results.results[ansible_loop.index0].changed | default(false) }}"
+      skip_reason: "{{ 'User configured skip' if feature.stig_id in windows_manage_stig_skip_rules else '' }}"
+      check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or feature.stig_id in windows_manage_stig_only_rules
+  loop: "{{ windows_manage_stig_features_to_remove }}"
+  loop_control:
+    loop_var: feature
+    extended: true
+  tags:
+    - system_services
+    - compliance
+
+# =============================================================================
+# SECTION SUMMARY
+# =============================================================================
+
+- name: STIG System Services | Display configuration summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - STIG System Services Summary
+      - ==========================================
+      - >-
+        Windows Features Managed:
+        {{ windows_manage_stig_features_to_remove | length }} features
+      - ==========================================
+      - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
+      - ==========================================
+  when: not ansible_check_mode or true
+  tags:
+    - system_services
+    - summary

@@ -1,0 +1,56 @@
+---
+# =============================================================================
+# STIG Test Execution Summary
+# Calculates and displays detailed coverage statistics by category
+# =============================================================================
+
+- name: TEST SUMMARY | Initialize summary statistics
+  ansible.builtin.set_fact:
+    test_summary_stats: {}
+    test_global_stats:
+      total: 0
+      passed: 0
+      failed: 0
+      manual: 0
+      skipped: 0
+
+- name: TEST SUMMARY | Aggregate results by category
+  ansible.builtin.set_fact:
+    test_summary_stats: "{{ test_summary_stats | combine({result.rule_section: {'total': (test_summary_stats[result.rule_section].total | default(0) | int) + 1, 'passed': (test_summary_stats[result.rule_section].passed | default(0) | int) + (1 if result.status == 'PASS' else 0), 'failed': (test_summary_stats[result.rule_section].failed | default(0) | int) + (1 if result.status == 'FAIL' else 0), 'manual': (test_summary_stats[result.rule_section].manual | default(0) | int) + (1 if result.status == 'MANUAL' else 0), 'skipped': (test_summary_stats[result.rule_section].skipped | default(0) | int) + (1 if result.skip_reason | default('') | length > 0 else 0)}}, recursive=true) }}"
+    test_global_stats:
+      total: "{{ (test_global_stats.total | int) + 1 }}"
+      passed: "{{ (test_global_stats.passed | int) + (1 if result.status == 'PASS' else 0) }}"
+      failed: "{{ (test_global_stats.failed | int) + (1 if result.status == 'FAIL' else 0) }}"
+      manual: "{{ (test_global_stats.manual | int) + (1 if result.status == 'MANUAL' else 0) }}"
+      skipped: "{{ (test_global_stats.skipped | int) + (1 if result.skip_reason | default('') | length > 0 else 0) }}"
+  loop: "{{ _stig_report.results }}"
+  loop_control:
+    loop_var: result
+    label: "{{ result.stig_id }}"
+
+- name: TEST SUMMARY | Display detailed compliance report
+  ansible.builtin.debug:
+    msg: |
+      =============================================================================
+                              STIG COMPLIANCE TEST SUMMARY                         
+      =============================================================================
+      TARGET: {{ _stig_report.target_system | default('Unknown') }}
+      OS VERSION: {{ _stig_report.detected_version }} ({{ _stig_report.version }})
+      DATE: {{ ansible_date_time.iso8601 }}
+      =============================================================================
+      CATEGORY BREAKDOWN:
+      {% for section, stats in test_summary_stats.items() %}
+        {{ section }}:
+          Total: {{ stats.total }} | Passed: {{ stats.passed }} | Manual: {{ stats.manual }} | Failed: {{ stats.failed }}
+          Coverage: {{ ((stats.passed | int / stats.total | int) * 100) | round(1) }}%
+      {% endfor %}
+      =============================================================================
+      GLOBAL COMPLIANCE SCORE:
+        Total Controls: {{ test_global_stats.total }}
+        Passed:         {{ test_global_stats.passed }}
+        Manual Review:  {{ test_global_stats.manual }}
+        Failed:         {{ test_global_stats.failed }}
+      
+        COMPLIANCE SCORE: {{ ((test_global_stats.passed | int / test_global_stats.total | int) * 100) | round(1) }}%
+        (Note: Score includes Manual controls as 'Non-Compliant' until verified)
+      =============================================================================

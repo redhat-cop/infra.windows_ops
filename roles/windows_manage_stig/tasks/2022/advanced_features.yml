@@ -1,7 +1,6 @@
 ---
 # =============================================================================
-# Windows Server 2022+ Features - DISA STIG Controls
-# Features available in Windows Server 2022 and 2025
+# Windows Server 2022 Advanced Features - DISA STIG Controls
 # DNS-over-HTTPS, SMB over QUIC, TLS 1.3
 # =============================================================================
 
@@ -210,7 +209,7 @@
       - "SMB over QUIC: {{ 'Required and checked' if windows_manage_stig_smb_quic_required else 'Not required (optional feature)' }}"
       - "TLS 1.3: {{ 'Enabled (default)' if (windows_manage_stig_tls13_parsed.tls13_client_enabled | default(false) and windows_manage_stig_tls13_parsed.tls13_server_enabled | default(false)) else 'Check required' }}"
       - ""
-      - "VERSION-SPECIFIC CONTROLS: These features apply to Windows Server 2022 and 2025 only"
+      - "VERSION-SPECIFIC CONTROLS: These features apply to Windows Server 2022 and 2025"
       - "Current OS Version: {{ windows_manage_stig_detected_version }}"
       - ==========================================
       - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"

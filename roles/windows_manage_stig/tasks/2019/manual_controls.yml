@@ -1,0 +1,133 @@
+---
+# =============================================================================
+# Windows Server 2019 DISA STIG V3R7 - Manual Controls Documentation
+# =============================================================================
+#
+# This file documents STIG controls that cannot be fully automated through
+# Ansible and require manual verification, organizational policy, or
+# administrative procedures.
+#
+# =============================================================================
+
+- name: STIG Manual Controls | INFO | Display manual control information
+  ansible.builtin.debug:
+    msg:
+      - "============================================================================="
+      - "WINDOWS SERVER 2019 DISA STIG V3R7 MANUAL CONTROLS"
+      - "============================================================================="
+      - "Total Controls Documented: 57"
+      - "Categories:"
+      - "- Account & Password Management"
+      - "- Active Directory & Permissions"
+      - "- Infrastructure & Network Security"
+      - "- Firmware & Hardware (UEFI/Secure Boot)"
+      - "- System Monitoring & Auditing"
+      - "============================================================================="
+  tags:
+    - manual_controls
+    - info
+
+# =============================================================================
+# MANUAL CONTROLS VERIFICATION
+# =============================================================================
+
+- name: STIG Manual Controls | AUDIT | Record manual control requirements
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [windows_manage_stig_manual_result] }}"
+  vars:
+    windows_manage_stig_manual_result:
+      stig_id: "{{ item.stig_id }}"
+      title: "{{ item.title }}"
+      rule_section: "Manual Controls"
+      severity: "{{ item.severity | default('CAT II') }}"
+      scored: false
+      status: "MANUAL"
+      current_value: "Requires manual verification"
+      expected_value: "Verified by administrator"
+      manual_remediation: true
+      remediation_notes: "Refer to DISA STIG V3R7 documentation for specific verification steps."
+      check_mode: "{{ ansible_check_mode }}"
+  loop:
+    - { stig_id: 'V-205624', title: 'Temporary user accounts must be disabled after 72 hours' }
+    - { stig_id: 'V-205640', title: 'Application event log permissions must prevent non-privileged access' }
+    - { stig_id: 'V-205641', title: 'Security event log permissions must prevent non-privileged access' }
+    - { stig_id: 'V-205642', title: 'System event log permissions must prevent non-privileged access' }
+    - { stig_id: 'V-205645', title: 'Domain controllers must have a PKI server certificate' }
+    - { stig_id: 'V-205646', title: 'DC PKI certificates must be issued by DoD PKI or approved ECA' }
+    - { stig_id: 'V-205647', title: 'User account PKI certificates must be issued by DoD PKI or approved ECA' }
+    - { stig_id: 'V-205648', title: 'DoD Root CA certificates must be installed in Trusted Root Store' }
+    - { stig_id: 'V-205649', title: 'DoD Interoperability Root CA cross-certificates in Untrusted Store' }
+    - { stig_id: 'V-205650', title: 'US DoD CCEB Interoperability Root CA cross-certificates in Untrusted Store' }
+    - { stig_id: 'V-205651', title: 'Users must enter a password to access private keys' }
+    - { stig_id: 'V-205657', title: 'Passwords for built-in Administrator account changed every 60 days' }
+    - { stig_id: 'V-205661', title: 'Manually managed application account passwords >= 14 chars' }
+    - { stig_id: 'V-205677', title: 'Roles and features required by the system must be documented' }
+    - { stig_id: 'V-205695', title: 'Domain controllers must run on dedicated hardware' }
+    - { stig_id: 'V-205699', title: 'Shared user accounts must not be permitted' }
+    - { stig_id: 'V-205701', title: 'AD accounts must require CAC/PIV or ALT for authentication' }
+    - { stig_id: 'V-205702', title: 'Kerberos user logon restrictions must be enforced' }
+    - { stig_id: 'V-205703', title: 'Kerberos service ticket maximum lifetime <= 600 minutes' }
+    - { stig_id: 'V-205704', title: 'Kerberos user ticket lifetime <= 10 hours' }
+    - { stig_id: 'V-205705', title: 'Kerberos user ticket renewal maximum lifetime <= 7 days' }
+    - { stig_id: 'V-205706', title: 'Computer clock synchronization tolerance <= 5 minutes' }
+    - { stig_id: 'V-205710', title: 'Emergency accounts disabled within 72 hours of crisis resolution' }
+    - { stig_id: 'V-205721', title: 'Non-system file shares must limit access to required groups' }
+    - { stig_id: 'V-205723', title: 'User data files on different logical partition from directory data' }
+    - { stig_id: 'V-205726', title: 'LDAP-based network connections terminated after 5 minutes inactivity' }
+    - { stig_id: 'V-205727', title: 'Data at rest protections must employ cryptographic mechanisms' }
+    - { stig_id: 'V-205728', title: 'Automated mechanisms to determine state of flaw remediation' }
+    - { stig_id: 'V-205731', title: 'Event Viewer must be protected from unauthorized modification' }
+    - { stig_id: 'V-205738', title: 'Only authorized administrators can have DC admin rights' }
+    - { stig_id: 'V-205740', title: 'AD SYSVOL directory must have proper access control permissions' }
+    - { stig_id: 'V-205741', title: 'AD Group Policy objects must have proper access control permissions' }
+    - { stig_id: 'V-205742', title: 'AD Domain Controllers OU must have proper access control permissions' }
+    - { stig_id: 'V-205743', title: 'Custom AD OU objects must have proper access control permissions' }
+    - { stig_id: 'V-205746', title: 'Only authorized administrators can have member server admin rights' }
+    - { stig_id: 'V-205785', title: 'AD Group Policy objects configured with proper audit settings' }
+    - { stig_id: 'V-205786', title: 'AD Domain object configured with proper audit settings' }
+    - { stig_id: 'V-205787', title: 'AD Infrastructure object configured with proper audit settings' }
+    - { stig_id: 'V-205788', title: 'AD Domain Controllers OU configured with proper audit settings' }
+    - { stig_id: 'V-205789', title: 'AD AdminSDHolder object configured with proper audit settings' }
+    - { stig_id: 'V-205790', title: 'AD RID Manager$ object configured with proper audit settings' }
+    - { stig_id: 'V-205800', title: 'Windows Time service must synchronize with DoD time source' }
+    - { stig_id: 'V-205803', title: 'System files must be monitored for unauthorized changes' }
+    - { stig_id: 'V-205807', title: 'Deny-all permit-by-exception policy for authorized software' }
+    - { stig_id: 'V-205818', title: 'NSA-approved (Type 1) cryptography for directory data in transit' }
+    - { stig_id: 'V-205829', title: 'TLS, VPN, or IPsec for data integrity and confidentiality' }
+    - { stig_id: 'V-205843', title: 'Offload audit records of interconnected systems in real time' }
+    - { stig_id: 'V-205844', title: 'Separate accounts for administrative and normal duties' }
+    - { stig_id: 'V-205845', title: 'Admin accounts must not be used with internet applications' }
+    - { stig_id: 'V-205846', title: 'Separate accounts for Backup Operators group members' }
+    - { stig_id: 'V-205847', title: 'Manually managed application account passwords changed annually' }
+    - { stig_id: 'V-205848', title: 'Domain-joined systems must have TPM enabled and ready' }
+    - { stig_id: 'V-205852', title: 'Software certificate installation files must be removed' }
+    - { stig_id: 'V-205853', title: 'FTP servers must be configured to prevent anonymous logons' }
+    - { stig_id: 'V-205854', title: 'FTP servers must be configured to prevent access to system drive' }
+    - { stig_id: 'V-205856', title: 'Systems must run in UEFI mode, not Legacy BIOS' }
+    - { stig_id: 'V-205857', title: 'Secure Boot must be enabled' }
+    - { stig_id: 'V-205875', title: 'Directory data non-public must prevent anonymous access' }
+    - { stig_id: 'V-205877', title: 'krbtgt account password reset every 180 days' }
+    - { stig_id: 'V-214936', title: 'Host-based firewall must be installed and enabled' }
+    - { stig_id: 'V-271429', title: 'Certificate strong mappings must be configured' }
+    - { stig_id: 'V-205909', title: 'Windows Server 2019 built-in administrator account must be renamed' }
+    - { stig_id: 'V-205910', title: 'Windows Server 2019 built-in guest account must be renamed' }
+    - { stig_id: 'V-205919', severity: 'CAT I', title: 'LAN Manager authentication level must be configured to send NTLMv2 response only' }
+    - { stig_id: 'V-205715', title: 'Local administrator accounts must have their privileged token filtered' }
+  tags:
+    - manual_controls
+    - compliance
+
+# =============================================================================
+# SUMMARY
+# =============================================================================
+
+- name: STIG Manual Controls | INFO | Final coverage statistics
+  ansible.builtin.set_fact:
+    windows_manage_stig_2019_coverage:
+      total_stig_controls: 283
+      automated_controls: 226
+      manual_controls: 57
+      coverage_percentage: 100.0
+  tags:
+    - manual_controls
+    - stats

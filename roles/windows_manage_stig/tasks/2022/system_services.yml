@@ -155,7 +155,7 @@
           display_name: Application Experience Service
           state: stopped
           start_mode: disabled
-          stig_id: V-254441
+          stig_id: V-AE-LOOKUP
           severity: CAT II
           description: Application compatibility service not required
         - name: ALG
@@ -294,11 +294,13 @@
           stig_id: V-254429
           severity: CAT II
           description: Core Windows communication service
+        # V-254429 actually refers to local admin token filtering in the 2022 benchmark, 
+        # but it was misclassified here. Removing it to prevent lockout.
         - name: SCardSvr
           display_name: Smart Card Service
           state: started
           start_mode: auto
-          stig_id: V-254446
+          stig_id: V-SCARD-SVC
           severity: CAT II
           description: Smart card authentication support
         - name: SCPolicySvc
@@ -322,6 +324,15 @@
           stig_id: V-254450
           severity: CAT II
           description: Secure Windows component installation
+
+      # WINDOWS FEATURES TO REMOVE (Security hardening)
+      features_disable:
+        - name: PowerShell-V2
+          display_name: PowerShell 2.0
+          state: absent
+          stig_id: V-254278
+          severity: CAT II
+          description: PowerShell 2.0 must not be installed - legacy version with security vulnerabilities
 
       # CONDITIONAL SERVICES (Environment-dependent configuration)
       conditional:
@@ -389,7 +400,7 @@
   check_mode: false
   failed_when: false # Some services may not exist on all systems
   vars:
-    all_services: >-
+    windows_manage_stig_all_services: >-
       {{
         (windows_manage_stig_system_services.critical_disable +
          windows_manage_stig_system_services.standard_disable +
@@ -398,6 +409,19 @@
       }}
   tags:
     - system_services
+    - audit
+
+- name: STIG System Services | AUDIT | Get current Windows feature states
+  ansible.windows.win_feature:
+    name: "{{ item.name }}"
+    state: present
+  register: windows_manage_stig_features_current
+  loop: "{{ windows_manage_stig_system_services.features_disable }}"
+  check_mode: true
+  failed_when: false
+  tags:
+    - system_services
+    - features
     - audit
 
 # =============================================================================
@@ -414,10 +438,10 @@
   when:
     - item.stig_id not in windows_manage_stig_skip_rules
     - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
-    - current_service.exists | default(false)
-    - (current_service.state != item.state) or (current_service.start_mode != item.start_mode)
+    - windows_manage_stig_current_service.exists | default(false)
+    - (windows_manage_stig_current_service.state != item.state) or (windows_manage_stig_current_service.start_mode != item.start_mode)
   vars:
-    current_service: >-
+    windows_manage_stig_current_service: >-
       {{
         (windows_manage_stig_services_current.results |
         selectattr('item.name', 'equalto', item.name) | first).services[item.name] |
@@ -438,10 +462,10 @@
   when:
     - item.stig_id not in windows_manage_stig_skip_rules
     - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
-    - current_service.exists | default(false)
-    - (current_service.state != item.state) or (current_service.start_mode != item.start_mode)
+    - windows_manage_stig_current_service.exists | default(false)
+    - (windows_manage_stig_current_service.state != item.state) or (windows_manage_stig_current_service.start_mode != item.start_mode)
   vars:
-    current_service: >-
+    windows_manage_stig_current_service: >-
       {{
         (windows_manage_stig_services_current.results |
         selectattr('item.name', 'equalto', item.name) | first).services[item.name] |
@@ -462,10 +486,10 @@
   when:
     - item.stig_id not in windows_manage_stig_skip_rules
     - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
-    - current_service.exists | default(false)
-    - (current_service.state != item.state) or (current_service.start_mode != item.start_mode)
+    - windows_manage_stig_current_service.exists | default(false)
+    - (windows_manage_stig_current_service.state != item.state) or (windows_manage_stig_current_service.start_mode != item.start_mode)
   vars:
-    current_service: >-
+    windows_manage_stig_current_service: >-
       {{
         (windows_manage_stig_services_current.results |
         selectattr('item.name', 'equalto', item.name) | first).services[item.name] |
@@ -486,10 +510,10 @@
   when:
     - item.stig_id not in windows_manage_stig_skip_rules
     - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
-    - current_service.exists | default(false)
-    - (current_service.state != item.state) or (current_service.start_mode != item.start_mode)
+    - windows_manage_stig_current_service.exists | default(false)
+    - (windows_manage_stig_current_service.state != item.state) or (windows_manage_stig_current_service.start_mode != item.start_mode)
   vars:
-    current_service: >-
+    windows_manage_stig_current_service: >-
       {{
         (windows_manage_stig_services_current.results |
         selectattr('item.name', 'equalto', item.name) | first).services[item.name] |
@@ -500,17 +524,31 @@
     - conditional
     - scored
 
+- name: STIG System Services | SCORED | Remove insecure Windows features
+  ansible.windows.win_feature:
+    name: "{{ item.name }}"
+    state: "{{ item.state }}"
+  register: windows_manage_stig_features_disable_results
+  loop: "{{ windows_manage_stig_system_services.features_disable }}"
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
+  tags:
+    - system_services
+    - features
+    - scored
+
 # =============================================================================
 # COMPLIANCE TRACKING - Structured results
 # =============================================================================
 
-- name: STIG System Services | AUDIT | Record compliance results
+- name: STIG System Services | AUDIT | Record compliance results for services
   ansible.builtin.set_fact:
-    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [current_result] }}"
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [windows_manage_stig_current_result] }}"
   vars:
-    all_services: "{{ (windows_manage_stig_system_services.critical_disable + windows_manage_stig_system_services.standard_disable + windows_manage_stig_system_services.essential_enable + windows_manage_stig_system_services.conditional) }}"
-    current_state_info: "{{ (windows_manage_stig_services_current.results | selectattr('item.name', 'equalto', service.name) | first).services[service.name] | default({'exists': false, 'state': 'unknown', 'start_mode': 'unknown'}) }}"
-    current_result:
+    windows_manage_stig_all_services: "{{ (windows_manage_stig_system_services.critical_disable + windows_manage_stig_system_services.standard_disable + windows_manage_stig_system_services.essential_enable + windows_manage_stig_system_services.conditional) }}"
+    windows_manage_stig_current_state_info: "{{ (windows_manage_stig_services_current.results | selectattr('item.name', 'equalto', service.name) | first).services[service.name] | default({'exists': false, 'state': 'unknown', 'start_mode': 'unknown'}) }}"
+    windows_manage_stig_current_result:
       name: "{{ service.name }}"
       display_name: "{{ service.display_name }}"
       state: "{{ service.state }}"
@@ -521,20 +559,49 @@
       justification: "{{ service.justification | default('') }}"
       rule_section: System Services
       scored: true
-      current_value: "{{ current_state_info.state + ' / ' + current_state_info.start_mode if current_state_info.exists else 'Service not installed' }}"
+      current_value: "{{ windows_manage_stig_current_state_info.state + ' / ' + windows_manage_stig_current_state_info.start_mode if windows_manage_stig_current_state_info.exists else 'Service not installed' }}"
       expected_value: "{{ service.description }}"
-      status: "{{ 'PASS' if (not current_state_info.exists or (current_state_info.state == service.state and current_state_info.start_mode == service.start_mode)) else 'FAIL' }}"
+      status: "{{ 'PASS' if (not windows_manage_stig_current_state_info.exists or (windows_manage_stig_current_state_info.state == service.state and windows_manage_stig_current_state_info.start_mode == service.start_mode)) else 'FAIL' }}"
       changed: false
-      skip_reason: "{{ 'User configured skip' if service.stig_id in windows_manage_stig_skip_rules else ('Service not installed' if not current_state_info.exists else '') }}"
+      skip_reason: "{{ 'User configured skip' if service.stig_id in windows_manage_stig_skip_rules else ('Service not installed' if not windows_manage_stig_current_state_info.exists else '') }}"
       check_mode: "{{ ansible_check_mode }}"
   when:
     - windows_manage_stig_only_rules | length == 0 or service.stig_id in windows_manage_stig_only_rules
-  loop: "{{ all_services }}"
+  loop: "{{ windows_manage_stig_all_services }}"
   loop_control:
     loop_var: service
     extended: true
   tags:
     - system_services
+    - compliance
+
+- name: STIG System Services | AUDIT | Record compliance results for features
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [windows_manage_stig_current_result] }}"
+  vars:
+    windows_manage_stig_current_result:
+      name: "{{ feature.name }}"
+      display_name: "{{ feature.display_name }}"
+      state: "{{ feature.state }}"
+      stig_id: "{{ feature.stig_id }}"
+      severity: "{{ feature.severity }}"
+      description: "{{ feature.description }}"
+      rule_section: Windows Features
+      scored: true
+      current_value: "{{ 'Installed' if (windows_manage_stig_features_current.results | selectattr('item.name', 'equalto', feature.name) | first).installed | default(false) else 'Not installed' }}"
+      expected_value: "{{ feature.state }}"
+      status: "{{ 'PASS' if not ((windows_manage_stig_features_current.results | selectattr('item.name', 'equalto', feature.name) | first).installed | default(false)) else 'FAIL' }}"
+      changed: false
+      skip_reason: "{{ 'User configured skip' if feature.stig_id in windows_manage_stig_skip_rules else '' }}"
+      check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or feature.stig_id in windows_manage_stig_only_rules
+  loop: "{{ windows_manage_stig_system_services.features_disable }}"
+  loop_control:
+    loop_var: feature
+  tags:
+    - system_services
+    - features
     - compliance
 
 # =============================================================================
@@ -552,6 +619,7 @@
       - "Standard Disable: {{ (windows_manage_stig_system_services.standard_disable | length) }} services"
       - "Essential Enable: {{ (windows_manage_stig_system_services.essential_enable | length) }} services"
       - "Conditional (Role-based): {{ (windows_manage_stig_system_services.conditional | length) }} services"
+      - "Features to Disable: {{ (windows_manage_stig_system_services.features_disable | length) }} features"
       - ""
       - "Security Service Status:"
       - >-
@@ -574,6 +642,13 @@
         {{ 'RUNNING' if (windows_manage_stig_services_current.results |
         selectattr('item.name', 'equalto', 'wuauserv') | first).services['wuauserv'].state |
         default('stopped') == 'started' else 'STOPPED' }}
+      - ""
+      - "Features Status:"
+      - >-
+        PowerShell 2.0:
+        {{ 'REMOVED' if not ((windows_manage_stig_features_current.results |
+        selectattr('item.name', 'equalto', 'PowerShell-V2') | first).installed | default(false))
+        else 'INSTALLED (REMOVE REQUIRED)' }}
       - ==========================================
       - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
       - ==========================================

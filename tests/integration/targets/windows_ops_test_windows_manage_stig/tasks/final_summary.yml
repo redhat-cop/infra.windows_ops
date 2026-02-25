@@ -1,0 +1,57 @@
+---
+# =============================================================================
+# Final Consolidated Test Summary
+# Displays execution summaries for all test stages as a readable list
+# =============================================================================
+
+- name: FINAL SUMMARY | Initialize report lines
+  ansible.builtin.set_fact:
+    test_report_lines:
+      - "============================================================================="
+      - "                        FINAL INTEGRATION TEST REPORT                        "
+      - "============================================================================="
+
+- name: FINAL SUMMARY | Add results for each stage
+  ansible.builtin.set_fact:
+    test_report_lines: "{{ test_report_lines + [
+          'STAGE ' ~ (loop_index + 1) | string ~ ': ' ~ (run.stage_name | upper),
+          '-----------------------------------------------------------------------------',
+          'Target:           ' ~ (run.system | default('Unknown')),
+          'OS Detected:      ' ~ (run.detected_version | default('Unknown')) ~ ' (' ~ (run.version | default('N/A')) ~ ')',
+          'Execution ID:     ' ~ (run.execution_id | default('N/A')),
+          '',
+          'Compliance Score: ' ~ (run.compliance_score | default(0)) | string ~ '%',
+          'Total Controls:   ' ~ (run.total_controls | default(0)) | string,
+          'Passed:           ' ~ (run.passed_controls | default(0)) | string,
+          'Failed:           ' ~ (run.failed_controls | default(0)) | string,
+          '',
+          'Note: ' ~ (run.notes | default('None')),
+          '============================================================================='
+        ]
+      }}"
+  loop: "{{ stig_test_history }}"
+  loop_control:
+    loop_var: run
+    index_var: loop_index
+
+- name: FINAL SUMMARY | Calculate global metrics
+  ansible.builtin.set_fact:
+    total_controls_all_stages: "{{ stig_test_history | map(attribute='total_controls') | map('int') | sum }}"
+    total_passed_all_stages: "{{ stig_test_history | map(attribute='passed_controls') | map('int') | sum }}"
+
+- name: FINAL SUMMARY | Add global summary
+  ansible.builtin.set_fact:
+    test_report_lines: "{{ test_report_lines + [
+          'OVERALL TEST SUITE SUMMARY',
+          '-----------------------------------------------------------------------------',
+          'Total Controls Evaluated: ' ~ total_controls_all_stages,
+          'Total Passed:             ' ~ total_passed_all_stages,
+          'Global Compliance Score:  ' ~ ((total_passed_all_stages | int / total_controls_all_stages | int) * 100) | round(1) ~ '%',
+          '============================================================================='
+        ]
+      }}"
+  when: total_controls_all_stages | int > 0
+
+- name: FINAL SUMMARY | Display execution history
+  ansible.builtin.debug:
+    msg: "{{ test_report_lines }}"

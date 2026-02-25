@@ -1,0 +1,11 @@
+---
+major_changes:
+  - windows_manage_stig - Refactored role into version-isolated task directories (2019/, 2022/, 2025/) to support Windows Server 2019, 2022, and 2025 benchmarks.
+  - windows_manage_stig - Implemented 100% DISA STIG coverage for Windows Server 2019, 2022, and 2025 with accurate V-ID mapping for each platform.
+  - windows_manage_stig - Added advanced features support including DNS-over-HTTPS (DoH), SMB QUIC, TLS 1.3, and Hotpatching.
+  - windows_manage_stig - Improved compliance reporting with detailed execution summaries, manual control action items, and failed control breakdowns.
+bugfixes:
+  - windows_manage_stig - Fixed compliance reporting logic for Audit Policies to accept over-compliance (e.g., 'Success and Failure' for a 'Failure' requirement).
+  - windows_manage_stig - Fixed V-ID collisions and ensured data integrity across benchmark versions.
+  - windows_manage_stig - Fixed various user rights and service configuration errors in 2019 and 2022 benchmarks.
+  - windows_manage_stig - Moved connection-breaking controls (LAN Manager Auth, Machine Lockout) to manual documentation to prevent remote admin lockout.

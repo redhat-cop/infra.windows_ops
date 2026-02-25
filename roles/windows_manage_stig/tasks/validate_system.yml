@@ -65,6 +65,35 @@
         unknown
       {%- endif -%}
 
+- name: STIG | VALIDATE | Verify version-specific task directory exists
+  ansible.builtin.stat:
+    path: "{{ role_path }}/tasks/{{ windows_manage_stig_detected_version }}"
+  register: windows_manage_stig_version_tasks_dir
+  delegate_to: localhost
+
+- name: STIG | VALIDATE | Fail with helpful error if version not supported
+  ansible.builtin.fail:
+    msg: |
+      Version-specific STIG controls not found for Windows Server {{ windows_manage_stig_detected_version }}!
+
+      Supported versions with implemented controls:
+      - Windows Server 2019 (DISA STIG V3R7)
+      - Windows Server 2022 (DISA STIG V2R7)
+
+      Detected version: {{ windows_manage_stig_detected_version }}
+      Product name: {{ windows_manage_stig_system_info.ProductName }}
+
+      This may mean:
+      1. The role needs to be updated to support this version
+      2. The version detection is incorrect
+      3. The task files are missing from the role installation
+
+      If you believe this is a supported version, please verify:
+      - The role is properly installed in ansible_collections/infra/windows_ops/
+      - The tasks/{{ windows_manage_stig_detected_version }}/ directory exists in the role
+      - You are using the latest version of the collection
+  when: not windows_manage_stig_version_tasks_dir.stat.exists or not windows_manage_stig_version_tasks_dir.stat.isdir
+
 - name: STIG | VALIDATE | Update STIG benchmark metadata based on detected version
   ansible.builtin.set_fact:
     windows_manage_stig_benchmark_name: "Microsoft Windows Server {{ windows_manage_stig_detected_version }} Security Technical Implementation Guide"

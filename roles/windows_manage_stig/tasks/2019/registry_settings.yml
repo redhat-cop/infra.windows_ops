@@ -1,0 +1,938 @@
+---
+# =============================================================================
+# DISA STIG V-205xxx - Registry Settings (53 controls)
+# Windows Server 2019 Security Configuration via Registry
+# =============================================================================
+
+# =============================================================================
+# STRUCTURED REGISTRY SETTINGS CONFIGURATION
+# =============================================================================
+
+- name: STIG Registry Settings | SETUP | Define registry settings configuration
+  ansible.builtin.set_fact:
+    windows_manage_stig_registry_settings:
+      - stig_id: V-205636
+        title: Windows Server 2019 Remote Desktop Services must require secure Remote Procedure Call (RPC) communications.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+        name: fEncryptRPCTraffic
+        data: 1
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Auto download and schedule install
+      - stig_id: V-205637
+        title: Windows Server 2019 Remote Desktop Services must be configured with the client connection encryption set to High
+          Level.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+        name: MinEncryptionLevel
+        data: 3
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-205639
+        title: Windows Server 2019 PowerShell script block logging must be enabled.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging
+        name: EnableScriptBlockLogging
+        data: 1
+        type: dword
+        category: powershell_winrm
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-205686
+        title: Prevent display of slide shows on lock screen
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization
+        name: NoLockScreenSlideshow
+        data: 1
+        type: dword
+        category: ui_controls
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-205687
+        title: Disable WDigest Authentication
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\Wdigest
+        name: UseLogonCredential
+        data: 0
+        type: dword
+        category: authentication
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-205688
+        title: Disable downloading print driver packages over HTTP
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Printers
+        name: DisableWebPnPDownload
+        data: 1
+        type: dword
+        category: printing
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-205689
+        title: Disable printing over HTTP
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Printers
+        name: DisableHTTPPrinting
+        data: 1
+        type: dword
+        category: printing
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-205690
+        title: Do not display network selection UI
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\System
+        name: DontDisplayNetworkSelectionUI
+        data: 1
+        type: dword
+        category: ui_controls
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-205691
+        title: Windows Server 2019 Application Compatibility Program Inventory must be prevented from collecting data and sending
+          the information to Microsoft.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppCompat
+        name: DisableInventory
+        data: 1
+        type: dword
+        category: autoplay_media
+        severity: CAT III
+        description: Disable for all drive types
+      - stig_id: V-205692
+        title: Windows Server 2019 Microsoft Defender antivirus SmartScreen must be enabled.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\System
+        name: EnableSmartScreen
+        data: 1
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-205693
+        title: Windows Server 2019 must disable Basic authentication for RSS feeds over HTTP.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Internet Explorer\Feeds
+        name: AllowBasicAuthInClear
+        data: 0
+        type: dword
+        category: powershell_winrm
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-205694
+        title: Windows Server 2019 must prevent Indexing of encrypted files.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search
+        name: AllowIndexingEncryptedStoresOrItems
+        data: 0
+        type: dword
+        category: powershell_winrm
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-205712
+        title: Windows Server 2019 Windows Remote Management (WinRM) client must not use Digest authentication.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client
+        name: AllowDigest
+        data: 0
+        type: dword
+        category: powershell_winrm
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-205714
+        title: Windows Server 2019 administrator accounts must not be enumerated during elevation.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\CredUI
+        name: EnumerateAdministrators
+        data: 0
+        type: dword
+        category: autoplay_media
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-205722
+        title: Windows Server 2019 Remote Desktop Services must prevent drive redirection.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+        name: fDisableCdm
+        data: 1
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-205739
+        title: Configure Data Collection - Turn off Microsoft consumer experiences
+        path: HKLM:\Software\Policies\Microsoft\Windows\CloudContent
+        name: DisableWindowsConsumerFeatures
+        data: 1
+        type: dword
+        category: privacy_controls
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-205796
+        title: Windows Server 2019 Application event log size must be configured to 32768 KB or greater.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\EventLog\Application
+        name: MaxSize
+        data: 32768
+        type: dword
+        category: autoplay_media
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-205797
+        title: Windows Server 2019 Security event log size must be configured to 196608 KB or greater.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\EventLog\Security
+        name: MaxSize
+        data: 196608
+        type: dword
+        category: autoplay_media
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-205798
+        title: Windows Server 2019 System event log size must be configured to 32768 KB or greater.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\EventLog\System
+        name: MaxSize
+        data: 32768
+        type: dword
+        category: autoplay_media
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-205801
+        title: Windows Server 2019 must prevent users from changing installation options.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer
+        name: EnableUserControl
+        data: 0
+        type: dword
+        category: powershell_winrm
+        severity: CAT II
+        description: RemoteSigned
+      - stig_id: V-205802
+        title: Windows Server 2019 must disable the Windows Installer Always install with elevated privileges option.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer
+        name: AlwaysInstallElevated
+        data: 0
+        type: dword
+        category: powershell_winrm
+        severity: CAT I
+        description: Disabled
+      - stig_id: V-205804
+        title: Configure Autoplay - Turn off Autoplay for non-volume devices
+        path: HKLM:\Software\Policies\Microsoft\Windows\Explorer
+        name: NoAutoplayfornonVolume
+        data: 1
+        type: dword
+        category: autoplay_media
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-205805
+        title: Windows Server 2019 default AutoRun behavior must be configured to prevent AutoRun commands.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer
+        name: NoAutorun
+        data: 1
+        type: dword
+        category: autoplay_media
+        severity: CAT I
+        description: Disabled
+      - stig_id: V-205806
+        title: Windows Server 2019 AutoPlay must be disabled for all drives.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\policies\Explorer
+        name: NoDriveTypeAutoRun
+        data: 255
+        type: dword
+        category: autoplay_media
+        severity: CAT I
+        description: Enabled
+      - stig_id: V-205808
+        title: Windows Server 2019 must not save passwords in the Remote Desktop Client.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+        name: DisablePasswordSaving
+        data: 1
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-205809
+        title: Windows Server 2019 Remote Desktop Services must always prompt a client for passwords upon connection.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services
+        name: fPromptForPassword
+        data: 1
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-205810
+        title: Windows Server 2019 Windows Remote Management (WinRM) service must not store RunAs credentials.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service
+        name: DisableRunAs
+        data: 1
+        type: dword
+        category: advanced_security
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-205816
+        title: Windows Server 2019 Windows Remote Management (WinRM) client must not allow unencrypted traffic.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client
+        name: AllowUnencryptedTraffic
+        data: 0
+        type: dword
+        category: powershell_winrm
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-205817
+        title: Windows Server 2019 Windows Remote Management (WinRM) service must not allow unencrypted traffic.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service
+        name: AllowUnencryptedTraffic
+        data: 0
+        type: dword
+        category: advanced_security
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-205819
+        title: Ignore NetBIOS name release requests
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Netbt\Parameters
+        name: NoNameReleaseOnDemand
+        data: 1
+        type: dword
+        category: network_security
+        severity: CAT III
+        description: Enabled
+      - stig_id: V-205830
+        title: Windows Server 2019 Explorer Data Execution Prevention must be enabled.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer
+        name: NoDataExecutionPrevention
+        data: 0
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-205858
+        title: Configure IPv6 source routing protection
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters
+        name: DisableIPSourceRouting
+        data: 2
+        type: dword
+        category: network_security
+        severity: CAT III
+        description: Highest protection
+      - stig_id: V-205859
+        title: Configure IP source routing protection
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+        name: DisableIPSourceRouting
+        data: 2
+        type: dword
+        category: network_security
+        severity: CAT III
+        description: Highest protection
+      - stig_id: V-205860
+        title: Prevent ICMP redirects
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+        name: EnableICMPRedirect
+        data: 0
+        type: dword
+        category: network_security
+        severity: CAT III
+        description: Disabled
+      - stig_id: V-205861
+        title: Disable insecure logons to SMB server
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\LanmanWorkstation
+        name: AllowInsecureGuestAuth
+        data: 0
+        type: dword
+        category: network_security
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-205864
+        title: Enable virtualization-based security
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard
+        name: EnableVirtualizationBasedSecurity
+        data: 1
+        type: dword
+        category: device_guard
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-205865
+        title: Configure Early Launch Antimalware driver policy
+        path: HKLM:\SYSTEM\CurrentControlSet\Policies\EarlyLaunch
+        name: DriverLoadPolicy
+        data: 1
+        type: dword
+        category: device_guard
+        severity: CAT II
+        description: Good only
+      - stig_id: V-205866
+        title: Reprocess group policy objects
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Group Policy\{35378EAC-683F-11D2-A89A-00C04FBBCFA2}
+        name: NoGPOListChanges
+        data: 0
+        type: dword
+        category: group_policy
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-205867
+        title: Prompt for authentication when system wakes from sleep
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\0e796bdb-100d-47d6-a2d5-f7d2daa51f51
+        name: DCSettingIndex
+        data: 1
+        type: dword
+        category: power_management
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-205870
+        title: Windows Server 2019 Windows Update must not obtain updates from other PCs on the internet.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization
+        name: DODownloadMode
+        data: 0
+        type: dword
+        category: autoplay_media
+        severity: CAT III
+        description: High
+      - stig_id: V-205871
+        title: Windows Server 2019 Turning off File Explorer heap termination on corruption must be disabled.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer
+        name: NoHeapTerminationOnCorruption
+        data: 0
+        type: dword
+        category: ie_browser
+        severity: CAT III
+        description: Enabled
+      - stig_id: V-205872
+        title: Windows Server 2019 File Explorer shell protocol must run in protected mode.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer
+        name: PreXPSP2ShellProtocolBehavior
+        data: 0
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Enabled
+      - stig_id: V-205873
+        title: Windows Server 2019 must prevent attachments from being downloaded from RSS feeds.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Internet Explorer\Feeds
+        name: DisableEnclosureDownload
+        data: 1
+        type: dword
+        category: ie_browser
+        severity: CAT II
+        description: Every day
+      - stig_id: V-205874
+        title: Windows Server 2019 users must be notified if a web-based program attempts to install software.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer
+        name: SafeForScripting
+        data: 0
+        type: dword
+        category: powershell_winrm
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-205747
+        title: Windows Server 2019 must restrict remote calls to the Security Account Manager (SAM) to Administrators on domain-joined member servers and standalone or nondomain-joined systems.
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+        name: RestrictRemoteSAM
+        data: O:BAG:BAD:(A;;RC;;;BA)
+        type: string
+        category: security
+        severity: CAT II
+        description: Restrict remote SAM calls to Administrators
+      - stig_id: V-205696
+        title: Windows Server 2019 local users on domain-joined member servers must not be enumerated.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\System
+        name: EnumerateLocalUsers
+        data: 0
+        type: dword
+        category: security
+        severity: CAT II
+        description: Disabled - Prevent enumeration of local users
+      # V-205715 moved to manual controls to prevent lockout
+      - stig_id: V-205814
+        title: Windows Server 2019 must restrict unauthenticated Remote Procedure Call (RPC) clients from connecting to the RPC server on domain-joined member servers and standalone or nondomain-joined systems.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Rpc
+        name: RestrictRemoteClients
+        data: 1
+        type: dword
+        category: security
+        severity: CAT II
+        description: Enabled - Restrict unauthenticated RPC clients
+      - stig_id: V-205820
+        title: Windows Server 2019 domain controllers must require LDAP access signing.
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters
+        name: LDAPServerIntegrity
+        data: 2
+        type: dword
+        category: security
+        severity: CAT II
+        description: Require signing - Domain controllers only
+      - stig_id: V-205821
+        title: Windows Server 2019 setting Domain member Digitally encrypt or sign secure channel data (always) must be configured to Enabled.
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters
+        name: RequireSignOrSeal
+        data: 1
+        type: dword
+        category: security
+        severity: CAT II
+        description: Enabled - Require secure channel signing
+      - stig_id: V-205876
+        title: Windows Server 2019 domain controllers must be configured to allow reset of machine account passwords.
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters
+        name: RefusePasswordChange
+        data: 0
+        type: dword
+        category: security
+        severity: CAT II
+        description: Disabled - Allow machine account password reset
+      - stig_id: V-205906
+        title: Windows Server 2019 must limit the caching of logon credentials to four or less on domain-joined member servers.
+        path: HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
+        name: CachedLogonsCount
+        data: 4
+        type: string
+        category: security
+        severity: CAT II
+        description: Maximum 4 cached credentials
+      - stig_id: V-205925
+        title: Windows Server 2019 must disable automatically signing in the last interactive user after a system-initiated restart.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: DisableAutomaticRestartSignOn
+        data: 1
+        type: dword
+        category: powershell_winrm
+        severity: CAT II
+        description: Disabled
+      - stig_id: V-205811
+        title: Windows Server 2019 User Account Control approval mode for the built-in Administrator must be enabled.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: FilterAdministratorToken
+        data: 1
+        type: dword
+        category: uac_controls
+        severity: CAT II
+        description: Enable Admin Approval Mode for built-in Administrator
+      - stig_id: V-205812
+        title: Windows Server 2019 User Account Control must automatically deny standard user requests for elevation.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: ConsentPromptBehaviorUser
+        data: 0
+        type: dword
+        category: uac_controls
+        severity: CAT II
+        description: Automatically deny elevation requests for standard users
+      - stig_id: V-205813
+        title: Windows Server 2019 User Account Control must run all administrators in Admin Approval Mode, enabling UAC.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: EnableLUA
+        data: 1
+        type: dword
+        category: uac_controls
+        severity: CAT II
+        description: Run all administrators in Admin Approval Mode
+      - stig_id: V-205815
+        title: Windows Server 2019 computer account password must not be prevented from being reset.
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters
+        name: RefusePasswordChange
+        data: 0
+        type: dword
+        category: domain_security
+        severity: CAT II
+        description: Allow computer account password reset
+      - stig_id: V-205822
+        title: Windows Server 2019 setting Domain member Digitally encrypt secure channel data (when possible) must be configured to enabled.
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters
+        name: SealSecureChannel
+        data: 1
+        type: dword
+        category: domain_security
+        severity: CAT II
+        description: Digitally encrypt secure channel data when possible
+      - stig_id: V-205823
+        title: Windows Server 2019 setting Domain member Digitally sign secure channel data (when possible) must be configured to Enabled.
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters
+        name: SignSecureChannel
+        data: 1
+        type: dword
+        category: domain_security
+        severity: CAT II
+        description: Digitally sign secure channel data when possible
+      - stig_id: V-205824
+        title: Windows Server 2019 must be configured to require a strong session key.
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters
+        name: RequireStrongKey
+        data: 1
+        type: dword
+        category: domain_security
+        severity: CAT II
+        description: Require strong Windows 2000 or later session key
+      - stig_id: V-205825
+        title: Windows Server 2019 setting Microsoft network client Digitally sign communications (always) must be configured to Enabled.
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters
+        name: RequireSecuritySignature
+        data: 1
+        type: dword
+        category: network_signing
+        severity: CAT II
+        description: MS network client digitally sign communications always
+      - stig_id: V-205826
+        title: Windows Server 2019 setting Microsoft network client Digitally sign communications (if server agrees) must be configured to Enabled.
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters
+        name: EnableSecuritySignature
+        data: 1
+        type: dword
+        category: network_signing
+        severity: CAT II
+        description: MS network client digitally sign communications if server agrees
+      - stig_id: V-205827
+        title: Windows Server 2019 setting Microsoft network server Digitally sign communications (always) must be configured to Enabled.
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\LanManServer\Parameters
+        name: RequireSecuritySignature
+        data: 1
+        type: dword
+        category: network_signing
+        severity: CAT II
+        description: MS network server digitally sign communications always
+      - stig_id: V-205828
+        title: Windows Server 2019 setting Microsoft network server Digitally sign communications (if client agrees) must be configured to Enabled.
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\LanManServer\Parameters
+        name: EnableSecuritySignature
+        data: 1
+        type: dword
+        category: network_signing
+        severity: CAT II
+        description: MS network server digitally sign communications if client agrees
+      - stig_id: V-205842
+        title: Windows Server 2019 must be configured to use FIPS-compliant algorithms for encryption, hashing, and signing.
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\FIPSAlgorithmPolicy
+        name: Enabled
+        data: 1
+        type: dword
+        category: cryptographic
+        severity: CAT II
+        description: Use FIPS-compliant algorithms for encryption hashing and signing
+      - stig_id: V-205869
+        title: Windows Server 2019 Telemetry must be configured to Security or Basic.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection
+        name: AllowTelemetry
+        data: 1
+        type: dword
+        category: privacy_controls
+        severity: CAT II
+        description: Configure telemetry to Security or Basic level
+      - stig_id: V-257503
+        title: Windows Server 2019 must have PowerShell Transcription enabled.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\Transcription
+        name: EnableTranscripting
+        data: 1
+        type: dword
+        category: powershell_winrm
+        severity: CAT II
+        description: Enable PowerShell Transcription for auditing
+      - stig_id: V-271428
+        title: Windows Server 2019 must be configured for certificate-based authentication for domain controllers.
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Kdc
+        name: StrongCertificateBindingEnforcement
+        data: 1
+        type: dword
+        category: domain_security
+        severity: CAT II
+        description: Enable strong certificate binding for domain controllers
+      # NEWLY ADDED CONTROLS
+      - stig_id: V-205631
+        title: Windows Server 2019 required legal notice must be configured to display before console logon.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: LegalNoticeCaption
+        data: "{{ windows_manage_stig_legal_notice_caption | default('DoD Notice') }}"
+        type: string
+        category: logon_banner
+        severity: CAT II
+        description: Legal notice caption
+      - stig_id: V-205632
+        title: Windows Server 2019 title for legal banner dialog box must be configured with the appropriate text.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: LegalNoticeText
+        data: "{{ windows_manage_stig_legal_notice_text | default('You are accessing a U.S. Government (USG) Information System (IS)...') }}"
+        type: string
+        category: logon_banner
+        severity: CAT III
+        description: Legal notice text
+      - stig_id: V-205633
+        title: Windows Server 2019 machine inactivity limit must be set to 15 minutes or less.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: InactivityTimeoutSecs
+        data: 900
+        type: dword
+        category: logon_security
+        severity: CAT II
+        description: Inactivity timeout 900 seconds
+      - stig_id: V-205654
+        title: Windows Server 2019 must be configured to prevent the storage of the LAN Manager hash of passwords.
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+        name: NoLMHash
+        data: 1
+        type: dword
+        category: password_security
+        severity: CAT I
+        description: Prevent LM hash storage
+      - stig_id: V-205655
+        title: Windows Server 2019 unencrypted passwords must not be sent to third-party Server Message Block (SMB) servers.
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters
+        name: EnablePlainTextPassword
+        data: 0
+        type: dword
+        category: password_security
+        severity: CAT II
+        description: Prevent unencrypted passwords to SMB
+      - stig_id: V-205708
+        title: Windows Server 2019 Kerberos encryption types must be configured to prevent the use of DES and RC4 encryption suites.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Kerberos\Parameters
+        name: SupportedEncryptionTypes
+        data: 2147483640
+        type: dword
+        category: kerberos
+        severity: CAT II
+        description: Supported encryption types (AES)
+      - stig_id: V-205711
+        title: Windows Server 2019 Windows Remote Management (WinRM) client must not use Basic authentication.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client
+        name: AllowBasic
+        data: 0
+        type: dword
+        category: winrm
+        severity: CAT I
+        description: Disable WinRM Client Basic Auth
+      - stig_id: V-205713
+        title: Windows Server 2019 Windows Remote Management (WinRM) service must not use Basic authentication.
+        path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service
+        name: AllowBasic
+        data: 0
+        type: dword
+        category: winrm
+        severity: CAT I
+        description: Disable WinRM Service Basic Auth
+      - stig_id: V-205716
+        title: Windows Server 2019 UIAccess applications must not be allowed to prompt for elevation without using the secure desktop.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: EnableSecureUIAPaths
+        data: 1
+        type: dword
+        category: uac
+        severity: CAT II
+        description: Secure UIAccess paths
+      - stig_id: V-205717
+        title: Windows Server 2019 User Account Control must, at a minimum, prompt administrators for consent on the secure desktop.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: ConsentPromptBehaviorAdmin
+        data: 2
+        type: dword
+        category: uac
+        severity: CAT II
+        description: Admin consent prompt on secure desktop
+      - stig_id: V-205718
+        title: Windows Server 2019 User Account Control must be configured to detect application installations and prompt for elevation.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: EnableInstallerDetection
+        data: 1
+        type: dword
+        category: uac
+        severity: CAT II
+        description: Detect installer elevations
+      - stig_id: V-205719
+        title: Windows Server 2019 User Account Control (UAC) must only elevate UIAccess applications that are installed in secure locations.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: EnableSecureUIAPaths
+        data: 1
+        type: dword
+        category: uac
+        severity: CAT II
+        description: Secure UIAccess paths (duplicate of V-205716 logic but distinct ID)
+      - stig_id: V-205720
+        title: Windows Server 2019 User Account Control (UAC) must virtualize file and registry write failures to per-user locations.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: EnableVirtualization
+        data: 1
+        type: dword
+        category: uac
+        severity: CAT II
+        description: UAC Virtualization
+      - stig_id: V-205911
+        title: Windows Server 2019 maximum age for machine account passwords must be configured to 30 days or less.
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters
+        name: MaximumPasswordAge
+        data: 30
+        type: dword
+        category: domain_security
+        severity: CAT I
+        description: Machine password age 30 days
+      - stig_id: V-205912
+        title: Windows Server 2019 Smart Card removal option must be configured to Force Logoff or Lock Workstation.
+        path: HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon
+        name: ScRemoveOption
+        data: 1
+        type: string
+        category: logon_security
+        severity: CAT I
+        description: Smart card removal behavior (1=Lock)
+      - stig_id: V-205913
+        title: Windows Server 2019 must not allow anonymous SID/Name translation.
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+        name: TurnOffAnonymousBlock
+        data: 1
+        type: dword
+        category: lsa_security
+        severity: CAT I
+        description: Block anonymous SID/Name translation
+      - stig_id: V-205915
+        title: Windows Server 2019 must be configured to prevent anonymous users from having the same permissions as the Everyone group.
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+        name: EveryoneIncludesAnonymous
+        data: 0
+        type: dword
+        category: lsa_security
+        severity: CAT I
+        description: Prevent anonymous as Everyone
+      - stig_id: V-205916
+        title: Windows Server 2019 services using Local System that use Negotiate when reverting to NTLM authentication must use the computer identity instead of authenticating anonymously.
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+        name: UseMachineId
+        data: 1
+        type: dword
+        category: lsa_security
+        severity: CAT I
+        description: Use machine ID for Local System NTLM
+      - stig_id: V-205917
+        title: Windows Server 2019 must prevent NTLM from falling back to a Null session.
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0
+        name: allownullsessionfallback
+        data: 0
+        type: dword
+        category: lsa_security
+        severity: CAT I
+        description: Prevent NTLM null session fallback
+      - stig_id: V-205918
+        title: Windows Server 2019 must prevent PKU2U authentication using online identities.
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\pku2u
+        name: AllowOnlineID
+        data: 0
+        type: dword
+        category: lsa_security
+        severity: CAT I
+        description: Prevent PKU2U online identities
+      - stig_id: V-205920
+        title: Windows Server 2019 must be configured to at least negotiate signing for LDAP client signing.
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\LDAP
+        name: LDAPClientIntegrity
+        data: 1
+        type: dword
+        category: ldap_security
+        severity: CAT I
+        description: LDAP client signing negotiate
+      - stig_id: V-205921
+        title: Windows Server 2019 session security for NTLM SSP-based clients must be configured to require NTLMv2 session security and 128-bit encryption.
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0
+        name: NTLMMinClientSec
+        data: 537395200
+        type: dword
+        category: ntlm_security
+        severity: CAT I
+        description: NTLMv2 session security client
+      - stig_id: V-205922
+        title: Windows Server 2019 session security for NTLM SSP-based servers must be configured to require NTLMv2 session security and 128-bit encryption.
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0
+        name: NTLMMinServerSec
+        data: 537395200
+        type: dword
+        category: ntlm_security
+        severity: CAT I
+        description: NTLMv2 session security server
+      - stig_id: V-205923
+        title: Windows Server 2019 default permissions of global system objects must be strengthened.
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager
+        name: ProtectionMode
+        data: 1
+        type: dword
+        category: system_security
+        severity: CAT III
+        description: Strengthen global system object permissions
+      - stig_id: V-205924
+        title: Windows Server 2019 must preserve zone information when saving attachments.
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments
+        name: SaveZoneInformation
+        data: 2
+        type: dword
+        category: attachment_security
+        severity: CAT I
+        description: Preserve zone info on attachments
+  tags:
+    - registry_settings
+    - setup
+
+# =============================================================================
+# AUDIT-THEN-REMEDIATE PHASE
+# =============================================================================
+
+- name: STIG Registry Settings | AUDIT | Get current registry settings
+  ansible.windows.win_reg_stat:
+    path: "{{ item.path }}"
+    name: "{{ item.name }}"
+  register: windows_manage_stig_registry_current
+  loop: "{{ windows_manage_stig_registry_settings }}"
+  check_mode: false
+  tags:
+    - registry_settings
+    - audit
+
+- name: STIG Registry Settings | SCORED | Configure registry settings
+  ansible.windows.win_regedit:
+    path: "{{ item.path }}"
+    name: "{{ item.name }}"
+    data: "{{ item.data }}"
+    type: "{{ item.type }}"
+  register: windows_manage_stig_registry_results
+  loop: "{{ windows_manage_stig_registry_settings }}"
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
+    - windows_manage_stig_registry_current.results[ansible_loop.index0].value | default('') | string != item.data | string
+  loop_control:
+    extended: true
+  tags:
+    - registry_settings
+    - registry
+    - scored
+    - remediation
+
+# =============================================================================
+# COMPLIANCE TRACKING
+# =============================================================================
+
+- name: STIG Registry Settings | AUDIT | Record compliance results
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [windows_manage_stig_current_result] }}"
+  vars:
+    windows_manage_stig_current_registry_value: "{{ windows_manage_stig_registry_current.results[ansible_loop.index0].value | default('Not Configured') }}"
+    windows_manage_stig_current_result:
+      stig_id: "{{ registry_setting.stig_id }}"
+      title: "{{ registry_setting.title }}"
+      path: "{{ registry_setting.path }}"
+      name: "{{ registry_setting.name }}"
+      data: "{{ registry_setting.data }}"
+      type: "{{ registry_setting.type }}"
+      severity: "{{ registry_setting.severity }}"
+      description: "{{ registry_setting.description }}"
+      category: "{{ registry_setting.category }}"
+      rule_section: Registry Settings
+      scored: true
+      current_value: "{{ windows_manage_stig_current_registry_value | string }}"
+      expected_value: "{{ registry_setting.data | string }}"
+      status: "{{ 'PASS' if (windows_manage_stig_current_registry_value | default('') | string == registry_setting.data | string) else 'FAIL' }}"
+      changed: false
+      skip_reason: "{{ 'User configured skip' if registry_setting.stig_id in windows_manage_stig_skip_rules else '' }}"
+      check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or registry_setting.stig_id in windows_manage_stig_only_rules
+  loop: "{{ windows_manage_stig_registry_settings }}"
+  loop_control:
+    loop_var: registry_setting
+    extended: true
+  tags:
+    - registry_settings
+    - compliance
+
+# =============================================================================
+# SECTION SUMMARY
+# =============================================================================
+
+- name: STIG Registry Settings | Display configuration summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - STIG Registry Settings Summary
+      - ==========================================
+      - "Total Registry Settings: {{ windows_manage_stig_registry_settings | length }}"
+      - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
+      - ==========================================
+  when: not ansible_check_mode or true
+  tags:
+    - registry_settings
+    - summary

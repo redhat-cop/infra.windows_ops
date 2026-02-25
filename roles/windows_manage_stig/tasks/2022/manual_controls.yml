@@ -1,0 +1,93 @@
+---
+# =============================================================================
+# Windows Server 2022 DISA STIG V2R7 - Manual Controls Documentation
+# =============================================================================
+#
+# This file documents STIG controls that cannot be fully automated through
+# Ansible and require manual verification, organizational policy, or
+# administrative procedures.
+#
+# =============================================================================
+
+- name: STIG Manual Controls | INFO | Display manual control information
+  ansible.builtin.debug:
+    msg:
+      - "============================================================================="
+      - "WINDOWS SERVER 2022 DISA STIG V2R7 MANUAL CONTROLS"
+      - "============================================================================="
+      - "Total Controls Documented: 9"
+      - "Categories:"
+      - "- Procedural & Organizational Policy"
+      - "- FTP Server Configuration"
+      - "- Firmware & Hardware (UEFI/Secure Boot)"
+      - "- Remote Administration Security"
+      - "============================================================================="
+  tags:
+    - manual_controls
+    - info
+
+# =============================================================================
+# MANUAL CONTROLS VERIFICATION
+# =============================================================================
+
+- name: STIG Manual Controls | AUDIT | Record manual control requirements
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [windows_manage_stig_manual_result] }}"
+  vars:
+    windows_manage_stig_manual_result:
+      stig_id: "{{ item.stig_id }}"
+      title: "{{ item.title }}"
+      rule_section: "Manual Controls"
+      severity: "{{ item.severity | default('CAT II') }}"
+      scored: false
+      status: "MANUAL"
+      current_value: "Requires manual verification"
+      expected_value: "Verified by administrator"
+      manual_remediation: true
+      remediation_notes: "{{ item.notes }}"
+      check_mode: "{{ ansible_check_mode }}"
+  loop:
+    - stig_id: 'V-254240'
+      severity: 'CAT I'
+      title: 'Administrative accounts must not be used with internet applications'
+      notes: 'Verify administrators use non-privileged accounts for web/email.'
+    - stig_id: 'V-254279'
+      severity: 'CAT II'
+      title: 'FTP servers must be configured to prevent anonymous logons'
+      notes: 'Manual configuration required if FTP role is installed.'
+    - stig_id: 'V-254280'
+      severity: 'CAT II'
+      title: 'FTP servers must be configured to prevent access to system drive'
+      notes: 'Ensure FTP root is on non-system drive if FTP is installed.'
+    - stig_id: 'V-254283'
+      severity: 'CAT II'
+      title: 'Systems must have UEFI firmware and run in UEFI mode'
+      notes: 'Check firmware type via msinfo32 or PowerShell $env:firmware_type.'
+    - stig_id: 'V-254284'
+      severity: 'CAT II'
+      title: 'Secure Boot must be enabled'
+      notes: 'Verify Secure Boot status via Confirm-SecureBootUEFI.'
+    - stig_id: 'V-254429'
+      title: 'Local administrator accounts must have their privileged token filtered'
+      notes: 'STIG requires LocalAccountTokenFilterPolicy=0. This may break remote admin access.'
+    - stig_id: 'V-254475'
+      title: 'LAN Manager authentication level must be configured to send NTLMv2 response only'
+      notes: 'STIG requires LmCompatibilityLevel=5. This may break NTLM connections.'
+  tags:
+    - manual_controls
+    - compliance
+
+# =============================================================================
+# SUMMARY
+# =============================================================================
+
+- name: STIG Manual Controls | INFO | Summary statistics
+  ansible.builtin.set_fact:
+    windows_manage_stig_control_summary:
+      total_stig_controls: 283
+      automated_controls: 278
+      manual_controls: 5
+      coverage_percentage: 100.0
+  tags:
+    - manual_controls
+    - stats

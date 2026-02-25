@@ -1,21 +1,21 @@
 ---
 # =============================================================================
-# Windows Server 2025 DISA STIG V1R1 Benchmark Data
+# Windows Server 2025 DISA STIG V1R0-1 Benchmark Data
 # Microsoft Windows Server 2025 Security Technical Implementation Guide
-# Release Date: January 23, 2026
+# Release Date: August 6, 2025 (Initial Draft)
 # =============================================================================
 
 # Metadata for audit trail
 windows_manage_stig_benchmark_metadata:
   name: "Microsoft Windows Server 2025 Security Technical Implementation Guide"
-  version: "V1R1"
-  release_date: "2026-01-23"
-  total_rules: 295
+  version: "V1R0-1"
+  release_date: "2025-08-06"
+  total_rules: 281
   deprecated_rules: []
   new_rules:
-    - V-254501  # Hotpatching configuration
-    - V-254502  # Next-Gen Credential Guard
-    - V-254503  # AD 32k pages support
+    - V-277982  # Install security-relevant software updates
+    - V-277983  # Prohibit use of unauthorized devices
+    - V-277984  # Synchronize system clocks
 
 # Version-specific feature flags
 windows_manage_stig_version_features:

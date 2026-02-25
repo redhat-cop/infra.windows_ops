@@ -1,6 +1,6 @@
 ---
 # =============================================================================
-# DISA STIG V-254247 through V-254258 - Audit Policies
+# DISA STIG V-205xxx - Audit Policies (47 controls)
 # Security Auditing Controls for Government Compliance
 # Enterprise Implementation using structured win_powershell approach
 # =============================================================================
@@ -12,7 +12,7 @@
 - name: STIG Audit Policies | SETUP | Define audit policy configuration matrix
   ansible.builtin.set_fact:
     windows_manage_stig_audit_policies:
-      - stig_id: V-254247
+      - stig_id: V-205849
         title: Configure audit account logon events
         subcategory: Credential Validation
         success: true
@@ -20,7 +20,7 @@
         expected: Success and Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254248-1
+      - stig_id: V-205850-1
         title: Configure audit account management - Security Group Management
         subcategory: Security Group Management
         success: true
@@ -28,7 +28,7 @@
         expected: Success and Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254248-2
+      - stig_id: V-205850-2
         title: Configure audit account management - User Account Management
         subcategory: User Account Management
         success: true
@@ -36,7 +36,15 @@
         expected: Success and Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254249
+      - stig_id: V-205628
+        title: Windows Server 2019 must be configured to audit Account Management - Computer Account Management successes.
+        subcategory: Computer Account Management
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-205851
         title: Configure audit detailed tracking
         subcategory: Process Creation
         success: true
@@ -44,7 +52,7 @@
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-254250
+      - stig_id: V-205663
         title: Configure audit directory service access
         subcategory: Directory Service Access
         success: true
@@ -52,7 +60,31 @@
         expected: Success and Failure
         severity: CAT II
         dc_only: true
-      - stig_id: V-254251-1
+      - stig_id: V-205791
+        title: Windows Server 2019 must be configured to audit DS Access - Directory Service Access successes.
+        subcategory: Directory Service Access
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: true
+      - stig_id: V-205792
+        title: Windows Server 2019 must be configured to audit DS Access - Directory Service Access failures.
+        subcategory: Directory Service Access
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: true
+      - stig_id: V-205793
+        title: Windows Server 2019 must be configured to audit DS Access - Directory Service Changes successes.
+        subcategory: Directory Service Changes
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: true
+      - stig_id: V-205734-1
         title: Configure audit logon events - Logon
         subcategory: Logon
         success: true
@@ -60,7 +92,7 @@
         expected: Success and Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254251-2
+      - stig_id: V-205734-2
         title: Configure audit logon events - Logoff
         subcategory: Logoff
         success: true
@@ -68,7 +100,7 @@
         expected: Success and Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254252-1
+      - stig_id: V-205735-1
         title: Configure audit object access - File System
         subcategory: File System
         success: false
@@ -76,7 +108,7 @@
         expected: Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254252-2
+      - stig_id: V-205735-2
         title: Configure audit object access - Registry
         subcategory: Registry
         success: false
@@ -84,7 +116,7 @@
         expected: Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254253-1
+      - stig_id: V-205736-1
         title: Configure audit policy change - Audit Policy Change
         subcategory: Audit Policy Change
         success: true
@@ -92,7 +124,7 @@
         expected: Success and Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254253-2
+      - stig_id: V-205736-2
         title: Configure audit policy change - Authentication Policy Change
         subcategory: Authentication Policy Change
         success: true
@@ -100,7 +132,7 @@
         expected: Success and Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254254
+      - stig_id: V-205737
         title: Configure audit privilege use
         subcategory: Sensitive Privilege Use
         success: false
@@ -108,7 +140,7 @@
         expected: Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254255
+      - stig_id: V-205664
         title: Configure audit process tracking
         subcategory: Process Creation
         success: false
@@ -116,7 +148,7 @@
         expected: No Auditing
         severity: CAT III
         dc_only: false
-      - stig_id: V-254256-1
+      - stig_id: V-205707-1
         title: Configure audit system events - Security System Extension
         subcategory: Security System Extension
         success: true
@@ -124,7 +156,7 @@
         expected: Success and Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254256-2
+      - stig_id: V-205707-2
         title: Configure audit system events - System Integrity
         subcategory: System Integrity
         success: true
@@ -132,7 +164,7 @@
         expected: Success and Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254257
+      - stig_id: V-205700
         title: Configure audit Kerberos authentication service
         subcategory: Kerberos Authentication Service
         success: true
@@ -140,7 +172,7 @@
         expected: Success and Failure
         severity: CAT II
         dc_only: true
-      - stig_id: V-254258
+      - stig_id: V-205658
         title: Configure audit other account logon events
         subcategory: Other Account Logon Events
         success: true
@@ -148,7 +180,7 @@
         expected: Success and Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254301
+      - stig_id: V-205833
         title: Windows Server 2022 must be configured to audit Account Logon - Credential Validation failures.
         subcategory: Credential Validation
         success: false
@@ -156,7 +188,7 @@
         expected: Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254302
+      - stig_id: V-205769
         title: Windows Server 2022 must be configured to audit Account Management - Other Account Management Events successes.
         subcategory: Other Account Management Events
         success: true
@@ -164,7 +196,7 @@
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-254303
+      - stig_id: V-205625
         title: Windows Server 2022 must be configured to audit Account Management - Security Group Management successes.
         subcategory: Security Group Management
         success: true
@@ -172,7 +204,7 @@
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-254304
+      - stig_id: V-205626
         title: Windows Server 2022 must be configured to audit Account Management - User Account Management successes.
         subcategory: User Account Management
         success: true
@@ -180,7 +212,7 @@
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-254305
+      - stig_id: V-205627
         title: Windows Server 2022 must be configured to audit Account Management - User Account Management failures.
         subcategory: User Account Management
         success: false
@@ -188,7 +220,7 @@
         expected: Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254306
+      - stig_id: V-205839
         title: Windows Server 2022 must be configured to audit Detailed Tracking - Plug and Play Events successes.
         subcategory: Plug and Play Events
         success: true
@@ -196,7 +228,7 @@
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-254307
+      - stig_id: V-205770
         title: Windows Server 2022 must be configured to audit Detailed Tracking - Process Creation successes.
         subcategory: Process Creation
         success: true
@@ -204,7 +236,7 @@
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-254309
+      - stig_id: V-205730
         title: Windows Server 2022 must be configured to audit Logon/Logoff - Account Lockout failures.
         subcategory: Account Lockout
         success: false
@@ -212,7 +244,7 @@
         expected: Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254313
+      - stig_id: V-205635
         title: Windows Server 2022 must be configured to audit logon failures.
         subcategory: Logon
         success: false
@@ -220,7 +252,7 @@
         expected: Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254314
+      - stig_id: V-205835
         title: Windows Server 2022 must be configured to audit Logon/Logoff - Special Logon successes.
         subcategory: Special Logon
         success: true
@@ -228,7 +260,7 @@
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-254315
+      - stig_id: V-205836
         title: Windows Server 2022 must be configured to audit Object Access - Other Object Access Events successes.
         subcategory: Other Object Access Events
         success: true
@@ -236,7 +268,7 @@
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-254316
+      - stig_id: V-205837
         title: Windows Server 2022 must be configured to audit Object Access - Other Object Access Events failures.
         subcategory: Other Object Access Events
         success: false
@@ -244,7 +276,7 @@
         expected: Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254317
+      - stig_id: V-205840
         title: Windows Server 2022 must be configured to audit Object Access - Removable Storage successes.
         subcategory: Removable Storage
         success: true
@@ -252,7 +284,7 @@
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-254318
+      - stig_id: V-205841
         title: Windows Server 2022 must be configured to audit Object Access - Removable Storage failures.
         subcategory: Removable Storage
         success: false
@@ -260,7 +292,7 @@
         expected: Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254319
+      - stig_id: V-205771
         title: Windows Server 2022 must be configured to audit Policy Change - Audit Policy Change successes.
         subcategory: Audit Policy Change
         success: true
@@ -268,7 +300,7 @@
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-254320
+      - stig_id: V-205772
         title: Windows Server 2022 must be configured to audit Policy Change - Audit Policy Change failures.
         subcategory: Audit Policy Change
         success: false
@@ -276,7 +308,7 @@
         expected: Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254321
+      - stig_id: V-205773
         title: Windows Server 2022 must be configured to audit Policy Change - Authentication Policy Change successes.
         subcategory: Authentication Policy Change
         success: true
@@ -284,7 +316,7 @@
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-254322
+      - stig_id: V-205774
         title: Windows Server 2022 must be configured to audit Policy Change - Authorization Policy Change successes.
         subcategory: Authorization Policy Change
         success: true
@@ -292,7 +324,7 @@
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-254323
+      - stig_id: V-205775
         title: Windows Server 2022 must be configured to audit Privilege Use - Sensitive Privilege Use successes.
         subcategory: Sensitive Privilege Use
         success: true
@@ -300,7 +332,7 @@
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-254324
+      - stig_id: V-205776
         title: Windows Server 2022 must be configured to audit Privilege Use - Sensitive Privilege Use failures.
         subcategory: Sensitive Privilege Use
         success: false
@@ -308,7 +340,7 @@
         expected: Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254328
+      - stig_id: V-205780
         title: Windows Server 2022 must be configured to audit System - Other System Events failures.
         subcategory: Other System Events
         success: false
@@ -316,7 +348,7 @@
         expected: Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-254329
+      - stig_id: V-205781
         title: Windows Server 2022 must be configured to audit System - Security State Change successes.
         subcategory: Security State Change
         success: true
@@ -324,7 +356,7 @@
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-254330
+      - stig_id: V-205782
         title: Windows Server 2022 must be configured to audit System - Security System Extension successes.
         subcategory: Security System Extension
         success: true
@@ -332,7 +364,7 @@
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-254331
+      - stig_id: V-205783
         title: Windows Server 2022 must be configured to audit System - System Integrity successes.
         subcategory: System Integrity
         success: true
@@ -340,7 +372,7 @@
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-254332
+      - stig_id: V-205784
         title: Windows Server 2022 must be configured to audit System - System Integrity failures.
         subcategory: System Integrity
         success: false
@@ -348,64 +380,124 @@
         expected: Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-278942
-        title: Windows Server 2022 must be configured to audit file system failures.
+      - stig_id: V-278934
+        title: Windows Server 2019 must be configured to audit Object Access - File System failures.
         subcategory: File System
         success: false
         failure: true
         expected: Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-278943
-        title: Windows Server 2022 must be configured to audit file system successes.
+      - stig_id: V-278935
+        title: Windows Server 2019 must be configured to audit Object Access - File System successes.
         subcategory: File System
         success: true
         failure: false
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-278944
-        title: Windows Server 2022 must be configured to audit handle manipulation failures.
+      - stig_id: V-278936
+        title: Windows Server 2019 must be configured to audit Object Access - Handle Manipulation failures.
         subcategory: Handle Manipulation
         success: false
         failure: true
         expected: Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-278945
-        title: Windows Server 2022 must be configured to audit handle manipulation successes.
+      - stig_id: V-278937
+        title: Windows Server 2019 must be configured to audit Object Access - Handle Manipulation successes.
         subcategory: Handle Manipulation
         success: true
         failure: false
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-278946
-        title: Windows Server 2022 must be configured to audit registry failures.
+      - stig_id: V-278938
+        title: Windows Server 2019 must be configured to audit Object Access - Registry failures.
         subcategory: Registry
         success: false
         failure: true
         expected: Failure
         severity: CAT II
         dc_only: false
-      - stig_id: V-278947
-        title: Windows Server 2022 must be configured to audit registry successes.
+      - stig_id: V-278939
+        title: Windows Server 2019 must be configured to audit Object Access - Registry successes.
         subcategory: Registry
         success: true
         failure: false
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-278948
-        title: Windows Server 2022 must be configured to audit sensitive privilege use successes.
+      # NEWLY ADDED AUDIT CONTROLS
+      - stig_id: V-205634
+        title: Windows Server 2019 must be configured to audit logon successes.
+        subcategory: Logon
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-205777
+        title: Windows Server 2019 must be configured to audit System - IPsec Driver successes.
+        subcategory: IPsec Driver
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-205778
+        title: Windows Server 2019 must be configured to audit System - IPsec Driver failures.
+        subcategory: IPsec Driver
+        success: false
+        failure: true
+        expected: Failure
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-205779
+        title: Windows Server 2019 must be configured to audit System - Other System Events successes.
+        subcategory: Other System Events
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-205832
+        title: Windows Server 2019 must be configured to audit Account Logon - Credential Validation successes.
+        subcategory: Credential Validation
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-205834
+        title: Windows Server 2019 must be configured to audit Logon/Logoff - Group Membership successes.
+        subcategory: Group Membership
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      - stig_id: V-205838
+        title: Windows Server 2019 must be configured to audit logoff successes.
+        subcategory: Logoff
+        success: true
+        failure: false
+        expected: Success
+        severity: CAT II
+        dc_only: false
+      # OBJECT ACCESS AUDITING (V-278934 through V-278939 are listed but I am re-verifying/adding any missed aspects)
+      # Looking at previous file content, V-278934 to V-278939 were at the end of the file.
+      # But based on the missing list, let's ensure V-278940 and V-278941 (Sensitive Privilege Use) are added as they were missing.
+      - stig_id: V-278940
+        title: Windows Server 2019 must be configured to audit sensitive privilege use successes.
         subcategory: Sensitive Privilege Use
         success: true
         failure: false
         expected: Success
         severity: CAT II
         dc_only: false
-      - stig_id: V-278949
-        title: Windows Server 2022 must be configured to audit sensitive privilege use failures.
+      - stig_id: V-278941
+        title: Windows Server 2019 must be configured to audit sensitive privilege use failures.
         subcategory: Sensitive Privilege Use
         success: false
         failure: true
@@ -576,10 +668,10 @@
 
 - name: STIG Audit Policies | AUDIT | Record all audit policy compliance results (consolidated)
   ansible.builtin.set_fact:
-    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [current_result] }}"
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [windows_manage_stig_current_result] }}"
   vars:
-    current_audit_value: "{{ windows_manage_stig_audit_current_all.result.audit_policies[audit_policy.subcategory] | default('No Auditing') }}"
-    current_result:
+    windows_manage_stig_current_audit_value: "{{ windows_manage_stig_audit_current_all.result.audit_policies[audit_policy.subcategory] | default('No Auditing') }}"
+    windows_manage_stig_current_result:
       stig_id: "{{ audit_policy.stig_id }}"
       title: "{{ audit_policy.title }}"
       subcategory: "{{ audit_policy.subcategory }}"
@@ -590,9 +682,9 @@
       dc_only: "{{ audit_policy.dc_only }}"
       rule_section: Audit Policies
       scored: true
-      current_value: "{{ current_audit_value }}"
+      current_value: "{{ windows_manage_stig_current_audit_value }}"
       expected_value: "{{ audit_policy.expected }}"
-      status: "{{ 'PASS' if (current_audit_value == audit_policy.expected) else 'FAIL' }}"
+      status: "{{ 'PASS' if ((windows_manage_stig_current_audit_value == audit_policy.expected) or (audit_policy.expected == 'Success' and windows_manage_stig_current_audit_value == 'Success and Failure') or (audit_policy.expected == 'Failure' and windows_manage_stig_current_audit_value == 'Success and Failure')) else 'FAIL' }}"
       changed: "{{ windows_manage_stig_audit_results.results[ansible_loop.index0].changed | default(false) }}"
       skip_reason: "{{ 'User configured skip' if audit_policy.stig_id in windows_manage_stig_skip_rules else ('Not applicable - Domain Controller only' if audit_policy.dc_only and ansible_facts.get('env_type', '') != 'domain_controller' else '') }}"
       check_mode: "{{ ansible_check_mode }}"
@@ -607,10 +699,10 @@
     - compliance
 
 # =============================================================================
-# V2R7 NEW RULE - AUDIT LOG BACKUP CHECK (V-254294)
+# V2R7 NEW RULE - AUDIT LOG BACKUP CHECK (V-205799)
 # =============================================================================
 
-- name: STIG V-254294 | AUDIT | Check for audit log forwarding or backup configuration
+- name: STIG V-205799 | AUDIT | Check for audit log forwarding or backup configuration
   ansible.windows.win_powershell:
     script: |
       $Ansible.Changed = $false
@@ -676,12 +768,12 @@
     - audit_policies
     - audit
 
-- name: STIG V-254294 | AUDIT | Record audit log backup compliance result
+- name: STIG V-205799 | AUDIT | Record audit log backup compliance result
   ansible.builtin.set_fact:
     windows_manage_stig_results: >-
       {{ windows_manage_stig_results | default([]) + [
         {
-          'stig_id': 'V-254294',
+          'stig_id': 'V-205799',
           'title': 'Audit records must be backed up to different system or media',
           'rule_section': 'Audit Policies',
           'severity': 'CAT II',
@@ -690,8 +782,8 @@
           'expected_value': 'Log forwarding or backup configured',
           'status': windows_manage_stig_audit_backup_check.output.status | default('UNKNOWN'),
           'changed': false,
-          'manual_remediation': false,
-          'remediation_notes': 'Configure Windows Event Forwarding or install/configure a log shipping agent (Splunk, Winlogbeat, etc.)',
+          'manual_remediation': true,
+          'remediation_notes': 'Manual configuration required - Configure Windows Event Forwarding or install/configure a log shipping agent (Splunk, Winlogbeat, etc.)',
           'check_mode': ansible_check_mode,
           'details': windows_manage_stig_audit_backup_check.output.methods | default([])
         }

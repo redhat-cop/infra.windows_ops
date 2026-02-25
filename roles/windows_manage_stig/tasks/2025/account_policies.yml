@@ -1,0 +1,199 @@
+---
+# =============================================================================
+# DISA STIG V-277985 through V-277993 - Account Policies
+# Password Policy and Account Lockout Policy Controls
+# Enterprise Implementation using native ansible.windows modules
+# =============================================================================
+
+# =============================================================================
+# STRUCTURED ACCOUNT POLICY CONFIGURATION - Data-driven approach
+# =============================================================================
+
+- name: STIG Account Policies | SETUP | Define account policy configuration matrix
+  ansible.builtin.set_fact:
+    windows_manage_stig_account_policies:
+      # Password Policy Controls
+      - stig_id: V-277985
+        title: Enforce password history
+        section: System Access
+        key: PasswordHistorySize
+        value: "{{ windows_manage_stig_password_history_size }}"
+        category: password_policies
+        severity: CAT II
+      - stig_id: V-277986
+        title: Set maximum password age
+        section: System Access
+        key: MaximumPasswordAge
+        value: "{{ windows_manage_stig_maximum_password_age }}"
+        category: password_policies
+        severity: CAT II
+      - stig_id: V-278038
+        title: Set minimum password age
+        section: System Access
+        key: MinimumPasswordAge
+        value: "{{ windows_manage_stig_minimum_password_age }}"
+        category: password_policies
+        severity: CAT II
+      - stig_id: V-277988
+        title: Set minimum password length
+        section: System Access
+        key: MinimumPasswordLength
+        value: "{{ windows_manage_stig_minimum_password_length }}"
+        category: password_policies
+        severity: CAT II
+      - stig_id: V-277990
+        title: Disable reversible encryption for passwords
+        section: System Access
+        key: ClearTextPassword
+        value: "{{ windows_manage_stig_password_reversible_encryption | int }}"
+        category: password_policies
+        severity: CAT II
+      # Account Lockout Policy Controls
+      - stig_id: V-277991
+        title: Set account lockout duration
+        section: System Access
+        key: LockoutDuration
+        value: "{{ windows_manage_stig_account_lockout_duration }}"
+        category: account_lockout
+        severity: CAT II
+      - stig_id: V-277992
+        title: Set account lockout threshold
+        section: System Access
+        key: LockoutBadCount
+        value: "{{ windows_manage_stig_account_lockout_threshold }}"
+        category: account_lockout
+        severity: CAT II
+      - stig_id: V-277993
+        title: Set reset account lockout counter
+        section: System Access
+        key: ResetLockoutCount
+        value: "{{ windows_manage_stig_reset_account_lockout_counter }}"
+        category: account_lockout
+        severity: CAT II
+      # V1R0-1 NEW RULES (V-277288 to V-277293)
+      - stig_id: V-278036
+        title: Password history must be configured to 24 passwords remembered
+        section: System Access
+        key: PasswordHistorySize
+        value: "24"
+        category: password_policies
+        severity: CAT II
+      - stig_id: V-278037
+        title: Maximum password age must be configured to 60 days or less
+        section: System Access
+        key: MaximumPasswordAge
+        value: "60"
+        category: password_policies
+        severity: CAT II
+      - stig_id: V-278039
+        title: Password complexity policy must be enabled
+        section: System Access
+        key: PasswordComplexity
+        value: "1"
+        category: password_policies
+        severity: CAT II
+      - stig_id: V-278040
+        title: Reversible password encryption must be disabled
+        section: System Access
+        key: ClearTextPassword
+        value: "0"
+        category: password_policies
+        severity: CAT I
+  tags:
+    - account_policies
+    - setup
+
+# =============================================================================
+# AUDIT-THEN-REMEDIATE PHASE - Following CIS role pattern
+# =============================================================================
+
+- name: STIG Account Policies | AUDIT | Get current account policy settings
+  community.windows.win_security_policy:
+    section: "{{ item.section }}"
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  register: windows_manage_stig_account_current
+  loop: "{{ windows_manage_stig_account_policies }}"
+  check_mode: true # Use check mode to get current values without changing
+  tags:
+    - account_policies
+    - audit
+
+- name: STIG Account Policies | SCORED | Configure account policies (modernized)
+  community.windows.win_security_policy:
+    section: "{{ item.section }}"
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  register: windows_manage_stig_account_results
+  loop: "{{ windows_manage_stig_account_policies }}"
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
+    - windows_manage_stig_account_current.results[ansible_loop.index0].value | string != item.value | string
+  loop_control:
+    extended: true
+  tags:
+    - account_policies
+    - scored
+    - remediation
+
+# =============================================================================
+# COMPLIANCE TRACKING - Structured results like CIS role
+# =============================================================================
+
+- name: STIG Account Policies | AUDIT | Record compliance results
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [windows_manage_stig_current_result] }}"
+  vars:
+    windows_manage_stig_current_account_value: "{{ windows_manage_stig_account_current.results[ansible_loop.index0].value | default('Not Configured') }}"
+    windows_manage_stig_current_result:
+      stig_id: "{{ account_policy.stig_id }}"
+      title: "{{ account_policy.title }}"
+      section: "{{ account_policy.section }}"
+      key: "{{ account_policy.key }}"
+      value: "{{ account_policy.value }}"
+      category: "{{ account_policy.category }}"
+      severity: "{{ account_policy.severity }}"
+      rule_section: Account Policies
+      scored: true
+      current_value: "{{ windows_manage_stig_current_account_value }}"
+      expected_value: "{{ account_policy.value }}"
+      status: "{{ 'PASS' if (windows_manage_stig_current_account_value | string == account_policy.value | string) else 'FAIL' }}"
+      changed: "{{ windows_manage_stig_account_results.results[ansible_loop.index0].changed | default(false) }}"
+      skip_reason: "{{ 'User configured skip' if account_policy.stig_id in windows_manage_stig_skip_rules else '' }}"
+      check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or account_policy.stig_id in windows_manage_stig_only_rules
+  loop: "{{ windows_manage_stig_account_policies }}"
+  loop_control:
+    loop_var: account_policy
+    extended: true
+  tags:
+    - account_policies
+    - compliance
+
+# =============================================================================
+# SECTION SUMMARY
+# =============================================================================
+
+- name: STIG Account Policies | Display configuration summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - STIG Account Policies Summary
+      - ==========================================
+      - >-
+        Password Policy Controls:
+        {{ (windows_manage_stig_account_policies |
+        selectattr('category', 'equalto', 'password_policies') | list | length) }} configured
+      - >-
+        Account Lockout Controls:
+        {{ (windows_manage_stig_account_policies |
+        selectattr('category', 'equalto', 'account_lockout') | list | length) }} configured
+      - ==========================================
+      - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
+      - ==========================================
+  when: not ansible_check_mode or true
+  tags:
+    - account_policies
+    - summary

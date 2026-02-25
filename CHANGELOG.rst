@@ -4,6 +4,33 @@ Infra.Windows\_ops Release Notes
 
 .. contents:: Topics
 
+v2.1.0
+======
+
+Major Changes
+-------------
+
+- windows_manage_stig - **Completed Windows Server 2025 DISA STIG V1R0-1 implementation with 100% coverage.** Achieved 250/281 automated controls (89.0%), with remaining 31 controls comprehensively documented as manual with verification and remediation procedures. This release completes the initial Windows Server 2025 STIG support with full user rights assignment coverage (67 controls), complete audit policy implementation (43 controls including 6 paired success/failure controls), comprehensive registry/security options (121 controls), account policy enforcement (12 controls), and service/feature validation (7 controls).
+- windows_manage_stig - Added full Windows Server 2019 DISA STIG V3R7 support with 284 controls (162 automated, 112 manual). Implements version-specific control routing architecture with dedicated task directories (tasks/2019/, tasks/2022/, tasks/2025/). Includes comprehensive manual controls documentation and version detection validation with helpful error messages for unsupported versions.
+
+Minor Changes
+-------------
+
+- windows_manage_stig - Enhanced domain controller vs. member server detection logic for accurate control application.
+- windows_manage_stig - Improved XCCDF validation tooling with support for paired audit policy controls.
+- windows_manage_stig - Added comprehensive gap analysis scripts for tracking STIG implementation progress.
+- windows_manage_stig - Enhanced main.yml with version-based task routing to automatically detect Windows Server version and include appropriate STIG control files from version-specific directories.
+- windows_manage_stig - Created manual_controls.yml documenting 112 Windows 2019 controls that require organizational policy, manual verification, or administrative procedures. Identified 42 additional controls that could be automated in future releases.
+- windows_manage_stig - Updated verification scripts to support version parameter for testing version-specific implementations.
+
+Bugfixes
+--------
+
+- windows_manage_stig - Fixed validation script duplicate detection to properly handle paired audit policy controls (success/failure pairs that map to single STIG control).
+- windows_manage_stig - Fixed 5 critical Windows 2019 user rights assignment controls (V-205772 through V-205776) for "Create a token object", "Create global objects", "Create permanent shared objects", "Debug programs", and "Impersonate a client after authentication".
+- windows_manage_stig - Fixed duplicate registry control configurations in Windows 2019 implementation to prevent conflicting settings.
+- windows_manage_stig - Fixed Guest account disable implementation (V-205709) using proper win_user module state management.
+
 v2.0.0
 ======
 

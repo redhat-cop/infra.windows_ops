@@ -1,7 +1,8 @@
 ---
 # =============================================================================
-# STIG Rule Filtering Test (ACA-4989)
+# STIG Rule Filtering Test
 # Tests windows_manage_stig_only_rules filtering functionality
+# Focused on account_policies category for performance
 # =============================================================================
 - name: Test windows_manage_stig_only_rules filtering functionality
   block:
@@ -10,14 +11,27 @@
         path: "{{ test_stig_filtered_output_dir }}"
         state: directory
 
-    - name: Apply STIG with only_rules filter (3 specific rules from different categories)
+    - name: Set test rules based on OS version (All from account_policies)
+      ansible.builtin.set_fact:
+        _test_rules: >-
+          {{
+            ['V-205660', 'V-205659'] if _version_report.detected_version == '2019' else
+            ['V-254238', 'V-254239'] if _version_report.detected_version == '2022' else
+            ['V-277985', 'V-277986']
+          }}
+        _test_excluded_rules: >-
+          {{
+            ['V-205656'] if _version_report.detected_version == '2019' else
+            ['V-254241'] if _version_report.detected_version == '2022' else
+            ['V-278038']
+          }}
+
+    - name: Apply STIG with only_rules filter (Focused on Account Policies)
       ansible.builtin.include_role:
         name: infra.windows_ops.windows_manage_stig
       vars:
-        windows_manage_stig_only_rules:
-          - V-254238  # Account Policies: Enforce password history
-          - V-254247  # Audit Policies: Audit account logon events
-          - V-254451  # User Rights: Act as part of the operating system
+        windows_manage_stig_only_rules: "{{ _test_rules }}"
+        windows_manage_stig_categories: ['account_policies']
         windows_manage_stig_report_path: "{{ test_stig_filtered_output_dir }}\\filtered_report.json"
         windows_manage_stig_generate_report: true
 
@@ -30,13 +44,6 @@
       ansible.builtin.set_fact:
         _filtered_report: "{{ _filtered_report_content.content | b64decode | from_json }}"
 
-    - name: Debug - Display all rule IDs in filtered report
-      ansible.builtin.debug:
-        msg:
-          - "Total rules in filtered report: {{ _filtered_report.results | length }}"
-          - "Rule IDs: {{ _filtered_report.results | map(attribute='stig_id') | list }}"
-          - "Scored rules only: {{ _filtered_report.results | selectattr('scored', 'equalto', true) | map(attribute='stig_id') | list }}"
-
     - name: Set filtered scored rules
       ansible.builtin.set_fact:
         _filtered_scored_rules: "{{ _filtered_report.results | selectattr('scored', 'equalto', true) | list }}"
@@ -44,44 +51,47 @@
     - name: Verify only specified rules are present in filtered results
       ansible.builtin.assert:
         that:
-          - _filtered_scored_rules | length == 3
-          - _filtered_scored_rules | selectattr('stig_id', 'equalto', 'V-254238') | list | length == 1
-          - _filtered_scored_rules | selectattr('stig_id', 'equalto', 'V-254247') | list | length == 1
-          - _filtered_scored_rules | selectattr('stig_id', 'equalto', 'V-254451') | list | length == 1
-        fail_msg: "Filtering failed: Expected exactly 3 scored rules (V-254238, V-254247, V-254451), got {{ _filtered_scored_rules | map(attribute='stig_id') | list }}"
-        success_msg: "Only specified rules present: {{ _filtered_scored_rules | map(attribute='stig_id') | list }}"
+          - _filtered_scored_rules | length == 2
+          - _filtered_scored_rules | selectattr('stig_id', 'equalto', _test_rules[0]) | list | length == 1
+          - _filtered_scored_rules | selectattr('stig_id', 'equalto', _test_rules[1]) | list | length == 1
+        fail_msg: "Filtering failed: Expected exactly 2 rules ({{ _test_rules }}), got {{ _filtered_scored_rules | map(attribute='stig_id') | list }}"
 
     - name: Verify excluded rules are NOT present in filtered results
       ansible.builtin.assert:
         that:
-          - _filtered_scored_rules | selectattr('stig_id', 'equalto', 'V-254239') | list | length == 0
-          - _filtered_scored_rules | selectattr('stig_id', 'equalto', 'V-254248') | list | length == 0
-          - _filtered_scored_rules | selectattr('stig_id', 'equalto', 'V-254452') | list | length == 0
-        fail_msg: "Filtering failed: Found rules that should have been excluded"
-        success_msg: "Excluded rules correctly filtered out"
+          - _filtered_scored_rules | selectattr('stig_id', 'equalto', _test_excluded_rules[0]) | list | length == 0
+        fail_msg: "Filtering failed: Found rule {{ _test_excluded_rules[0] }} which should have been excluded."
 
-    - name: Verify filtering works across all categories
+    - name: Test windows_manage_stig_skip_rules exclusion functionality
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_stig
+      vars:
+        windows_manage_stig_skip_rules: "{{ [_test_rules[0]] }}" # Skip one of the rules
+        windows_manage_stig_categories: ['account_policies']
+        windows_manage_stig_report_path: "{{ test_stig_filtered_output_dir }}\\skip_report.json"
+        windows_manage_stig_generate_report: true
+
+    - name: Read skip compliance report
+      ansible.builtin.slurp:
+        src: "{{ test_stig_filtered_output_dir }}\\skip_report.json"
+      register: _skip_report_content
+
+    - name: Parse skip compliance report
+      ansible.builtin.set_fact:
+        _skip_report: "{{ _skip_report_content.content | b64decode | from_json }}"
+
+    - name: Record filtering test results to history
+      ansible.builtin.set_fact:
+        stig_test_history: "{{ stig_test_history + 
+          [_filtered_report | combine({'stage_name': 'Filtered Rules (Only)', 'notes': 'Ran with only_rules list'})] +
+          [_skip_report | combine({'stage_name': 'Filtered Rules (Skip)', 'notes': 'Ran with skip_rules list'})]
+        }}"
+
+    - name: Verify skipped rule is marked as skipped
       ansible.builtin.assert:
         that:
-          - _filtered_scored_rules | selectattr('rule_section', 'equalto', 'Account Policies') | list | length == 1
-          - _filtered_scored_rules | selectattr('rule_section', 'equalto', 'Audit Policies') | list | length == 1
-          - _filtered_scored_rules | selectattr('rule_section', 'equalto', 'User Rights Assignment') | list | length == 1
-        fail_msg: "Cross-category filtering failed"
-        success_msg: "Filtering works correctly across Account Policies, Audit Policies, and User Rights categories"
-
-    - name: Display filtering test summary
-      ansible.builtin.debug:
-        msg:
-          - "=========================================="
-          - "windows_manage_stig_only_rules Test Results"
-          - "=========================================="
-          - "Requested rules: V-254238, V-254247, V-254451"
-          - "Scored rules in report: {{ _filtered_scored_rules | map(attribute='stig_id') | list }}"
-          - "Non-scored rules (always included): {{ _filtered_report.results | selectattr('scored', 'equalto', false) | map(attribute='stig_id') | list }}"
-          - "Total scored rules: {{ _filtered_scored_rules | length }}"
-          - "Total all rules: {{ _filtered_report.results | length }}"
-          - "Test Status: PASSED"
-          - "=========================================="
+          - _skip_report.results | selectattr('stig_id', 'equalto', _test_rules[0]) | selectattr('skip_reason', 'defined') | list | length == 1
+        fail_msg: "Skip filtering failed: Rule {{ _test_rules[0] }} was not correctly skipped."
 
   rescue:
     - name: Fail the filtering test

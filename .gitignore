@@ -8,3 +8,4 @@ inventory.winrm.tpl
 
 # Design documents and planning
 docs/plans/
+STIG_CONTROLS_*.md

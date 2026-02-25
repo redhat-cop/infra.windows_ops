@@ -1,0 +1,75 @@
+---
+# =============================================================================
+# Advanced Features Verification
+# Explicitly verifies the outcome of critical security features beyond just flags
+# =============================================================================
+- name: Verify Advanced Security Features
+  block:
+    - name: Gather system facts
+      ansible.builtin.setup:
+
+    - name: Verify DNS-over-HTTPS (DoH) Status (2022/2025)
+      when: _version_report.detected_version in ['2022', '2025']
+      block:
+        - name: Check DoH Registry Key
+          ansible.windows.win_reg_stat:
+            path: HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters
+            name: EnableDnsOverHttps
+          register: _doh_check
+
+        - name: Assert DoH is Enabled (Value 2)
+          ansible.builtin.assert:
+            that:
+              - _doh_check.exists
+              - _doh_check.value == 2
+            fail_msg: "DoH is not enabled (Expected 2, got {{ _doh_check.value | default('missing') }})"
+            success_msg: "DoH is correctly enabled (Auto-upgrade)"
+
+    - name: Verify SMB over QUIC (2025/2022 Azure Edition)
+      when: _version_report.detected_version == '2025' or (_version_report.detected_version == '2022' and 'Azure' in _version_info.ProductName)
+      block:
+        - name: Check SMB over QUIC Configuration
+          ansible.windows.win_shell: Get-SmbServerConfiguration | Select-Object -ExpandProperty EnableSMBQUIC
+          register: _smb_quic_check
+          changed_when: false
+
+        - name: Assert SMB over QUIC is Enabled
+          ansible.builtin.assert:
+            that:
+              - _smb_quic_check.stdout | trim | bool
+            fail_msg: "SMB over QUIC should be enabled on supported platforms"
+            success_msg: "SMB over QUIC is enabled"
+
+    - name: Verify TLS 1.3 Status (2022/2025)
+      when: _version_report.detected_version in ['2022', '2025']
+      block:
+        - name: Check TLS 1.3 Registry Key (Client)
+          ansible.windows.win_reg_stat:
+            path: HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Client
+            name: Enabled
+          register: _tls13_client
+
+        - name: Check TLS 1.3 Registry Key (Server)
+          ansible.windows.win_reg_stat:
+            path: HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Server
+            name: Enabled
+          register: _tls13_server
+
+        - name: Assert TLS 1.3 is Enabled
+          ansible.builtin.assert:
+            that:
+              - (not _tls13_client.exists) or (_tls13_client.value == 1)
+              - (not _tls13_server.exists) or (_tls13_server.value == 1)
+            fail_msg: "TLS 1.3 is explicitly disabled in the registry"
+            success_msg: "TLS 1.3 is correctly enabled (default or explicit)"
+
+    - name: Verify Hotpatching Status (2025)
+      when: _version_report.detected_version == '2025'
+      block:
+        # Note: Hotpatching requires Azure Arc, so we verify the role *checked* it, not necessarily enforced it if offline.
+        - name: Verify Hotpatching Rule in Report
+          ansible.builtin.assert:
+            that:
+              - _stig_report.results | selectattr('stig_id', 'equalto', 'V-2025-HOTPATCH') | list | length > 0
+            fail_msg: "Hotpatching control not found in report"
+            success_msg: "Hotpatching control verification present"

@@ -1,0 +1,232 @@
+---
+# =============================================================================
+# DISA STIG V-205xxx - Account Policies (7 controls)
+# Password Policy, Account Lockout, and Guest Account Controls
+# Windows Server 2019 V3R7
+# Enterprise Implementation using native ansible.windows modules
+# =============================================================================
+
+# =============================================================================
+# STRUCTURED ACCOUNT POLICY CONFIGURATION - Data-driven approach
+# =============================================================================
+
+- name: STIG Account Policies | SETUP | Define account policy configuration matrix
+  ansible.builtin.set_fact:
+    windows_manage_stig_account_policies:
+      # Password Policy Controls
+      - stig_id: V-205660
+        title: Password history must be configured to 24 passwords remembered
+        section: System Access
+        key: PasswordHistorySize
+        value: "{{ windows_manage_stig_password_history_size }}"
+        category: password_policies
+        severity: CAT II
+      - stig_id: V-205659
+        title: Maximum password age must be configured to 60 days or less
+        section: System Access
+        key: MaximumPasswordAge
+        value: "{{ windows_manage_stig_maximum_password_age }}"
+        category: password_policies
+        severity: CAT II
+      - stig_id: V-205656
+        title: Minimum password age must be configured to at least one day
+        section: System Access
+        key: MinimumPasswordAge
+        value: "{{ windows_manage_stig_minimum_password_age }}"
+        category: password_policies
+        severity: CAT II
+      - stig_id: V-205662
+        title: Minimum password length must be configured to 14 characters
+        section: System Access
+        key: MinimumPasswordLength
+        value: "{{ windows_manage_stig_minimum_password_length }}"
+        category: password_policies
+        severity: CAT II
+      - stig_id: V-205652
+        title: Password complexity policy must be enabled
+        section: System Access
+        key: PasswordComplexity
+        value: "{{ windows_manage_stig_password_complexity_enabled | int }}"
+        category: password_policies
+        severity: CAT II
+      - stig_id: V-205653
+        title: Reversible password encryption must be disabled
+        section: System Access
+        key: ClearTextPassword
+        value: "{{ windows_manage_stig_password_reversible_encryption | int }}"
+        category: password_policies
+        severity: CAT II
+      # Account Lockout Policy Controls
+      - stig_id: V-205795
+        title: Account lockout duration must be configured to 15 minutes or greater
+        section: System Access
+        key: LockoutDuration
+        value: "{{ windows_manage_stig_account_lockout_duration }}"
+        category: account_lockout
+        severity: CAT II
+      - stig_id: V-205629
+        title: Number of allowed bad logon attempts must be configured to 3 or less
+        section: System Access
+        key: LockoutBadCount
+        value: "{{ windows_manage_stig_account_lockout_threshold }}"
+        category: account_lockout
+        severity: CAT II
+      - stig_id: V-205630
+        title: Period of time before the bad logon counter is reset must be configured to 15 minutes or greater
+        section: System Access
+        key: ResetLockoutCount
+        value: "{{ windows_manage_stig_reset_account_lockout_counter }}"
+        category: account_lockout
+        severity: CAT II
+  tags:
+    - account_policies
+    - setup
+
+# =============================================================================
+# AUDIT-THEN-REMEDIATE PHASE - Following CIS role pattern
+# =============================================================================
+
+- name: STIG Account Policies | AUDIT | Get current account policy settings
+  community.windows.win_security_policy:
+    section: "{{ item.section }}"
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  register: windows_manage_stig_account_current
+  loop: "{{ windows_manage_stig_account_policies }}"
+  check_mode: true # Use check mode to get current values without changing
+  tags:
+    - account_policies
+    - audit
+
+- name: STIG Account Policies | SCORED | Configure account policies (modernized)
+  community.windows.win_security_policy:
+    section: "{{ item.section }}"
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  register: windows_manage_stig_account_results
+  loop: "{{ windows_manage_stig_account_policies }}"
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
+    - windows_manage_stig_account_current.results[ansible_loop.index0].value | string != item.value | string
+  loop_control:
+    extended: true
+  tags:
+    - account_policies
+    - scored
+    - remediation
+
+# =============================================================================
+# COMPLIANCE TRACKING - Structured results like CIS role
+# =============================================================================
+
+- name: STIG Account Policies | AUDIT | Record compliance results
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: "{{ windows_manage_stig_results | default([]) + [windows_manage_stig_current_result] }}"
+  vars:
+    windows_manage_stig_current_account_value: "{{ windows_manage_stig_account_current.results[ansible_loop.index0].value | default('Not Configured') }}"
+    windows_manage_stig_current_result:
+      stig_id: "{{ account_policy.stig_id }}"
+      title: "{{ account_policy.title }}"
+      section: "{{ account_policy.section }}"
+      key: "{{ account_policy.key }}"
+      value: "{{ account_policy.value }}"
+      category: "{{ account_policy.category }}"
+      severity: "{{ account_policy.severity }}"
+      rule_section: Account Policies
+      scored: true
+      current_value: "{{ windows_manage_stig_current_account_value }}"
+      expected_value: "{{ account_policy.value }}"
+      status: "{{ 'PASS' if (windows_manage_stig_current_account_value | string == account_policy.value | string) else 'FAIL' }}"
+      changed: "{{ windows_manage_stig_account_results.results[ansible_loop.index0].changed | default(false) }}"
+      skip_reason: "{{ 'User configured skip' if account_policy.stig_id in windows_manage_stig_skip_rules else '' }}"
+      check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or account_policy.stig_id in windows_manage_stig_only_rules
+  loop: "{{ windows_manage_stig_account_policies }}"
+  loop_control:
+    loop_var: account_policy
+    extended: true
+  tags:
+    - account_policies
+    - compliance
+
+# =============================================================================
+# SECTION SUMMARY
+# =============================================================================
+
+# =============================================================================
+# GUEST ACCOUNT CONTROL - V-205709
+# =============================================================================
+
+- name: STIG Account Policies | V-205709 | Get Guest account status
+  ansible.windows.win_shell: |
+    $guest = Get-LocalUser -Name "Guest" -ErrorAction SilentlyContinue
+    if ($guest) {
+      $guest.Enabled
+    } else {
+      "NotFound"
+    }
+  register: windows_manage_stig_guest_status
+  changed_when: false
+  check_mode: false
+  tags:
+    - account_policies
+    - V-205709
+
+- name: STIG Account Policies | V-205709 | Disable built-in Guest account
+  ansible.windows.win_user:
+    name: Guest
+    account_disabled: true
+  register: windows_manage_stig_guest_disabled
+  when:
+    - windows_manage_stig_guest_status.stdout | trim == "True"
+    - "'V-205709' not in windows_manage_stig_skip_rules"
+    - windows_manage_stig_only_rules | length == 0 or 'V-205709' in windows_manage_stig_only_rules
+  tags:
+    - account_policies
+    - V-205709
+
+- name: STIG Account Policies | V-205709 | Record compliance result
+  ansible.builtin.set_fact:
+    windows_manage_stig_results: "{{ windows_manage_stig_results + [windows_manage_stig_guest_control] }}"
+  vars:
+    windows_manage_stig_guest_control:
+      stig_id: V-205709
+      title: Windows Server 2019 must have the built-in guest account disabled
+      severity: CAT I
+      rule_section: Account Policies
+      scored: true
+      current_value: "{{ 'Enabled' if (windows_manage_stig_guest_status.stdout | trim == 'True') else 'Disabled' }}"
+      expected_value: Disabled
+      status: "{{ 'PASS' if (windows_manage_stig_guest_status.stdout | trim == 'False') else 'FAIL' }}"
+      changed: "{{ windows_manage_stig_guest_disabled.changed | default(false) }}"
+      check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-205709' in windows_manage_stig_only_rules
+  tags:
+    - account_policies
+    - V-205709
+
+- name: STIG Account Policies | Display configuration summary
+  ansible.builtin.debug:
+    msg:
+      - ==========================================
+      - STIG Account Policies Summary
+      - ==========================================
+      - >-
+        Password Policy Controls:
+        {{ (windows_manage_stig_account_policies |
+        selectattr('category', 'equalto', 'password_policies') | list | length) }} configured
+      - >-
+        Account Lockout Controls:
+        {{ (windows_manage_stig_account_policies |
+        selectattr('category', 'equalto', 'account_lockout') | list | length) }} configured
+      - "Guest Account Control: V-205709 configured"
+      - ==========================================
+      - "Execution Mode: {{ 'CHECK MODE (No Changes Applied)' if ansible_check_mode else 'APPLY MODE (Changes Applied)' }}"
+      - ==========================================
+  when: not ansible_check_mode or true
+  tags:
+    - account_policies
+    - summary
