@@ -396,7 +396,7 @@
   ansible.windows.win_service_info:
     name: "{{ item.name }}"
   register: windows_manage_stig_services_current
-  loop: "{{ all_services }}"
+  loop: "{{ windows_manage_stig_all_services }}"
   check_mode: false
   failed_when: false # Some services may not exist on all systems
   vars:

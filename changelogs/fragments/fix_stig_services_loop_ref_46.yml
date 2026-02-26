@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - windows_manage_stig - Fixed a bug in Windows Server 2022 STIG tasks where the system services audit loop referenced an incorrect variable name, causing task failure.
