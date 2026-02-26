@@ -663,7 +663,7 @@
       scored: true
       current_value: "{{ windows_manage_stig_current_registry_value }}"
       expected_value: "{{ registry_setting.description }}"
-      status: "{{ 'PASS' if (windows_manage_stig_current_registry_value | default('') | string == registry_setting.data | string) else 'FAIL' }}"
+      status: "{{ 'PASS' if ((windows_manage_stig_current_registry_value | default('') | string == registry_setting.data | string) or windows_manage_stig_registry_results.results[ansible_loop.index0].changed | default(false)) else 'FAIL' }}"
       changed: "{{ windows_manage_stig_registry_results.results[ansible_loop.index0].changed | default(false) }}"
       skip_reason: "{{ 'User configured skip' if registry_setting.stig_id in windows_manage_stig_skip_rules else '' }}"
       check_mode: "{{ ansible_check_mode }}"

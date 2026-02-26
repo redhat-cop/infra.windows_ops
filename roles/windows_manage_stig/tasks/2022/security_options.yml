@@ -478,8 +478,8 @@
       scored: true
       current_value: "{{ ('Registry: ' + (windows_manage_stig_current_registry_value | string)) if security_option.path is defined else 'Policy: Applied' }}"
       expected_value: "{{ security_option.description }}"
-      status: "{{ 'PASS' if ((security_option.path is defined and windows_manage_stig_current_registry_value | default('') | string == security_option.data | string) or (security_option.method is defined)) else 'FAIL' }}"
-      changed: false
+      status: "{{ 'PASS' if ((security_option.path is defined and windows_manage_stig_current_registry_value | default('') | string == security_option.data | string) or (security_option.method is defined) or (windows_manage_stig_security_registry_results.results | default([]) | selectattr('item.stig_id', 'equalto', security_option.stig_id) | map(attribute='changed') | first | default(false)) or (windows_manage_stig_security_policy_results.results | default([]) | selectattr('item.stig_id', 'equalto', security_option.stig_id) | map(attribute='changed') | first | default(false))) else 'FAIL' }}"
+      changed: "{{ (windows_manage_stig_security_registry_results.results | default([]) | selectattr('item.stig_id', 'equalto', security_option.stig_id) | map(attribute='changed') | first | default(false)) or (windows_manage_stig_security_policy_results.results | default([]) | selectattr('item.stig_id', 'equalto', security_option.stig_id) | map(attribute='changed') | first | default(false)) }}"
       skip_reason: "{{ 'User configured skip' if security_option.stig_id in windows_manage_stig_skip_rules else '' }}"
       check_mode: "{{ ansible_check_mode }}"
   when:

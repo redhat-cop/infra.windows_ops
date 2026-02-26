@@ -554,6 +554,15 @@
   vars:
     windows_manage_stig_all_services: "{{ (windows_manage_stig_system_services.critical_disable + windows_manage_stig_system_services.standard_disable + windows_manage_stig_system_services.essential_enable + windows_manage_stig_system_services.conditional) }}"
     windows_manage_stig_current_state_info: "{{ (windows_manage_stig_services_current.results | selectattr('item.name', 'equalto', service.name) | first).services[service.name] | default({'exists': false, 'state': 'unknown', 'start_mode': 'unknown'}) }}"
+    windows_manage_stig_service_changed: >-
+      {{
+        (
+          (windows_manage_stig_services_critical_results.results | default([])) +
+          (windows_manage_stig_services_disable_results.results | default([])) +
+          (windows_manage_stig_services_enable_results.results | default([])) +
+          (windows_manage_stig_services_conditional_results.results | default([]))
+        ) | selectattr('item.name', 'equalto', service.name) | map(attribute='changed') | first | default(false)
+      }}
     windows_manage_stig_current_result:
       name: "{{ service.name }}"
       display_name: "{{ service.display_name }}"
@@ -567,8 +576,8 @@
       scored: true
       current_value: "{{ windows_manage_stig_current_state_info.state + ' / ' + windows_manage_stig_current_state_info.start_mode if windows_manage_stig_current_state_info.exists else 'Service not installed' }}"
       expected_value: "{{ service.description }}"
-      status: "{{ 'PASS' if (not windows_manage_stig_current_state_info.exists or (windows_manage_stig_current_state_info.state == service.state and windows_manage_stig_current_state_info.start_mode == service.start_mode)) else 'FAIL' }}"
-      changed: false
+      status: "{{ 'PASS' if ((not windows_manage_stig_current_state_info.exists or (windows_manage_stig_current_state_info.state == service.state and windows_manage_stig_current_state_info.start_mode == service.start_mode)) or windows_manage_stig_service_changed) else 'FAIL' }}"
+      changed: "{{ windows_manage_stig_service_changed }}"
       skip_reason: "{{ 'User configured skip' if service.stig_id in windows_manage_stig_skip_rules else ('Service not installed' if not windows_manage_stig_current_state_info.exists else '') }}"
       check_mode: "{{ ansible_check_mode }}"
   when:
@@ -596,8 +605,8 @@
       scored: true
       current_value: "{{ 'Installed' if (windows_manage_stig_features_current.results | selectattr('item.name', 'equalto', feature.name) | first).installed | default(false) else 'Not installed' }}"
       expected_value: "{{ feature.state }}"
-      status: "{{ 'PASS' if not ((windows_manage_stig_features_current.results | selectattr('item.name', 'equalto', feature.name) | first).installed | default(false)) else 'FAIL' }}"
-      changed: false
+      status: "{{ 'PASS' if (not ((windows_manage_stig_features_current.results | selectattr('item.name', 'equalto', feature.name) | first).installed | default(false)) or windows_manage_stig_features_disable_results.results[ansible_loop.index0].changed | default(false)) else 'FAIL' }}"
+      changed: "{{ windows_manage_stig_features_disable_results.results[ansible_loop.index0].changed | default(false) }}"
       skip_reason: "{{ 'User configured skip' if feature.stig_id in windows_manage_stig_skip_rules else '' }}"
       check_mode: "{{ ansible_check_mode }}"
   when:

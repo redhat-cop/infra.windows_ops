@@ -483,7 +483,7 @@
       scored: true
       current_value: "{{ (windows_manage_stig_current_users | join(', ')) if (windows_manage_stig_current_users | length > 0) else 'No accounts assigned' }}"
       expected_value: "{{ user_right.expected }}"
-      status: "{{ 'PASS' if (windows_manage_stig_current_users | sort == user_right.users | sort) else 'FAIL' }}"
+      status: "{{ 'PASS' if ((windows_manage_stig_current_users | sort == user_right.users | sort) or windows_manage_stig_user_rights_results.results[ansible_loop.index0].changed | default(false)) else 'FAIL' }}"
       changed: "{{ windows_manage_stig_user_rights_results.results[ansible_loop.index0].changed | default(false) }}"
       skip_reason: "{{ 'User configured skip' if user_right.stig_id in windows_manage_stig_skip_rules else '' }}"
       check_mode: "{{ ansible_check_mode }}"

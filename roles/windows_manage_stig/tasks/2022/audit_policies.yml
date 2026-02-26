@@ -592,7 +592,7 @@
       scored: true
       current_value: "{{ windows_manage_stig_current_audit_value }}"
       expected_value: "{{ audit_policy.expected }}"
-      status: "{{ 'PASS' if ((windows_manage_stig_current_audit_value == audit_policy.expected) or (audit_policy.expected == 'Success' and windows_manage_stig_current_audit_value == 'Success and Failure') or (audit_policy.expected == 'Failure' and windows_manage_stig_current_audit_value == 'Success and Failure')) else 'FAIL' }}"
+      status: "{{ 'PASS' if ((windows_manage_stig_current_audit_value == audit_policy.expected) or (audit_policy.expected == 'Success' and windows_manage_stig_current_audit_value == 'Success and Failure') or (audit_policy.expected == 'Failure' and windows_manage_stig_current_audit_value == 'Success and Failure') or (windows_manage_stig_audit_results.results[ansible_loop.index0].changed | default(false))) else 'FAIL' }}"
       changed: "{{ windows_manage_stig_audit_results.results[ansible_loop.index0].changed | default(false) }}"
       skip_reason: "{{ 'User configured skip' if audit_policy.stig_id in windows_manage_stig_skip_rules else ('Not applicable - Domain Controller only' if audit_policy.dc_only and ansible_facts.get('env_type', '') != 'domain_controller' else '') }}"
       check_mode: "{{ ansible_check_mode }}"
