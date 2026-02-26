@@ -312,7 +312,7 @@
     windows_manage_stig_results: >-
       {{ windows_manage_stig_results | default([]) + [
         {
-          'stig_id': 'V-254283',
+          'stig_id': (windows_manage_stig_detected_version == '2019') | ternary('V-205856', (windows_manage_stig_detected_version == '2022') | ternary('V-254283', 'V-278031')),
           'title': 'UEFI firmware mode (not Legacy BIOS)',
           'rule_section': 'System Validation',
           'severity': 'CAT II',
@@ -326,7 +326,7 @@
           'check_mode': ansible_check_mode
         },
         {
-          'stig_id': 'V-254284',
+          'stig_id': (windows_manage_stig_detected_version == '2019') | ternary('V-205857', (windows_manage_stig_detected_version == '2022') | ternary('V-254284', 'V-278032')),
           'title': 'Secure Boot enabled',
           'rule_section': 'System Validation',
           'severity': 'CAT II',
@@ -340,8 +340,11 @@
           'check_mode': ansible_check_mode
         }
       ] }}
+  vars:
+    _uefi_id: "{{ (windows_manage_stig_detected_version == '2019') | ternary('V-205856', (windows_manage_stig_detected_version == '2022') | ternary('V-254283', 'V-278031')) }}"
+    _secureboot_id: "{{ (windows_manage_stig_detected_version == '2019') | ternary('V-205857', (windows_manage_stig_detected_version == '2022') | ternary('V-254284', 'V-278032')) }}"
   when:
-    - windows_manage_stig_only_rules | length == 0 or 'V-254283' in windows_manage_stig_only_rules or 'V-254284' in windows_manage_stig_only_rules
+    - windows_manage_stig_only_rules | length == 0 or _uefi_id in windows_manage_stig_only_rules or _secureboot_id in windows_manage_stig_only_rules
 
 - name: STIG | VALIDATE | Set system validation facts for DISA STIG compliance
   ansible.builtin.set_fact:

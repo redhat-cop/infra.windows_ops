@@ -71,8 +71,6 @@
     - { stig_id: 'V-277982', title: 'Must install security updates per authoritative source' }
     - { stig_id: 'V-277984', title: 'Must synchronize system clocks with approved source' }
     - { stig_id: 'V-278027', title: 'FTP servers must prevent anonymous logons' }
-    - { stig_id: 'V-278031', title: 'Systems must have UEFI firmware and run in UEFI mode' }
-    - { stig_id: 'V-278032', title: 'Systems must have Secure Boot enabled' }
     - { stig_id: 'V-278161', title: 'User accounts must be required to have a valid PKI certificate' }
     - { stig_id: 'V-278192', title: 'DOD Root CA certificates must be in Trusted Root Store' }
     - { stig_id: 'V-278193', title: 'DOD Interoperability Root CA cross-certificates must be in Untrusted Store' }
