@@ -1,0 +1,4 @@
+---
+bugfixes:
+  - windows_manage_stig - Fixed role failure in check mode by ensuring all informational audit tasks run even when check mode is enabled.
+  - windows_manage_cis - Fixed role failure in check mode by ensuring all informational audit tasks run even when check mode is enabled.

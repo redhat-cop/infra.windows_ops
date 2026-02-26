@@ -283,6 +283,7 @@
         @{ 'status' = 'UNKNOWN'; 'mode' = 'Unable to determine'; 'compliant' = $false; 'error' = $_.Exception.Message }
       }
   register: windows_manage_stig_uefi_check
+  check_mode: false
   changed_when: false
   failed_when: false
 
@@ -302,6 +303,7 @@
         @{ 'status' = 'FAIL'; 'enabled' = $false; 'compliant' = $false; 'error' = 'Secure Boot not supported or Legacy BIOS mode' }
       }
   register: windows_manage_stig_secureboot_check
+  check_mode: false
   changed_when: false
   failed_when: false
 

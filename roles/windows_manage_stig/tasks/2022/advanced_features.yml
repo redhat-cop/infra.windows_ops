@@ -91,6 +91,7 @@
         } | ConvertTo-Json
       }
   register: windows_manage_stig_smb_quic_status
+  check_mode: false
   changed_when: false
 
 - name: STIG 2022+ | SMB over QUIC | Parse status
@@ -157,6 +158,7 @@
         } | ConvertTo-Json
       }
   register: windows_manage_stig_tls13_status
+  check_mode: false
   changed_when: false
   tags:
     - tls_configuration

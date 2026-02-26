@@ -78,6 +78,7 @@
         } | ConvertTo-Json
       }
   register: windows_manage_cis_tls13_status
+  check_mode: false
   changed_when: false
   tags:
     - tls_configuration

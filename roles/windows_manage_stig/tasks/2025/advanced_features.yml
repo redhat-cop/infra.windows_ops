@@ -91,6 +91,7 @@
         } | ConvertTo-Json
       }
   register: windows_manage_stig_smb_quic_status
+  check_mode: false
   changed_when: false
 
 - name: STIG 2022+ | SMB over QUIC | Parse status
@@ -157,6 +158,7 @@
         } | ConvertTo-Json
       }
   register: windows_manage_stig_tls13_status
+  check_mode: false
   changed_when: false
   tags:
     - tls_configuration
@@ -236,6 +238,7 @@
         } | ConvertTo-Json
       }
   register: windows_manage_stig_hotpatch_arc_status
+  check_mode: false
   changed_when: false
   tags:
     - hotpatching
@@ -316,6 +319,7 @@
         } | ConvertTo-Json
       }
   register: windows_manage_stig_credguard_status
+  check_mode: false
   changed_when: false
   tags:
     - credential_guard
@@ -432,6 +436,7 @@
         } | ConvertTo-Json
       }
   register: windows_manage_stig_ad_32k_status
+  check_mode: false
   changed_when: false
   tags:
     - ad_32k_pages
