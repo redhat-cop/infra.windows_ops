@@ -47,6 +47,9 @@
       manual_remediation: true
       remediation_notes: "Refer to DISA STIG V3R7 documentation for specific verification steps."
       check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
+    - item.stig_id not in windows_manage_stig_skip_rules
   loop:
     - { stig_id: 'V-205624', title: 'Temporary user accounts must be disabled after 72 hours' }
     - { stig_id: 'V-205640', title: 'Application event log permissions must prevent non-privileged access' }

@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - windows_manage_stig - Fixed issue where manual controls were being displayed even when `windows_manage_stig_only_rules` was set to exclude them. Now manual controls respect both `only_rules` and `skip_rules` filters.

@@ -47,6 +47,9 @@
       manual_remediation: true
       remediation_notes: "Refer to Windows Server 2025 STIG documentation for specific verification steps."
       check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
+    - item.stig_id not in windows_manage_stig_skip_rules
   loop:
     - { stig_id: 'V-278148', title: 'AD Group Policy Objects must have proper audit settings' }
     - { stig_id: 'V-278149', title: 'AD Domain object must have proper audit settings' }
