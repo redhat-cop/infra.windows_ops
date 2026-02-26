@@ -9,6 +9,8 @@
 # =============================================================================
 
 - name: STIG 2022+ | DNS-over-HTTPS | Check current configuration
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-DNS-HTTPS' in windows_manage_stig_only_rules
   ansible.windows.win_reg_stat:
     path: HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters
     name: EnableDnsOverHttps
@@ -66,7 +68,9 @@
     - version_2022_plus
 
 - name: STIG 2022+ | SMB over QUIC | Check current configuration
-  when: windows_manage_stig_smb_quic_required
+  when: 
+    - windows_manage_stig_smb_quic_required
+    - windows_manage_stig_only_rules | length == 0 or 'V-SMB-QUIC' in windows_manage_stig_only_rules
   ansible.windows.win_powershell:
     script: |
       try {
@@ -132,6 +136,8 @@
 # =============================================================================
 
 - name: STIG 2022+ | TLS 1.3 | Check current TLS configuration
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-TLS-13' in windows_manage_stig_only_rules
   ansible.windows.win_powershell:
     script: |
       try {

@@ -611,6 +611,8 @@
 # =============================================================================
 
 - name: STIG V-254294 | AUDIT | Check for audit log forwarding or backup configuration
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-254294' in windows_manage_stig_only_rules
   ansible.windows.win_powershell:
     script: |
       $Ansible.Changed = $false

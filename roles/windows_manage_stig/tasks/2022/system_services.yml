@@ -397,6 +397,9 @@
     name: "{{ item.name }}"
   register: windows_manage_stig_services_current
   loop: "{{ windows_manage_stig_all_services }}"
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
   check_mode: false
   failed_when: false # Some services may not exist on all systems
   vars:
@@ -417,6 +420,9 @@
     state: present
   register: windows_manage_stig_features_current
   loop: "{{ windows_manage_stig_system_services.features_disable }}"
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
   check_mode: true
   failed_when: false
   tags:

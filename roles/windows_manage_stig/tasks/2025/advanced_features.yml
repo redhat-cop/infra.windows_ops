@@ -9,6 +9,8 @@
 # =============================================================================
 
 - name: STIG 2022+ | DNS-over-HTTPS | Check current configuration
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-DNS-HTTPS' in windows_manage_stig_only_rules
   ansible.windows.win_reg_stat:
     path: HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters
     name: EnableDnsOverHttps
