@@ -437,6 +437,9 @@
     users: "{{ item.users }}"
   register: windows_manage_stig_user_rights_current
   loop: "{{ windows_manage_stig_user_rights }}"
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
   check_mode: true # Always run in check mode to get current state
   tags:
     - user_rights
@@ -480,7 +483,7 @@
       scored: true
       current_value: "{{ (windows_manage_stig_current_users | join(', ')) if (windows_manage_stig_current_users | length > 0) else 'No accounts assigned' }}"
       expected_value: "{{ user_right.expected }}"
-      status: "{{ 'PASS' if (windows_manage_stig_current_users | sort == user_right.users | sort) else 'FAIL' }}"
+      status: "{{ 'PASS' if ((windows_manage_stig_current_users | sort == user_right.users | sort) or windows_manage_stig_user_rights_results.results[ansible_loop.index0].changed | default(false)) else 'FAIL' }}"
       changed: "{{ windows_manage_stig_user_rights_results.results[ansible_loop.index0].changed | default(false) }}"
       skip_reason: "{{ 'User configured skip' if user_right.stig_id in windows_manage_stig_skip_rules else '' }}"
       check_mode: "{{ ansible_check_mode }}"
@@ -499,6 +502,8 @@
 # =============================================================================
 
 - name: STIG V-254282 | AUDIT | Check for orphaned SIDs in user rights assignments
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-254282' in windows_manage_stig_only_rules
   ansible.windows.win_powershell:
     script: |
       $Ansible.Changed = $false

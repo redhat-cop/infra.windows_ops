@@ -550,6 +550,10 @@
     users: "{{ item.users }}"
   register: windows_manage_stig_user_rights_current
   loop: "{{ windows_manage_stig_user_rights | selectattr('right', 'defined') | selectattr('right', 'ne', 'N/A') | list }}"
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
+    - "item.applies_to | default('all') == 'all' or (item.applies_to == 'domain_controller' and windows_manage_stig_is_domain_controller) or (item.applies_to == 'member_server' and not windows_manage_stig_is_domain_controller)"
   check_mode: true # Always run in check mode to get current state
   tags:
     - user_rights
@@ -614,6 +618,8 @@
 # =============================================================================
 
 - name: STIG V-278030 | AUDIT | Check for orphaned SIDs in user rights assignments
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-278030' in windows_manage_stig_only_rules
   ansible.windows.win_powershell:
     script: |
       $Ansible.Changed = $false

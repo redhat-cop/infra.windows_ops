@@ -330,6 +330,9 @@
     users: "{{ item.users }}"
   register: windows_manage_stig_user_rights_current
   loop: "{{ windows_manage_stig_user_rights }}"
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
   check_mode: true
   tags:
     - user_rights
@@ -392,6 +395,8 @@
 # =============================================================================
 
 - name: STIG V-205855 | AUDIT | Check for orphaned SIDs in user rights assignments
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-205855' in windows_manage_stig_only_rules
   ansible.windows.win_powershell:
     script: |
       $Ansible.Changed = $false

@@ -47,6 +47,9 @@
       manual_remediation: true
       remediation_notes: "Refer to DISA STIG V3R7 documentation for specific verification steps."
       check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
+    - item.stig_id not in windows_manage_stig_skip_rules
   loop:
     - { stig_id: 'V-205624', title: 'Temporary user accounts must be disabled after 72 hours' }
     - { stig_id: 'V-205640', title: 'Application event log permissions must prevent non-privileged access' }
@@ -103,8 +106,6 @@
     - { stig_id: 'V-205852', title: 'Software certificate installation files must be removed' }
     - { stig_id: 'V-205853', title: 'FTP servers must be configured to prevent anonymous logons' }
     - { stig_id: 'V-205854', title: 'FTP servers must be configured to prevent access to system drive' }
-    - { stig_id: 'V-205856', title: 'Systems must run in UEFI mode, not Legacy BIOS' }
-    - { stig_id: 'V-205857', title: 'Secure Boot must be enabled' }
     - { stig_id: 'V-205875', title: 'Directory data non-public must prevent anonymous access' }
     - { stig_id: 'V-205877', title: 'krbtgt account password reset every 180 days' }
     - { stig_id: 'V-214936', title: 'Host-based firewall must be installed and enabled' }

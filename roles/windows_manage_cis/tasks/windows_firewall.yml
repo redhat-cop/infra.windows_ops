@@ -88,6 +88,7 @@
     path: HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\DomainProfile
     name: DisableNotifications
   register: windows_manage_cis_9_1_4_current
+  check_mode: false
   tags:
     - cis_9.1.4
     - windows_firewall
@@ -127,6 +128,7 @@
     path: HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\DomainProfile\Logging
     name: LogFilePath
   register: windows_manage_cis_9_1_5_current
+  check_mode: false
   tags:
     - cis_9.1.5
     - windows_firewall

@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - windows_manage_stig - Fixed compliance scoring logic to correctly mark remediated controls as 'PASS' when changes are successfully applied, ensuring the final compliance score reflects the post-remediation state.

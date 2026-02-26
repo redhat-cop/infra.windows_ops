@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - windows_manage_stig - Fixed issue where `windows_manage_stig_only_rules` was ignored by audit and remediation tasks, causing all controls to be processed. Now only specified controls are audited and remediated.

@@ -9,6 +9,8 @@
 # =============================================================================
 
 - name: STIG 2022+ | DNS-over-HTTPS | Check current configuration
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-DNS-HTTPS' in windows_manage_stig_only_rules
   ansible.windows.win_reg_stat:
     path: HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters
     name: EnableDnsOverHttps
@@ -43,7 +45,7 @@
         'scored': true,
         'current_value': (windows_manage_stig_doh_current_status.value | default(0) | string) if windows_manage_stig_doh_current_status.exists else 'Not Configured',
         'expected_value': (windows_manage_stig_dns_over_https_mode | default(2) | string),
-        'status': 'PASS' if (windows_manage_stig_doh_current_status.exists and windows_manage_stig_doh_current_status.value == (windows_manage_stig_dns_over_https_mode | default(2))) else ('REMEDIATED' if (windows_manage_stig_doh_configured.changed | default(false)) else 'FAIL'),
+        'status': 'PASS' if (windows_manage_stig_doh_current_status.exists and windows_manage_stig_doh_current_status.value == (windows_manage_stig_dns_over_https_mode | default(2))) or (windows_manage_stig_doh_configured.changed | default(false)) else 'FAIL',
         'changed': windows_manage_stig_doh_configured.changed | default(false),
         'check_mode': ansible_check_mode,
         'version_specific': true,
@@ -91,6 +93,7 @@
         } | ConvertTo-Json
       }
   register: windows_manage_stig_smb_quic_status
+  check_mode: false
   changed_when: false
 
 - name: STIG 2022+ | SMB over QUIC | Parse status
@@ -157,6 +160,7 @@
         } | ConvertTo-Json
       }
   register: windows_manage_stig_tls13_status
+  check_mode: false
   changed_when: false
   tags:
     - tls_configuration
@@ -236,6 +240,7 @@
         } | ConvertTo-Json
       }
   register: windows_manage_stig_hotpatch_arc_status
+  check_mode: false
   changed_when: false
   tags:
     - hotpatching
@@ -316,6 +321,7 @@
         } | ConvertTo-Json
       }
   register: windows_manage_stig_credguard_status
+  check_mode: false
   changed_when: false
   tags:
     - credential_guard
@@ -379,7 +385,7 @@
         'scored': true,
         'current_value': 'HW Support: ' + ((windows_manage_stig_credguard_parsed.hardware_support | default(false)) | string) + ', Running: ' + ((windows_manage_stig_credguard_parsed.credential_guard_running | default(false)) | string) + ', Configured: ' + ((windows_manage_stig_credguard_parsed.credential_guard_configured | default(false)) | string),
         'expected_value': 'Credential Guard enabled on supported hardware',
-        'status': 'PASS' if (windows_manage_stig_credguard_parsed.hardware_support | default(false) and (windows_manage_stig_credguard_parsed.credential_guard_configured | default(false) or windows_manage_stig_credguard_enabled.changed | default(false))) else ('INFO' if not (windows_manage_stig_credguard_parsed.hardware_support | default(false)) else 'FAIL'),
+        'status': 'PASS' if (windows_manage_stig_credguard_parsed.hardware_support | default(false) and (windows_manage_stig_credguard_parsed.credential_guard_configured | default(false) or windows_manage_stig_credguard_enabled.changed | default(false) or windows_manage_stig_credguard_configured.changed | default(false) or windows_manage_stig_credguard_lsa_configured.changed | default(false))) else ('INFO' if not (windows_manage_stig_credguard_parsed.hardware_support | default(false)) else 'FAIL'),
         'changed': (windows_manage_stig_credguard_enabled.changed | default(false)) or (windows_manage_stig_credguard_configured.changed | default(false)) or (windows_manage_stig_credguard_lsa_configured.changed | default(false)),
         'check_mode': ansible_check_mode,
         'version_specific': true,
@@ -432,6 +438,7 @@
         } | ConvertTo-Json
       }
   register: windows_manage_stig_ad_32k_status
+  check_mode: false
   changed_when: false
   tags:
     - ad_32k_pages
@@ -480,12 +487,12 @@
       - Windows Server 2025 Advanced Features Summary
       - ==========================================
       - "Feature Configuration Status:"
-      - "DNS-over-HTTPS: {{ 'Enabled' if (windows_manage_stig_doh_current_status.exists and windows_manage_stig_doh_current_status.value == (windows_manage_stig_dns_over_https_mode | default(2))) else 'Not Configured' }}"
+      - "DNS-over-HTTPS: {{ 'Enabled' if (windows_manage_stig_doh_current_status is defined and windows_manage_stig_doh_current_status.get('exists', False) and windows_manage_stig_doh_current_status.get('value', 0) == (windows_manage_stig_dns_over_https_mode | default(2))) else 'Not Configured' }}"
       - "SMB over QUIC: {{ 'Required and checked' if windows_manage_stig_smb_quic_required else 'Not required (optional feature)' }}"
-      - "TLS 1.3: {{ 'Enabled (default)' if (windows_manage_stig_tls13_parsed.tls13_client_enabled | default(false) and windows_manage_stig_tls13_parsed.tls13_server_enabled | default(false)) else 'Check required' }}"
-      - "Hotpatching: {{ 'Arc Connected' if (windows_manage_stig_hotpatch_parsed.arc_connected | default(false)) else 'Arc Not Connected' }}"
-      - "Next-Gen Credential Guard: {{ 'Enabled' if (windows_manage_stig_credguard_parsed.credential_guard_running | default(false)) else ('Hardware Not Supported' if not (windows_manage_stig_credguard_parsed.hardware_support | default(false)) else 'Not Configured') }}"
-      - "AD 32k Pages: {{ 'Configured (32k)' if (windows_manage_stig_ad_32k_parsed.ad_32k_configured | default(false)) else ('Not DC' if not (windows_manage_stig_ad_32k_parsed.is_domain_controller | default(false)) else 'Standard 8k') }}"
+      - "TLS 1.3: {{ 'Enabled (default)' if (windows_manage_stig_tls13_parsed is defined and windows_manage_stig_tls13_parsed.tls13_client_enabled | default(false) and windows_manage_stig_tls13_parsed.tls13_server_enabled | default(false)) else 'Check required' }}"
+      - "Hotpatching: {{ 'Arc Connected' if (windows_manage_stig_hotpatch_parsed is defined and windows_manage_stig_hotpatch_parsed.arc_connected | default(false)) else 'Arc Not Connected' }}"
+      - "Next-Gen Credential Guard: {{ 'Enabled' if (windows_manage_stig_credguard_parsed is defined and windows_manage_stig_credguard_parsed.credential_guard_running | default(false)) else ('Hardware Not Supported' if (windows_manage_stig_credguard_parsed is defined and not (windows_manage_stig_credguard_parsed.hardware_support | default(false))) else 'Not Configured') }}"
+      - "AD 32k Pages: {{ 'Configured (32k)' if (windows_manage_stig_ad_32k_parsed is defined and windows_manage_stig_ad_32k_parsed.ad_32k_configured | default(false)) else ('Not DC' if (windows_manage_stig_ad_32k_parsed is defined and not (windows_manage_stig_ad_32k_parsed.is_domain_controller | default(false))) else 'Standard 8k') }}"
       - ""
       - "VERSION-SPECIFIC CONTROLS: These features apply to Windows Server 2025"
       - "Current OS Version: {{ windows_manage_stig_detected_version }}"

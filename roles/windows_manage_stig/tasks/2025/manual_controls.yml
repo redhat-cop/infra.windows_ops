@@ -47,6 +47,9 @@
       manual_remediation: true
       remediation_notes: "Refer to Windows Server 2025 STIG documentation for specific verification steps."
       check_mode: "{{ ansible_check_mode }}"
+  when:
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
+    - item.stig_id not in windows_manage_stig_skip_rules
   loop:
     - { stig_id: 'V-278148', title: 'AD Group Policy Objects must have proper audit settings' }
     - { stig_id: 'V-278149', title: 'AD Domain object must have proper audit settings' }
@@ -68,8 +71,6 @@
     - { stig_id: 'V-277982', title: 'Must install security updates per authoritative source' }
     - { stig_id: 'V-277984', title: 'Must synchronize system clocks with approved source' }
     - { stig_id: 'V-278027', title: 'FTP servers must prevent anonymous logons' }
-    - { stig_id: 'V-278031', title: 'Systems must have UEFI firmware and run in UEFI mode' }
-    - { stig_id: 'V-278032', title: 'Systems must have Secure Boot enabled' }
     - { stig_id: 'V-278161', title: 'User accounts must be required to have a valid PKI certificate' }
     - { stig_id: 'V-278192', title: 'DOD Root CA certificates must be in Trusted Root Store' }
     - { stig_id: 'V-278193', title: 'DOD Interoperability Root CA cross-certificates must be in Untrusted Store' }

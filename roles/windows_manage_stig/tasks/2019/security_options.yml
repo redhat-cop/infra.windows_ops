@@ -141,6 +141,9 @@
     name: "{{ item.name }}"
   register: windows_manage_stig_security_registry_current
   loop: "{{ windows_manage_stig_security_options | dict2items | map(attribute='value') | flatten }}"
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
   check_mode: false
   tags:
     - security_options

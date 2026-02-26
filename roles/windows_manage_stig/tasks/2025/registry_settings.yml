@@ -594,6 +594,9 @@
     name: "{{ item.name }}"
   register: windows_manage_stig_registry_current
   loop: "{{ windows_manage_stig_registry_settings }}"
+  when:
+    - item.stig_id not in windows_manage_stig_skip_rules
+    - windows_manage_stig_only_rules | length == 0 or item.stig_id in windows_manage_stig_only_rules
   check_mode: false
   tags:
     - registry_settings

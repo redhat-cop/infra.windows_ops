@@ -703,6 +703,8 @@
 # =============================================================================
 
 - name: STIG V-205799 | AUDIT | Check for audit log forwarding or backup configuration
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-205799' in windows_manage_stig_only_rules
   ansible.windows.win_powershell:
     script: |
       $Ansible.Changed = $false
@@ -769,6 +771,8 @@
     - audit
 
 - name: STIG V-205799 | AUDIT | Record audit log backup compliance result
+  when:
+    - windows_manage_stig_only_rules | length == 0 or 'V-205799' in windows_manage_stig_only_rules
   ansible.builtin.set_fact:
     windows_manage_stig_results: >-
       {{ windows_manage_stig_results | default([]) + [
