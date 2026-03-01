@@ -32,6 +32,8 @@
         "total_controls": {{ windows_manage_stig_total_controls | default(0) }},
         "passed_controls": {{ windows_manage_stig_passed_controls | default(0) }},
         "failed_controls": {{ windows_manage_stig_failed_controls_count | default(0) }},
+        "failed_controls_list": {{ windows_manage_stig_failed_controls | default([]) | to_json }},
+        "manual_controls_list": {{ windows_manage_stig_manual_controls | default([]) | to_json }},
         "execution_mode": "{{ 'audit' if ansible_check_mode else 'remediation' }}",
         "detected_version": "{{ windows_manage_stig_detected_version | default('unknown') }}",
         "benchmark_version": "{{ windows_manage_stig_benchmark_versions[windows_manage_stig_detected_version] | default('unknown') }}",

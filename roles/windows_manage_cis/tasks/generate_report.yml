@@ -132,6 +132,7 @@
           "medium_severity_failed": {{ windows_manage_cis_compliance_stats.medium_severity_failed }},
           "low_severity_failed": {{ windows_manage_cis_compliance_stats.low_severity_failed }}
         },
+        "failed_controls_list": {{ windows_manage_cis_results | selectattr('status', 'defined') | selectattr('status', 'equalto', 'FAIL') | list | to_nice_json }},
         "control_results": {{ windows_manage_cis_results | to_nice_json }}
       }
     dest: "{{ windows_manage_cis_report_output_dir }}\\{{ inventory_hostname }}_cis_compliance_{{ windows_manage_cis_report_metadata.report_generated_date
