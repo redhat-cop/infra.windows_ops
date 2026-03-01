@@ -50,6 +50,7 @@ windows_manage_stig_version_features:
 
 # Control execution behavior
 windows_manage_stig_generate_report: true
+windows_manage_stig_report_in_check_mode: true
 windows_manage_stig_fail_on_non_compliance: false
 windows_manage_stig_compliance_threshold: 95 # Percentage
 

@@ -8,9 +8,11 @@
   ansible.windows.win_file:
     path: "{{ windows_manage_stig_report_path | regex_replace('\\\\[^\\\\]+$', '') }}"
     state: directory
+  check_mode: false
   when:
     - windows_manage_stig_report_format == "json" or windows_manage_stig_report_format is not defined
     - windows_manage_stig_report_path | regex_replace('\\\\[^\\\\]+$', '') | length > 0
+    - (not ansible_check_mode) or (windows_manage_stig_report_in_check_mode | default(true) | bool)
   tags:
     - reporting
 
@@ -38,8 +40,10 @@
         "results": {{ windows_manage_stig_results | default([]) | to_json }}
       }
     dest: "{{ windows_manage_stig_report_path }}"
+  check_mode: false
   when:
     - windows_manage_stig_report_format == "json" or windows_manage_stig_report_format is not defined
+    - (not ansible_check_mode) or (windows_manage_stig_report_in_check_mode | default(true) | bool)
   tags:
     - reporting
 
