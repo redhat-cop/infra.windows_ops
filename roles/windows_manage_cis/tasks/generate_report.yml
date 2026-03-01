@@ -139,17 +139,7 @@
     - audit
     - json
 
-# Generate test-specific report format if test variables are provided
-- name: CIS REPORT | Generate test-specific JSON report
-  ansible.windows.win_copy:
-    content: "{{ windows_manage_cis_results | to_nice_json }}"
-    dest: "{{ windows_manage_cis_report_path }}"
-  when:
-    - windows_manage_cis_report_path is defined
-    - windows_manage_cis_check_mode is defined
-  tags:
-    - reporting
-    - test
+
 
 # =============================================================================
 # HUMAN-READABLE HTML AUDIT REPORT
