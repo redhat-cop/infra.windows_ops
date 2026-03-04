@@ -41,12 +41,12 @@
       ansible.builtin.include_role:
         name: infra.windows_ops.windows_manage_stig
       vars:
-        windows_manage_stig_report_path: "{{ test_stig_output_dir }}_version\\version_detection_report.json"
+        windows_manage_stig_report_output_dir: "{{ test_stig_output_dir }}_version"
         windows_manage_stig_categories: ['account_policies']  # Run minimal set for fast testing
 
     - name: Read version detection report
       ansible.builtin.slurp:
-        src: "{{ test_stig_output_dir }}_version\\version_detection_report.json"
+        src: "{{ test_stig_output_dir }}_version\\{{ inventory_hostname }}_stig_compliance.json"
       register: _version_report_content
 
     - name: Parse version detection report

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DISA STIG Compliance Report - {{ inventory_hostname }}</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f0f2f5; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: #003366; color: white; padding: 30px; border-radius: 8px 8px 0 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header h1 { margin: 0; font-size: 28px; }
+        .header p { margin: 10px 0 0 0; opacity: 0.8; }
+        
+        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: -20px; padding: 0 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
+        .card h3 { margin: 0; color: #666; font-size: 14px; text-transform: uppercase; }
+        .card .value { font-size: 32px; font-weight: bold; margin: 10px 0; color: #003366; }
+        
+        .compliance-score { background: #fff; margin-top: 20px; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .progress-bar { background: #eee; height: 30px; border-radius: 15px; overflow: hidden; margin: 20px 0; }
+        .progress-fill { height: 100%; transition: width 0.5s ease-in-out; }
+        .excellent { background: #28a745; }
+        .good { background: #ffc107; }
+        .poor { background: #dc3545; }
+
+        .section { background: white; margin-top: 20px; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .section-header { border-bottom: 2px solid #f0f2f5; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; background: #f8f9fa; padding: 12px; border-bottom: 2px solid #dee2e6; color: #495057; }
+        td { padding: 12px; border-bottom: 1px solid #dee2e6; vertical-align: top; }
+        tr:hover { background-color: #f8f9fa; }
+        
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .badge-pass { background: #e8f5e9; color: #2e7d32; }
+        .badge-fail { background: #ffebee; color: #c62828; }
+        .badge-manual { background: #fff3e0; color: #ef6c00; }
+        .badge-info { background: #e3f2fd; color: #1565c0; }
+        .badge-fixed { background: #d1e7dd; color: #0f5132; }
+        
+        .cat-i { border-left: 5px solid #d32f2f; }
+        .cat-ii { border-left: 5px solid #f57c00; }
+        .cat-iii { border-left: 5px solid #fbc02d; }
+        
+        .details { font-size: 13px; color: #666; margin-top: 5px; }
+        code { background: #f1f1f1; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
+        
+        /* Toggle for Passed Controls */
+        details summary { cursor: pointer; color: #003366; font-weight: bold; outline: none; }
+        details[open] summary { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>DISA STIG Compliance Report</h1>
+            <p><strong>Benchmark:</strong> {{ windows_manage_stig_benchmark_name }} {{ windows_manage_stig_benchmark_version }}</p>
+            <p><strong>System:</strong> {{ inventory_hostname }} | <strong>Mode:</strong> {{ 'AUDIT ONLY' if ansible_check_mode else 'REMEDIATION APPLIED' }}</p>
+            <p><strong>Generated:</strong> {{ ansible_date_time.iso8601 }}</p>
+        </div>
+
+        {% set remediated_count = windows_manage_stig_results | selectattr('status', 'equalto', 'PASS') | selectattr('changed', 'equalto', true) | list | length %}
+        
+        <div class="summary-cards">
+            <div class="card">
+                <h3>Total Controls</h3>
+                <div class="value">{{ windows_manage_stig_total_controls }}</div>
+            </div>
+            <div class="card">
+                <h3>Passed</h3>
+                <div class="value" style="color: #28a745;">{{ windows_manage_stig_passed_controls }}</div>
+            </div>
+            {% if not ansible_check_mode and remediated_count > 0 %}
+            <div class="card">
+                <h3>Fixed</h3>
+                <div class="value" style="color: #0f5132;">{{ remediated_count }}</div>
+            </div>
+            {% endif %}
+            <div class="card">
+                <h3>Failed</h3>
+                <div class="value" style="color: #dc3545;">{{ windows_manage_stig_failed_controls_count }}</div>
+            </div>
+            <div class="card">
+                <h3>Manual Review</h3>
+                <div class="value" style="color: #f57c00;">{{ windows_manage_stig_manual_controls | length }}</div>
+            </div>
+        </div>
+
+        <div class="compliance-score">
+            <h2>Overall Compliance Score: {{ windows_manage_stig_compliance_score }}%</h2>
+            <div class="progress-bar">
+                <div class="progress-fill {{ 'excellent' if windows_manage_stig_compliance_score|float >= 95 else 'good' if windows_manage_stig_compliance_score|float >= 80 else 'poor' }}" 
+                     style="width: {{ windows_manage_stig_compliance_score }}%;"></div>
+            </div>
+        </div>
+
+        {% if windows_manage_stig_failed_controls | length > 0 %}
+        <div class="section">
+            <div class="section-header">
+                <h2 style="color: #d32f2f;">Failed Controls Requiring Attention</h2>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title / Severity</th>
+                        <th>Expected Value</th>
+                        <th>Current Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for control in windows_manage_stig_failed_controls %}
+                    <tr class="{{ control.severity | default('cat-ii') | lower | replace(' ', '-') }}">
+                        <td><strong>{{ control.stig_id | default('UNKNOWN') }}</strong></td>
+                        <td>
+                            <div>{{ control.title | default('No Title Available') }}</div>
+                            <div class="details">Severity: {{ control.severity | default('Unknown') }} | Section: {{ control.rule_section | default('General') }}</div>
+                        </td>
+                        <td><code>{{ control.expected_value | default('') }}</code></td>
+                        <td><code>{{ control.current_value | default('') }}</code></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        {% if windows_manage_stig_manual_controls | length > 0 %}
+        <div class="section">
+            <div class="section-header">
+                <h2 style="color: #ef6c00;">Manual Verification Required</h2>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Control Requirement</th>
+                        <th>Remediation Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for control in windows_manage_stig_manual_controls %}
+                    <tr class="{{ control.severity | default('cat-ii') | lower | replace(' ', '-') }}">
+                        <td><strong>{{ control.stig_id | default('UNKNOWN') }}</strong></td>
+                        <td>
+                            <div>{{ control.title | default('No Title Available') }}</div>
+                            <div class="details">Status: <span class="badge badge-manual">{{ control.status | default('MANUAL') }}</span> | Current: {{ control.current_value | default('') }}</div>
+                        </td>
+                        <td>{{ control.remediation_notes | default('') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        {# Section for remediated controls (successfully changed) #}
+        {% set remediated_controls = windows_manage_stig_results | selectattr('status', 'equalto', 'PASS') | selectattr('changed', 'equalto', true) | list %}
+        {% if remediated_controls | length > 0 %}
+        <div class="section">
+            <div class="section-header">
+                <h2 style="color: #0f5132;">Successfully Remediated Controls</h2>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Action Taken</th>
+                        <th>New Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for control in remediated_controls %}
+                    <tr>
+                        <td><strong>{{ control.stig_id | default('UNKNOWN') }}</strong></td>
+                        <td>
+                            <div>{{ control.title | default('No Title Available') }}</div>
+                            <div class="details">Severity: {{ control.severity | default('Unknown') }} | Section: {{ control.rule_section | default('General') }}</div>
+                        </td>
+                        <td><span class="badge badge-fixed">Applied Fix</span></td>
+                        <td><code>{{ control.expected_value | default('') }}</code></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        {# Section for passed controls (already compliant) - Collapsible to save space #}
+        {% set compliant_controls = windows_manage_stig_results | selectattr('status', 'equalto', 'PASS') | selectattr('changed', 'equalto', false) | list %}
+        {% if compliant_controls | length > 0 %}
+        <div class="section">
+            <details>
+                <summary>Compliant Controls ({{ compliant_controls | length }}) - Click to Expand</summary>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Current Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for control in compliant_controls %}
+                        <tr>
+                            <td><strong>{{ control.stig_id | default('UNKNOWN') }}</strong></td>
+                            <td>
+                                <div>{{ control.title | default('No Title Available') }}</div>
+                                <div class="details">Severity: {{ control.severity | default('Unknown') }} | Section: {{ control.rule_section | default('General') }}</div>
+                            </td>
+                            <td><span class="badge badge-pass">PASS</span></td>
+                            <td><code>{{ control.current_value | default('') }}</code></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </details>
+        </div>
+        {% endif %}
+
+        <div class="section">
+            <div class="section-header">
+                <h2>System Information</h2>
+            </div>
+            <table>
+                <tr>
+                    <th style="width: 30%;">Attribute</th>
+                    <th>Value</th>
+                </tr>
+                <tr><td>OS Name</td><td>{{ windows_manage_stig_validation_summary.product_name }}</td></tr>
+                <tr><td>OS Version</td><td>{{ windows_manage_stig_validation_summary.windows_version }}</td></tr>
+                <tr><td>Architecture</td><td>{{ windows_manage_stig_validation_summary.architecture }}</td></tr>
+                <tr><td>Domain Controller</td><td>{{ 'Yes' if windows_manage_stig_validation_summary.is_domain_controller else 'No' }}</td></tr>
+                <tr><td>UEFI Mode</td><td>{{ windows_manage_stig_validation_summary.uefi_mode }}</td></tr>
+                <tr><td>Secure Boot</td><td>{{ 'Enabled' if windows_manage_stig_validation_summary.secure_boot else 'Disabled' }}</td></tr>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
