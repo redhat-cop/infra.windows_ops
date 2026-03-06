@@ -18,7 +18,7 @@
       ansible.builtin.include_role:
         name: infra.windows_ops.windows_manage_stig
       vars:
-        windows_manage_stig_report_path: "{{ test_stig_output_dir }}\\{{ test_stig_check_report_filename }}"
+        windows_manage_stig_report_output_dir: "{{ test_stig_output_dir }}"
       register: _stig_first_run
 
     - name: Verify STIG check report was created
@@ -30,7 +30,7 @@
       ansible.builtin.include_role:
         name: infra.windows_ops.windows_manage_stig
       vars:
-        windows_manage_stig_report_path: "{{ test_stig_output_dir }}\\idempotency_report.json"
+        windows_manage_stig_generate_report: false
       register: _stig_second_run
 
     - name: Verify Idempotency

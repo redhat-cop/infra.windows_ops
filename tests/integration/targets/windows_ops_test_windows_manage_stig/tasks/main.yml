@@ -34,7 +34,7 @@
     - name: Final cleanup - Remove full execution test directory
       ansible.windows.win_file:
         path: "{{ test_stig_output_dir }}"
-        state: absent
+        state: present
       failed_when: false
 
     - name: Final cleanup - Remove filtering test directory
