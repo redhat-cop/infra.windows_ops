@@ -4,14 +4,19 @@
 # Enterprise-grade audit reporting for government compliance
 # =============================================================================
 
+- name: STIG | REPORT | Set report output directory (fallback)
+  ansible.builtin.set_fact:
+    windows_manage_stig_final_output_dir: "{{ windows_manage_stig_report_output_dir | default((windows_manage_stig_report_path | default('')) | regex_replace('[\\\\/][^\\\\/]+$', '')) }}"
+  tags:
+    - reporting
+
 - name: STIG | REPORT | Ensure report directory exists
   ansible.windows.win_file:
-    path: "{{ windows_manage_stig_report_path | regex_replace('\\\\[^\\\\]+$', '') }}"
+    path: "{{ windows_manage_stig_final_output_dir }}"
     state: directory
   check_mode: false
   when:
-    - windows_manage_stig_report_format == "json" or windows_manage_stig_report_format is not defined
-    - windows_manage_stig_report_path | regex_replace('\\\\[^\\\\]+$', '') | length > 0
+    - windows_manage_stig_generate_report | bool
     - (not ansible_check_mode) or (windows_manage_stig_report_in_check_mode | default(true) | bool)
   tags:
     - reporting
@@ -31,7 +36,10 @@
         "compliance_score": {{ windows_manage_stig_compliance_score | default(0) }},
         "total_controls": {{ windows_manage_stig_total_controls | default(0) }},
         "passed_controls": {{ windows_manage_stig_passed_controls | default(0) }},
+        "passed_controls_list": {{ windows_manage_stig_results | selectattr('status', 'equalto', 'PASS') | list | default([]) | to_json }},
         "failed_controls": {{ windows_manage_stig_failed_controls_count | default(0) }},
+        "failed_controls_list": {{ windows_manage_stig_failed_controls | default([]) | to_json }},
+        "manual_controls_list": {{ windows_manage_stig_manual_controls | default([]) | to_json }},
         "execution_mode": "{{ 'audit' if ansible_check_mode else 'remediation' }}",
         "detected_version": "{{ windows_manage_stig_detected_version | default('unknown') }}",
         "benchmark_version": "{{ windows_manage_stig_benchmark_versions[windows_manage_stig_detected_version] | default('unknown') }}",
@@ -39,13 +47,26 @@
         "system_validation": {{ windows_manage_stig_validation_summary | default({}) | to_json }},
         "results": {{ windows_manage_stig_results | default([]) | to_json }}
       }
-    dest: "{{ windows_manage_stig_report_path }}"
+    dest: "{{ windows_manage_stig_final_output_dir }}\\{{ inventory_hostname }}_stig_compliance.json"
   check_mode: false
   when:
-    - windows_manage_stig_report_format == "json" or windows_manage_stig_report_format is not defined
+    - windows_manage_stig_generate_report | bool
     - (not ansible_check_mode) or (windows_manage_stig_report_in_check_mode | default(true) | bool)
   tags:
     - reporting
+    - json
+
+- name: STIG | REPORT | Generate HTML compliance report for human review
+  ansible.windows.win_copy:
+    content: "{{ lookup('ansible.builtin.template', 'stig_report.html.j2') }}"
+    dest: "{{ windows_manage_stig_final_output_dir }}\\{{ inventory_hostname }}_stig_compliance.html"
+  check_mode: false
+  when:
+    - windows_manage_stig_generate_report | bool
+    - (not ansible_check_mode) or (windows_manage_stig_report_in_check_mode | default(true) | bool)
+  tags:
+    - reporting
+    - html
 
 - name: STIG | REPORT | Display compliance report generation summary
   ansible.builtin.debug:
@@ -53,8 +74,9 @@
       - ===========================================
       - DISA STIG Compliance Report Generated
       - ===========================================
-      - "Report Path: {{ windows_manage_stig_report_path }}"
-      - "Report Format: {{ windows_manage_stig_report_format }}"
+      - "Output Directory: {{ windows_manage_stig_final_output_dir }}"
+      - "JSON Report: {{ windows_manage_stig_final_output_dir }}\\{{ inventory_hostname }}_stig_compliance.json"
+      - "HTML Report: {{ windows_manage_stig_final_output_dir }}\\{{ inventory_hostname }}_stig_compliance.html"
       - "Classification: {{ windows_manage_stig_classification }}"
       - "Compliance Score: {{ windows_manage_stig_compliance_score | default(0) }}%"
       - "Total Controls: {{ windows_manage_stig_total_controls | default(0) }}"

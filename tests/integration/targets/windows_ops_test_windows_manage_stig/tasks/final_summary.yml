@@ -25,6 +25,12 @@
           'Passed:           ' ~ (run.passed_controls | default(0)) | string,
           'Failed:           ' ~ (run.failed_controls | default(0)) | string,
           '',
+          'FAILED CONTROLS DETAILS:',
+          (run.failed_controls_list | default([]) | map(attribute='stig_id') | join(', ')) if (run.failed_controls_list | default([]) | length > 0) else 'None',
+          '',
+          'MANUAL CONTROLS DETAILS:',
+          (run.manual_controls_list | default([]) | map(attribute='stig_id') | join(', ')) if (run.manual_controls_list | default([]) | length > 0) else 'None',
+          '',
           'Note: ' ~ (run.notes | default('None')),
           '============================================================================='
         ]
