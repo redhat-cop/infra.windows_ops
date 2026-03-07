@@ -86,6 +86,8 @@
   ansible.windows.win_file:
     path: "{{ windows_manage_cis_report_output_dir }}"
     state: directory
+  check_mode: false
+  when: (not ansible_check_mode) or (windows_manage_cis_report_in_check_mode | default(true) | bool)
   tags:
     - reporting
     - audit
@@ -130,26 +132,18 @@
           "medium_severity_failed": {{ windows_manage_cis_compliance_stats.medium_severity_failed }},
           "low_severity_failed": {{ windows_manage_cis_compliance_stats.low_severity_failed }}
         },
+        "failed_controls_list": {{ windows_manage_cis_results | selectattr('status', 'defined') | selectattr('status', 'equalto', 'FAIL') | list | to_nice_json }},
         "control_results": {{ windows_manage_cis_results | to_nice_json }}
       }
-    dest: "{{ windows_manage_cis_report_output_dir }}\\{{ inventory_hostname }}_cis_compliance_{{ windows_manage_cis_report_metadata.report_generated_date
-      }}.json"
+    dest: "{{ windows_manage_cis_report_output_dir }}\\{{ inventory_hostname }}_cis_compliance.json"
+  check_mode: false
+  when: (not ansible_check_mode) or (windows_manage_cis_report_in_check_mode | default(true) | bool)
   tags:
     - reporting
     - audit
     - json
 
-# Generate test-specific report format if test variables are provided
-- name: CIS REPORT | Generate test-specific JSON report
-  ansible.windows.win_copy:
-    content: "{{ windows_manage_cis_results | to_nice_json }}"
-    dest: "{{ windows_manage_cis_report_path }}"
-  when:
-    - windows_manage_cis_report_path is defined
-    - windows_manage_cis_check_mode is defined
-  tags:
-    - reporting
-    - test
+
 
 # =============================================================================
 # HUMAN-READABLE HTML AUDIT REPORT
@@ -302,9 +296,10 @@
           </div>
       </body>
       </html>
-    dest: "{{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_compliance_{{ windows_manage_cis_report_metadata.report_generated_date
-      }}.html"
+    dest: "{{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_compliance.html"
     mode: "0644"
+  check_mode: false
+  when: (not ansible_check_mode) or (windows_manage_cis_report_in_check_mode | default(true) | bool)
   tags:
     - reporting
     - audit
@@ -372,9 +367,10 @@
       - **Collection:** {{ windows_manage_cis_report_metadata.collection_name }} {{ windows_manage_cis_report_metadata.collection_version }}
       - **Executed By:** {{ windows_manage_cis_report_metadata.ansible_user }}
       - **System Details:** {{ windows_manage_cis_report_metadata.target_system }} Build {{ windows_manage_cis_report_metadata.target_build }}
-    dest: "{{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_compliance_{{ windows_manage_cis_report_metadata.report_generated_date
-      }}.md"
+    dest: "{{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_compliance.md"
     mode: "0644"
+  check_mode: false
+  when: (not ansible_check_mode) or (windows_manage_cis_report_in_check_mode | default(true) | bool)
   tags:
     - reporting
     - audit
@@ -404,9 +400,10 @@
       TARGET_IP={{ windows_manage_cis_report_metadata.target_ip }}
       EXECUTION_ID={{ windows_manage_cis_report_metadata.execution_id }}
       REPORT_TIMESTAMP={{ windows_manage_cis_report_metadata.report_generated_iso }}
-    dest: "{{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_compliance_{{ windows_manage_cis_report_metadata.report_generated_date
-      }}.env"
+    dest: "{{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_compliance.env"
     mode: "0644"
+  check_mode: false
+  when: (not ansible_check_mode) or (windows_manage_cis_report_in_check_mode | default(true) | bool)
   tags:
     - reporting
     - audit
@@ -490,9 +487,10 @@
       **Report Generation Details**
       **Execution ID:** {{ windows_manage_cis_report_metadata.execution_id }}
       **Collection:** {{ windows_manage_cis_report_metadata.collection_name }} {{ windows_manage_cis_report_metadata.collection_version }}
-    dest: "{{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_remediation_guide_{{ windows_manage_cis_report_metadata.report_generated_date
-      }}.md"
+    dest: "{{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_remediation_guide.md"
     mode: "0644"
+  check_mode: false
+  when: (not ansible_check_mode) or (windows_manage_cis_report_in_check_mode | default(true) | bool)
   tags:
     - reporting
     - audit
@@ -528,16 +526,11 @@
       - "LOW Low: {{ windows_manage_cis_compliance_stats.low_severity_failed }}"
       - ""
       - " GENERATED REPORTS:"
-      - "JSON (Machine-Readable): {{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_compliance_{{ windows_manage_cis_report_metadata.report_generated_date
-        }}.json"
-      - "HTML (Audit Report): {{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_compliance_{{ windows_manage_cis_report_metadata.report_generated_date
-        }}.html"
-      - "Markdown (Documentation): {{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_compliance_{{ windows_manage_cis_report_metadata.report_generated_date
-        }}.md"
-      - "CI/CD Variables: {{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_compliance_{{ windows_manage_cis_report_metadata.report_generated_date
-        }}.env"
-      - "Remediation Guide: {{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_remediation_guide_{{ windows_manage_cis_report_metadata.report_generated_date
-        }}.md"
+      - "JSON (Machine-Readable): {{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_compliance.json"
+      - "HTML (Audit Report): {{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_compliance.html"
+      - "Markdown (Documentation): {{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_compliance.md"
+      - "CI/CD Variables: {{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_compliance.env"
+      - "Remediation Guide: {{ windows_manage_cis_report_output_dir }}/{{ inventory_hostname }}_cis_remediation_guide.md"
       - ==========================================
       - "{{ 'PASS AUDIT-READY - Reports suitable for compliance review' if windows_manage_cis_compliance_stats.compliance_percentage | float >= 95 else 'WARNING:
         REMEDIATION REQUIRED - Review failed controls' }}"

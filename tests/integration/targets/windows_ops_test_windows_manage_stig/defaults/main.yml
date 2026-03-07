@@ -1,14 +1,14 @@
 ---
 # Test defaults for windows_manage_stig role
 test_stig_output_dir: 'C:\temp\stig_test_output'
-test_stig_check_report_filename: 'stig_check_report.json'
+test_stig_check_report_filename: 'compliance_test_host_stig_compliance.json'
 
 # Filtering test directory
 test_stig_filtered_output_dir: 'C:\temp\stig_filtered_test'
 
 # Role-specific test variables
 windows_manage_stig_generate_report: true
-windows_manage_stig_report_format: "json"
+windows_manage_stig_report_format: "all"
 
 # Ensure all categories are tested in this target
 windows_manage_stig_categories:

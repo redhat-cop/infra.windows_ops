@@ -1,0 +1,4 @@
+---
+bugfixes:
+  - windows_manage_cis - Removed custom `windows_manage_cis_check_mode` variable to ensure role consistently respects standard Ansible playbook check mode (`--check`).
+  - windows_manage_stig - Removed unused templates referencing deprecated `windows_manage_stig_check_mode` variable.

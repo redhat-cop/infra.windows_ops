@@ -32,12 +32,12 @@
       vars:
         windows_manage_stig_only_rules: "{{ _test_rules }}"
         windows_manage_stig_categories: ['account_policies']
-        windows_manage_stig_report_path: "{{ test_stig_filtered_output_dir }}\\filtered_report.json"
+        windows_manage_stig_report_output_dir: "{{ test_stig_filtered_output_dir }}"
         windows_manage_stig_generate_report: true
 
     - name: Read filtered compliance report
       ansible.builtin.slurp:
-        src: "{{ test_stig_filtered_output_dir }}\\filtered_report.json"
+        src: "{{ test_stig_filtered_output_dir }}\\{{ inventory_hostname }}_stig_compliance.json"
       register: _filtered_report_content
 
     - name: Parse filtered compliance report
@@ -68,12 +68,12 @@
       vars:
         windows_manage_stig_skip_rules: "{{ [_test_rules[0]] }}" # Skip one of the rules
         windows_manage_stig_categories: ['account_policies']
-        windows_manage_stig_report_path: "{{ test_stig_filtered_output_dir }}\\skip_report.json"
+        windows_manage_stig_report_output_dir: "{{ test_stig_filtered_output_dir }}"
         windows_manage_stig_generate_report: true
 
     - name: Read skip compliance report
       ansible.builtin.slurp:
-        src: "{{ test_stig_filtered_output_dir }}\\skip_report.json"
+        src: "{{ test_stig_filtered_output_dir }}\\{{ inventory_hostname }}_stig_compliance.json"
       register: _skip_report_content
 
     - name: Parse skip compliance report

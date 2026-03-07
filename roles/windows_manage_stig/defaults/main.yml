@@ -50,6 +50,7 @@ windows_manage_stig_version_features:
 
 # Control execution behavior
 windows_manage_stig_generate_report: true
+windows_manage_stig_report_in_check_mode: true
 windows_manage_stig_fail_on_non_compliance: false
 windows_manage_stig_compliance_threshold: 95 # Percentage
 
@@ -71,8 +72,8 @@ windows_manage_stig_categories:
 # =============================================================================
 
 # Report generation settings
-windows_manage_stig_report_format: json # json, html, yaml
-windows_manage_stig_report_path: C:\temp\stig_compliance_report.json
+windows_manage_stig_report_format: json # json, html, yaml, all
+windows_manage_stig_report_output_dir: C:\temp\stig_compliance_report
 
 # =============================================================================
 # STIG V-254238 through V-254244 - PASSWORD POLICY CONFIGURATION

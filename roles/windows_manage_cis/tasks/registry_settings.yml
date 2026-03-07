@@ -9,7 +9,7 @@
     type: dword
   register: windows_manage_cis_18_1_1_1_result
   when: "'18.1.1.1' not in windows_manage_cis_skip_rules"
-  check_mode: "{{ windows_manage_cis_check_mode }}"
+
   tags:
     - 18.1.1.1
     - registry_settings
@@ -38,7 +38,7 @@
     type: dword
   register: windows_manage_cis_18_1_1_2_result
   when: "'18.1.1.2' not in windows_manage_cis_skip_rules"
-  check_mode: "{{ windows_manage_cis_check_mode }}"
+
   tags:
     - 18.1.1.2
     - registry_settings
@@ -67,7 +67,7 @@
     type: string
   register: windows_manage_cis_18_4_3_1_result
   when: "'18.4.3.1' not in windows_manage_cis_skip_rules"
-  check_mode: "{{ windows_manage_cis_check_mode }}"
+
   tags:
     - 18.4.3.1
     - registry_settings
@@ -96,7 +96,7 @@
     type: dword
   register: windows_manage_cis_18_4_3_2_result
   when: "'18.4.3.2' not in windows_manage_cis_skip_rules"
-  check_mode: "{{ windows_manage_cis_check_mode }}"
+
   tags:
     - 18.4.3.2
     - registry_settings
@@ -125,7 +125,7 @@
     type: dword
   register: windows_manage_cis_18_4_3_3_result
   when: "'18.4.3.3' not in windows_manage_cis_skip_rules"
-  check_mode: "{{ windows_manage_cis_check_mode }}"
+
   tags:
     - 18.4.3.3
     - registry_settings
@@ -154,7 +154,7 @@
     type: dword
   register: windows_manage_cis_18_4_3_4_result
   when: "'18.4.3.4' not in windows_manage_cis_skip_rules"
-  check_mode: "{{ windows_manage_cis_check_mode }}"
+
   tags:
     - 18.4.3.4
     - registry_settings
@@ -183,7 +183,7 @@
     type: dword
   register: windows_manage_cis_18_4_3_5_result
   when: "'18.4.3.5' not in windows_manage_cis_skip_rules"
-  check_mode: "{{ windows_manage_cis_check_mode }}"
+
   tags:
     - 18.4.3.5
     - registry_settings
@@ -212,7 +212,7 @@
     type: dword
   register: windows_manage_cis_18_4_3_6_result
   when: "'18.4.3.6' not in windows_manage_cis_skip_rules"
-  check_mode: "{{ windows_manage_cis_check_mode }}"
+
   tags:
     - 18.4.3.6
     - registry_settings
@@ -241,7 +241,7 @@
     type: dword
   register: windows_manage_cis_18_4_3_7_result
   when: "'18.4.3.7' not in windows_manage_cis_skip_rules"
-  check_mode: "{{ windows_manage_cis_check_mode }}"
+
   tags:
     - 18.4.3.7
     - registry_settings
@@ -270,7 +270,7 @@
     type: dword
   register: windows_manage_cis_18_5_4_1_result
   when: "'18.5.4.1' not in windows_manage_cis_skip_rules"
-  check_mode: "{{ windows_manage_cis_check_mode }}"
+
   tags:
     - 18.5.4.1
     - registry_settings
@@ -299,7 +299,7 @@
     type: dword
   register: windows_manage_cis_18_5_8_1_result
   when: "'18.5.8.1' not in windows_manage_cis_skip_rules"
-  check_mode: "{{ windows_manage_cis_check_mode }}"
+
   tags:
     - 18.5.8.1
     - registry_settings
@@ -328,7 +328,7 @@
     type: dword
   register: windows_manage_cis_18_5_19_2_1_result
   when: "'18.5.19.2.1' not in windows_manage_cis_skip_rules"
-  check_mode: "{{ windows_manage_cis_check_mode }}"
+
   tags:
     - 18.5.19.2.1
     - registry_settings

@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - 'windows_manage_stig - Added support for generating compliance reports during check mode execution. Controlled by `windows_manage_stig_report_in_check_mode` (default: true).'
+  - 'windows_manage_cis - Added support for generating compliance reports during check mode execution. Controlled by `windows_manage_cis_report_in_check_mode` (default: true).'
