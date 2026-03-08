@@ -26,19 +26,34 @@ Name | Description
 #### Security and Compliance
 Name | Description
 --- | ---
-[infra.windows_ops.windows_manage_cis](https://github.com/redhat-cop/infra.windows_ops/blob/main/roles/windows_manage_cis/README.md)|A role to enforce CIS Microsoft Windows Server 2022 Benchmark compliance.
+[infra.windows_ops.windows_manage_cis](https://github.com/redhat-cop/infra.windows_ops/blob/main/roles/windows_manage_cis/README.md)|A role to enforce CIS Microsoft Windows Server 2019, 2022, and 2025 Benchmark compliance.
 [infra.windows_ops.windows_manage_stig](https://github.com/redhat-cop/infra.windows_ops/blob/main/roles/windows_manage_stig/README.md)|A role to enforce DISA STIG compliance for Windows Server 2019, 2022, and 2025.
 
 
 ## Supported Platforms
 
+### CIS Compliance
+
+The `windows_manage_cis` role supports the following Windows Server versions:
+
+- **Windows Server 2019** - CIS Benchmark v3.0.0
+- **Windows Server 2022** - CIS Benchmark v3.0.0
+- **Windows Server 2025** - CIS Benchmark v1.0.0
+
+### Key Features
+
+*   **Multi-Version Support:** Single role supports Windows Server 2019, 2022, and 2025 with automatic version detection.
+*   **Drift Detection:** Run in check mode to generate compliance reports without applying changes.
+*   **Comprehensive Reporting:** Generates detailed JSON/HTML reports showing pass/fail status for every control.
+*   **Windows 2025 Features:** Includes support for new 2025 security baselines like Azure Arc integration, Zero Trust Network Access, and AD 32k page support.
+
 ### DISA STIG Compliance
 
 The `windows_manage_stig` role supports the following Windows Server versions:
 
-- **Windows Server 2019** - DISA STIG V3R7 (284 controls)
-- **Windows Server 2022** - DISA STIG V2R7 (283 controls)
-- **Windows Server 2025** - DISA STIG V1R0-1 (281 controls)
+- **Windows Server 2019** - DISA STIG V3R7
+- **Windows Server 2022** - DISA STIG V2R7
+- **Windows Server 2025** - DISA STIG V1R0
 
 ### Coverage Statistics
 
@@ -48,7 +63,7 @@ The role achieves **100% coverage** of DISA STIG requirements through a combinat
 |----------|--------------|-------------------|-----------------|----------------|
 | Windows Server 2019 | V3R7 | 248 automated | 36 documented | **100%** |
 | Windows Server 2022 | V2R7 | 274 automated | 9 documented | **100%** |
-| Windows Server 2025 | V1R0-1 | 248 automated | 33 documented | **100%** |
+| Windows Server 2025 | V1R0 | 248 automated | 33 documented | **100%** |
 
 ### Key Features
 
