@@ -4,35 +4,46 @@ Infra.Windows\_ops Release Notes
 
 .. contents:: Topics
 
-v2.1.0
+v2.0.1
 ======
 
 Major Changes
 -------------
 
-- windows_manage_stig - **Completed Windows Server 2025 DISA STIG V1R0-1 implementation with 100% coverage.** Achieved 250/281 automated controls (89.0%), with remaining 31 controls comprehensively documented as manual with verification and remediation procedures. This release completes the initial Windows Server 2025 STIG support with full user rights assignment coverage (67 controls), complete audit policy implementation (43 controls including 6 paired success/failure controls), comprehensive registry/security options (121 controls), account policy enforcement (12 controls), and service/feature validation (7 controls).
-- windows_manage_stig - Added full Windows Server 2019 DISA STIG V3R7 support with 284 controls (162 automated, 112 manual). Implements version-specific control routing architecture with dedicated task directories (tasks/2019/, tasks/2022/, tasks/2025/). Includes comprehensive manual controls documentation and version detection validation with helpful error messages for unsupported versions.
+- windows_manage_stig - Added advanced features support including DNS-over-HTTPS (DoH), SMB QUIC, TLS 1.3, and Hotpatching.
+- windows_manage_stig - Implemented 100% DISA STIG coverage for Windows Server 2019, 2022, and 2025 with accurate V-ID mapping for each platform.
+- windows_manage_stig - Improved compliance reporting with detailed execution summaries, manual control action items, and failed control breakdowns.
+- windows_manage_stig - Refactored role into version-isolated task directories (2019/, 2022/, 2025/) to support Windows Server 2019, 2022, and 2025 benchmarks.
 
 Minor Changes
 -------------
 
-- windows_manage_stig - Enhanced domain controller vs. member server detection logic for accurate control application.
-- windows_manage_stig - Improved XCCDF validation tooling with support for paired audit policy controls.
-- windows_manage_stig - Added comprehensive gap analysis scripts for tracking STIG implementation progress.
-- windows_manage_stig - Enhanced main.yml with version-based task routing to automatically detect Windows Server version and include appropriate STIG control files from version-specific directories.
-- windows_manage_stig - Created manual_controls.yml documenting 112 Windows 2019 controls that require organizational policy, manual verification, or administrative procedures. Identified 42 additional controls that could be automated in future releases.
-- windows_manage_stig - Updated verification scripts to support version parameter for testing version-specific implementations.
+- windows_manage_cis - Added support for generating compliance reports during check mode execution. Controlled by `windows_manage_cis_report_in_check_mode` (default: true).
+- windows_manage_stig - Added support for generating compliance reports during check mode execution. Controlled by `windows_manage_stig_report_in_check_mode` (default: true).
 
 Bugfixes
 --------
 
-- windows_manage_stig - Fixed validation script duplicate detection to properly handle paired audit policy controls (success/failure pairs that map to single STIG control).
-- windows_manage_stig - Fixed 5 critical Windows 2019 user rights assignment controls (V-205772 through V-205776) for "Create a token object", "Create global objects", "Create permanent shared objects", "Debug programs", and "Impersonate a client after authentication".
-- windows_manage_stig - Fixed duplicate registry control configurations in Windows 2019 implementation to prevent conflicting settings.
-- windows_manage_stig - Fixed Guest account disable implementation (V-205709) using proper win_user module state management.
+- windows_manage_cis - Fixed role failure in check mode by ensuring all informational audit tasks run even when check mode is enabled.
+- windows_manage_cis - Removed custom `windows_manage_cis_check_mode` variable to ensure role consistently respects standard Ansible playbook check mode (`--check`).
+- windows_manage_stig - Fixed V-ID collisions and ensured data integrity across benchmark versions.
+- windows_manage_stig - Fixed a bug in Windows Server 2022 STIG tasks where the system services audit loop referenced an incorrect variable name, causing task failure.
+- windows_manage_stig - Fixed compliance reporting logic for Audit Policies to accept over-compliance (e.g., 'Success and Failure' for a 'Failure' requirement).
+- windows_manage_stig - Fixed compliance scoring logic to correctly mark remediated controls as 'PASS' when changes are successfully applied, ensuring the final compliance score reflects the post-remediation state.
+- windows_manage_stig - Fixed issue where `windows_manage_stig_only_rules` was ignored by audit and remediation tasks, causing all controls to be processed. Now only specified controls are audited and remediated.
+- windows_manage_stig - Fixed issue where manual controls were being displayed even when `windows_manage_stig_only_rules` was set to exclude them. Now manual controls respect both `only_rules` and `skip_rules` filters.
+- windows_manage_stig - Fixed role failure in check mode by ensuring all informational audit tasks run even when check mode is enabled.
+- windows_manage_stig - Fixed various user rights and service configuration errors in 2019 and 2022 benchmarks.
+- windows_manage_stig - Moved connection-breaking controls (LAN Manager Auth, Machine Lockout) to manual documentation to prevent remote admin lockout.
+- windows_manage_stig - Removed unused templates referencing deprecated `windows_manage_stig_check_mode` variable.
 
 v2.0.0
 ======
+
+Release Summary
+---------------
+
+Updated Windows compliance to DISA STIG V2R7 (2022) and V1R1 (2025) with critical fixes for 33 V-ID mapping errors, 6 severity classifications, and audit policy paired controls.
 
 Major Changes
 -------------
