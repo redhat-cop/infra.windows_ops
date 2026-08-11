@@ -1,0 +1,40 @@
+---
+controller_labels:
+  - name: infra.windows_ops
+    organization: "{{ organization | default('Default') }}"
+  - name: manage_init_pattern
+    organization: "{{ organization | default('Default') }}"
+
+controller_execution_environments:
+  - name: apd-ee-25-windows
+    description: Allow running Windows experience demo. Based on apd-ee-25.
+    image: quay.io/p3ck/apd-ee-25-experience:latest
+    pull: always
+
+controller_projects:
+  - name: Windows Operations / Project
+    description: >
+      This project provides the foundation for automating Windows system initialization.
+    organization: Default
+    scm_branch: main
+    scm_clean: 'no'
+    scm_delete_on_update: 'no'
+    scm_type: git
+    scm_update_on_launch: 'yes'
+    scm_url: https://github.com/redhat-cop/infra.windows_ops.git
+    credential: "{{ credential | default(omit, true) }}"
+
+controller_templates:
+  - name: Windows Operations / System Init
+    description: >
+      This job template runs one-time system initialization on Windows.
+    ask_inventory_on_launch: true
+    labels:
+      - infra.windows_ops
+      - manage_init_pattern
+    playbook: "extensions/patterns/manage_init/playbooks/run_manage_init.yml"
+    project: Windows Operations / Project
+    survey_enabled: true
+    survey_spec: "{{ lookup('file', pattern.path.replace('setup.yml', '') + 'template_surveys/manage_init.yml') | from_yaml }}"
+    ask_credential_on_launch: true
+    execution_environment: apd-ee-25-windows

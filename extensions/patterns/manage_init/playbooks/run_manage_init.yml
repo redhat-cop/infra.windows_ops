@@ -1,0 +1,12 @@
+---
+- name: Windows System Initialization Play
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Run system initialization
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_init
+      vars:
+        windows_manage_init_message: "{{ init_message | default('System initialized by Ansible') }}"
+        windows_manage_init_log_message: "{{ init_log_message | default('') }}"
+        windows_manage_init_final_actions: "{{ init_final_actions | default([]) }}"

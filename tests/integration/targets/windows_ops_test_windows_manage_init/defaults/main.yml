@@ -1,0 +1,3 @@
+---
+windows_manage_init_test_file: C:\Windows\ansible_init_test.txt
+windows_manage_init_test_message: "Integration test init marker"

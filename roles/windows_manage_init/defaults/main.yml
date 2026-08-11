@@ -1,0 +1,13 @@
+---
+# Path to the init marker file
+windows_manage_init_file: C:\Windows\init_info_system.txt
+
+# Message written to the init marker file
+windows_manage_init_message: "System initialized by Ansible"
+
+# Event log message (set to empty string to skip event log entry)
+windows_manage_init_log_message: ""
+
+# Final actions after initialization
+# Supported values: reboot, syslog
+windows_manage_init_final_actions: []
