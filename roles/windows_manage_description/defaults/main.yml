@@ -1,0 +1,8 @@
+---
+# System description fields
+# Use the empty string ("") to clear the current value
+# Leave undefined to skip setting that field
+
+# windows_manage_description_organization: "Red Hat"
+# windows_manage_description_owner: "Ansible Team"
+# windows_manage_description_text: "Managed by Ansible"
