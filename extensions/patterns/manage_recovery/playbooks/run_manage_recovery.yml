@@ -1,0 +1,10 @@
+---
+- name: Manage Windows Recovery Environment Play
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Configure recovery environment
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_recovery
+      vars:
+        windows_manage_recovery_enable: "{{ recovery_enable | default(false) }}"

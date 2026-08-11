@@ -1,0 +1,4 @@
+---
+# Whether to enable or disable Windows Recovery Environment
+# true = enable, false = disable
+windows_manage_recovery_enable: false

@@ -1,0 +1,49 @@
+---
+- name: Gather distribution facts
+  ansible.builtin.setup:
+    gather_subset:
+      - distribution
+
+- name: Check Windows Recovery Environment status
+  check_mode: false
+  ansible.windows.win_command: ReAgentc.exe /info
+  changed_when: false
+  register: windows_manage_recovery_status
+
+- name: Enable Windows Recovery Environment
+  ansible.windows.win_powershell:
+    error_action: stop
+    script: |
+      ReAgentc.exe /enable
+      if ($LASTEXITCODE -ne 0) {
+        $Ansible.Failed = $true
+        $Ansible.Result = "Failed to enable Windows Recovery Environment"
+        Exit 1
+      }
+  when:
+    - windows_manage_recovery_enable | bool
+    - "'Disabled' in windows_manage_recovery_status.stdout"
+  register: windows_manage_recovery_enable_result
+
+- name: Disable Windows Recovery Environment
+  ansible.windows.win_powershell:
+    error_action: stop
+    script: |
+      ReAgentc.exe /disable
+      if ($LASTEXITCODE -ne 0) {
+        $Ansible.Failed = $true
+        $Ansible.Result = "Failed to disable Windows Recovery Environment"
+        Exit 1
+      }
+  when:
+    - not windows_manage_recovery_enable | bool
+    - "'Enabled' in windows_manage_recovery_status.stdout"
+  register: windows_manage_recovery_disable_result
+
+- name: Remove Recovery partition data
+  ansible.windows.win_file:
+    path: C:\Recovery
+    state: absent
+  when:
+    - not windows_manage_recovery_enable | bool
+    - windows_manage_recovery_disable_result is changed

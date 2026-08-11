@@ -1,0 +1,13 @@
+---
+name: "Manage Recovery Environment Survey"
+description: "Survey to manage Windows Recovery Environment"
+spec:
+  - type: "multiplechoice"
+    question_name: "Recovery Environment"
+    question_description: "Enable or disable Windows Recovery Environment"
+    variable: "recovery_enable"
+    required: true
+    default: "false"
+    choices:
+      - "true"
+      - "false"
