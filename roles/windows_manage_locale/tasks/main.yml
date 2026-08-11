@@ -1,0 +1,344 @@
+---
+- name: Configure locale settings
+  check_mode: false
+  ansible.windows.win_powershell:
+    error_action: stop
+    script: |
+      $Ansible.Changed = $false
+
+      if (-not (Get-WmiObject -Class Win32_OperatingSystem).MUILanguages.Contains('{{ windows_manage_locale_ui }}')) {
+        $Ansible.Result = 'No MUI language pack installed for {{ windows_manage_locale_ui }}.'
+        $Ansible.Failed = $true
+        Exit 1
+      }
+
+      $sli = '{{ windows_manage_locale_input }}'
+      if ($sli -match ',' -or ($sli -notmatch '-' -and $sli -notmatch ':')) {
+        $Ansible.Result = 'Invalid value "{{ windows_manage_locale_input }}" for windows_manage_locale_input.'
+        $Ansible.Failed = $true
+        Exit 1
+      }
+
+      if ((Get-WinHomeLocation).GeoId -ne '{{ windows_manage_locale_location }}') {
+        $Ansible.Changed = $true
+        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+        Set-WinHomeLocation -GeoId {{ windows_manage_locale_location }}
+      }
+
+      if ((Get-WinSystemLocale).Name -ne '{{ windows_manage_locale_system }}') {
+        $Ansible.Changed = $true
+        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+        Set-WinSystemLocale -SystemLocale {{ windows_manage_locale_system }}
+      }
+
+      if ((Get-WmiObject -Class Win32_OperatingSystem).MUILanguages.Length -eq 1 -and
+          $null -ne (Get-WinUILanguageOverride)) {
+        $Ansible.Changed = $true
+        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+        Set-WinUILanguageOverride
+      }
+      if ((Get-WmiObject -Class Win32_OperatingSystem).MUILanguages.Length -gt 1 -and
+          (Get-WinUILanguageOverride).TextInfo.CultureName -ne '{{ windows_manage_locale_ui }}') {
+        $Ansible.Changed = $true
+        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+        Set-WinUILanguageOverride -Language {{ windows_manage_locale_ui }}
+      }
+
+      if ((Get-Culture).Name -ne '{{ windows_manage_locale_user }}') {
+        $Ansible.Changed = $true
+        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+        Set-Culture -CultureInfo {{ windows_manage_locale_user }}
+      }
+
+      if (Get-WinDefaultInputMethodOverride) {
+        $Ansible.Changed = $true
+        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+        Set-WinDefaultInputMethodOverride
+      }
+
+      function Get-inputInfo($lang) {
+        try {
+          if ($lang.Contains('-')) {
+            $code = ('{0:x4}' -f [cultureinfo]::GetCultureInfo($lang).LCID).ToUpper()
+            $name = $lang
+            $tips = ((New-WinUserLanguageList -Language $lang)[0].InputMethodTips)[0]
+          } else {
+            $code = ($lang -split ':')[0]
+            $name = [cultureinfo]::GetCultureInfo([int]('0x' + $code)).Name
+            $tips = $lang
+          }
+        }
+        catch {
+          $Ansible.Result = "Invalid input profile: $lang."
+          $Ansible.Failed = $true
+          Exit 1
+        }
+        return $code, $name, $tips
+      }
+
+      $inputLocales = '{{ windows_manage_locale_input }}'.TrimEnd(';') -split ';'
+      if ('{{ windows_manage_locale_user }}' -notin $inputLocales) {
+        $inputLocales += '{{ windows_manage_locale_user }}'
+      }
+
+      $inputConfig = [ordered]@{}
+      foreach ($item in $inputLocales) {
+        $code, $name, $tips = Get-inputInfo($item)
+        if ($tips -notin $inputConfig.Keys) {
+          $inputConfig.Add($tips, ($code, $name))
+        }
+      }
+      $inputSorted = [ordered]@{}
+      $key = ([string[]]$inputConfig.Keys)[0]
+      $inputSorted[$key] = $inputConfig[$key]
+      foreach ($key in $inputConfig.Keys | Select-Object -Skip 1 | Sort-Object -Property {$inputConfig[$_][0]}) {
+        $inputSorted[$key] = $inputConfig[$key]
+      }
+
+      $newLangList = New-WinUserLanguageList -Language $inputSorted[0][1]
+      $newLangList[0].InputMethodTips.Clear()
+      $newLangList[0].InputMethodTips.Add(([string[]]$inputSorted.Keys)[0])
+
+      foreach ($item in $inputSorted.GetEnumerator() | Select-Object -Skip 1) {
+        $i = [array]::IndexOf($newLangList.LanguageTag, $item.Value[1])
+        if ($i -eq -1) {
+          $newLangList.Add($item.Value[1])
+          $newLangList[-1].InputMethodTips.Clear()
+          $newLangList[-1].InputMethodTips.Add($item.Key)
+        } else {
+          if ($item.Key -notin $newLangList[$i].InputMethodTips) {
+            $newLangList[$i].InputMethodTips.Add($item.Key)
+          }
+        }
+      }
+
+      $oldLangList = Get-WinUserLanguageList
+
+      $shortened = @{}
+      foreach ($item in $oldLangList.GetEnumerator()) {
+        if ($item.LanguageTag -notmatch '-') {
+          foreach ($tip in $item.InputMethodTips) {
+            if ($inputSorted.Keys -contains $tip) {
+              $shortened[$inputSorted[$tip][1]] = $item.LanguageTag
+              break
+            }
+          }
+        }
+      }
+
+      $needUpdate = $false
+      if (([array]($oldLangList)).Length -ne ([array]($newLangList)).Length) {
+        $needUpdate = $true
+      } else {
+        foreach ($i in 0..(([array]($oldLangList)).Length-1)) {
+          if (Compare-Object `
+               -ReferenceObject $oldLangList[$i] -DifferenceObject $newLangList[$i] `
+               -Property Autonym, InputMethodTips) {
+            $needUpdate = $true
+            break
+          }
+        }
+      }
+
+      if ($needUpdate) {
+        $Ansible.Changed = $true
+        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+        Set-WinUserLanguageList -LanguageList $newLangList -Force
+      }
+
+      $needUpdate = $false
+      $props = (Get-Item -Path 'HKCU:\Keyboard Layout\Preload').Property | Sort-Object
+      if ($props.Length -ne ([string[]]$inputSorted.Keys).Length) {
+        $needUpdate = $true
+      } else {
+        foreach ($i in 1..(([string[]]$inputSorted.Keys).Length)) {
+          if ($i -eq 1) { $prefix = 'd001' } else { $prefix = '0000' }
+          $old = Get-ItemPropertyValue -Path 'HKCU:\Keyboard Layout\Preload' -Name $i
+          $new = $prefix + $inputSorted[$i-1][0].ToLower()
+          if ($old -ne $new) {
+            $needUpdate = $true
+            break
+          }
+        }
+      }
+      if ($needUpdate) {
+        $Ansible.Changed = $true
+        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+        foreach ($i in 1..(([string[]]$inputSorted.Keys).Length)) {
+          if ($i -eq 1) { $prefix = 'd001' } else { $prefix = '0000' }
+          $new = $prefix + $inputSorted[$i-1][0].ToLower()
+          Set-ItemProperty -Path 'HKCU:\Keyboard Layout\Preload' -Name $i -Value $new
+        }
+        if ($props.Length -gt ([string[]]$inputSorted.Keys).Length) {
+          foreach ($i in (([string[]]$inputSorted.Keys).Length+1)..$props.Length) {
+            Remove-ItemProperty -Path 'HKCU:\Keyboard Layout\Preload' -Name $i
+          }
+        }
+      }
+
+      if (-not (Test-Path 'HKCU:\Keyboard Layout\Substitutes')) {
+        New-Item -Path 'HKCU:\Keyboard Layout\Substitutes'
+      }
+      $i = 0
+      $subs = @()
+      foreach ($key in $inputConfig.Keys) {
+        $l, $k = $key -split ':'
+        if (-not $k.EndsWith($l)) {
+          $i++
+          if ($i -eq 1) { $prefix = 'd001' } else { $prefix = '0000' }
+          $name = $prefix + $l.ToLower()
+          $subs += $name
+          try {
+            $curr = Get-ItemPropertyValue -Path 'HKCU:\Keyboard Layout\Substitutes' -Name $name
+          }
+          catch {
+            $curr = $null
+          }
+          if ($curr -ne $k.ToLower()) {
+            $Ansible.Changed = $true
+            if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+            Set-ItemProperty -Path 'HKCU:\Keyboard Layout\Substitutes' -Name $name -Value $k.ToLower()
+          }
+        }
+      }
+      $props = (Get-Item -Path 'HKCU:\Keyboard Layout\Substitutes').Property
+      if ($props.Length -ne $i) {
+        foreach ($p in $props) {
+          if ($p -notin $subs) {
+            $Ansible.Changed = $true
+            if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+            Remove-ItemProperty -Path 'HKCU:\Keyboard Layout\Substitutes' -Name $p
+          }
+        }
+      }
+
+      $sid = [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+      $path = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\SystemProtectedUserData\$sid\AnyoneRead\LanguageProfile"
+      if (Test-Path -Path $path) {
+        try {
+          if ($Ansible.Changed) { $langRef = $newLangList } else { $langRef = $oldLangList }
+          $prof = Get-ItemPropertyValue -Path $path -Name Profile
+          $orig = $prof -replace 'CachedLanguageName\+S@Winlangdb\.dll,-\d+&', ''
+          $langStr = '#Languages+M'
+          foreach ($item in $langRef.LanguageTag) {
+            $name = $item
+            if ($shortened.Keys -contains $item) {
+              $name = $shortened[$item]
+            }
+            $langStr += $name + '@'
+          }
+          $prof = $prof -replace '#Languages\+M.*@&', ($langStr + '&')
+          $langSorted = [ordered]@{}
+          foreach ($key in $inputConfig.Keys | `
+            Sort-Object -Property @{Expression = {$inputConfig[$_][1]}}, `
+                                  @{Expression = {[array]::IndexOf($inputConfig.Keys, $_)}}) {
+            $langSorted[$key] = $inputConfig[$key]
+          }
+          $userStr = ''
+          $prevLang = $null
+          foreach ($item in $langSorted.GetEnumerator()) {
+            if ($prevLang -ne $item.Value[1]) {
+              $d = 1
+              $name = $item.Value[1]
+              if ($shortened.Keys -contains $item.Value[1]) {
+                $name = $shortened[$item.Value[1]]
+              }
+              $userStr += '%User Profile/' + $name + '#' + $item.Key + '+D' + $d
+            } else {
+              $d++
+              $userStr += '&' + $item.Key + '+D' + $d
+            }
+            $prevLang = $item.Value[1]
+          }
+          $prof = $prof -replace '%User Profile/.*', $userStr
+          if ($orig -ne $prof) {
+            $Ansible.Changed = $true
+            if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+            Set-ItemProperty -Path $path -Name Profile -Value $prof
+          }
+        }
+        catch [System.Security.SecurityException] {
+          # Protected registry key not accessible, skip language profile update
+        }
+      }
+
+      if ((Get-WinCultureFromLanguageListOptOut) -eq $true) {
+        $Ansible.Changed = $true
+        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+        Set-WinCultureFromLanguageListOptOut -OptOut $false
+      }
+  register: windows_manage_locale_config
+
+- name: Check for Copy-UserInternationalSettingsToSystem cmdlet
+  check_mode: false
+  ansible.windows.win_powershell:
+    error_action: stop
+    script: |
+      $Ansible.Changed = $false
+      if ((Get-Command -Name Copy-UserInternationalSettingsToSystem -ErrorAction Ignore)) {
+        $Ansible.Result = 'Copy-UserInternationalSettingsToSystem cmdlet is available.'
+      } else {
+        $Ansible.Result = 'Copy-UserInternationalSettingsToSystem cmdlet not found.'
+      }
+  register: windows_manage_locale_copy_cmdlet
+  when: windows_manage_locale_welcome_screen_update_always | bool or
+        windows_manage_locale_config is changed
+
+- name: Copy locale settings to Welcome Screen and new users
+  ansible.windows.win_powershell:
+    error_action: stop
+    script: |
+      Copy-UserInternationalSettingsToSystem -WelcomeScreen $true -NewUser $true
+  register: windows_manage_locale_welcome
+  when:
+    - windows_manage_locale_welcome_screen_update_always | bool or
+      windows_manage_locale_config is changed
+    - "'is available' in windows_manage_locale_copy_cmdlet.result"
+
+- name: Copy locale settings to Welcome Screen and new users (legacy method)
+  ansible.windows.win_powershell:
+    error_action: stop
+    script: |
+      New-PSDrive -Name HKU -PSProvider Registry -Root HKEY_USERS
+
+      function Copy-RegistryKey($source, $target) {
+        Copy-Item -LiteralPath $source -Destination $target
+        foreach ($key in Get-ChildItem -LiteralPath $source) {
+          $sourceKey = "$source\$($key.PSChildName)"
+          $targetKey = (Get-Item -LiteralPath $source).PSChildName
+          Copy-RegistryKey -source "$sourceKey" -target "$target\$targetKey"
+        }
+      }
+
+      $sids = '.DEFAULT', 'S-1-5-18', 'S-1-5-19', 'S-1-5-20'
+      foreach ($sid in $sids) {
+        if (Test-Path -Path "HKU:\$sid\Keyboard Layout") {
+          Remove-Item -Path "HKU:\$sid\Keyboard Layout" -Recurse
+        }
+        Copy-RegistryKey -source 'HKCU:\Keyboard Layout' -target "HKU:\$sid"
+        if (Test-Path -Path "HKU:\$sid\Control Panel\Input Method") {
+          Remove-Item -Path "HKU:\$sid\Control Panel\Input Method" -Recurse
+        }
+        Copy-RegistryKey -source 'HKCU:\Control Panel\Input Method' -target "HKU:\$sid\Control Panel"
+        if (Test-Path -Path "HKU:\$sid\Control Panel\International") {
+          Remove-Item -Path "HKU:\$sid\Control Panel\International" -Recurse
+        }
+        Copy-RegistryKey -source 'HKCU:\Control Panel\International' -target "HKU:\$sid\Control Panel"
+      }
+
+      Remove-PSDrive HKU
+  register: windows_manage_locale_legacy
+  when:
+    - windows_manage_locale_welcome_screen_update_always | bool or
+      windows_manage_locale_config is changed
+    - "'is available' not in windows_manage_locale_copy_cmdlet.result"
+
+- name: Reboot system
+  ansible.windows.win_reboot:
+    reboot_timeout: 600
+    msg: "Ansible reboot after locale configuration"
+  when:
+    - windows_manage_locale_reboot | bool
+    - windows_manage_locale_config is changed or
+      windows_manage_locale_welcome is changed or
+      windows_manage_locale_legacy is changed
