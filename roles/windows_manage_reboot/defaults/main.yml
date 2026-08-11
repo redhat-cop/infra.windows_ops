@@ -1,0 +1,12 @@
+---
+# Timeout in seconds to wait for the system to reboot
+windows_manage_reboot_timeout: 600
+
+# Delay in seconds before initiating the reboot
+windows_manage_reboot_delay_pre: 2
+
+# Delay in seconds after the reboot before continuing
+windows_manage_reboot_delay_post: 0
+
+# Message displayed to users before the reboot
+windows_manage_reboot_message: Reboot initiated by Ansible
