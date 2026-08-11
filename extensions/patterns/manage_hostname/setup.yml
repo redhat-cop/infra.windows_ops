@@ -1,0 +1,53 @@
+---
+# Labels
+#
+controller_labels:
+  - name: infra.windows_ops
+    organization: "{{ organization | default('Default') }}"
+  - name: manage_hostname_pattern
+    organization: "{{ organization | default('Default') }}"
+  - name: run_manage_hostname
+    organization: "{{ organization | default('Default') }}"
+
+# Execution Environments
+#
+controller_execution_environments:
+  - name: apd-ee-25-windows
+    description: Allow running Windows experience demo. Based on apd-ee-25.
+    image: quay.io/p3ck/apd-ee-25-experience:latest
+    pull: always
+
+# Projects
+#
+controller_projects:
+  - name: Windows Operations / Project
+    description: >
+      This project provides the foundation for automating Windows system hostname configuration.
+      It organizes all necessary resources, including playbooks, job templates, and surveys, to ensure
+      seamless management of Windows hostnames.
+    organization: Default
+    scm_branch: main
+    scm_clean: 'no'
+    scm_delete_on_update: 'no'
+    scm_type: git
+    scm_update_on_launch: 'yes'
+    scm_url: https://github.com/redhat-cop/infra.windows_ops.git
+    credential: "{{ credential | default(omit, true) }}"
+
+# Job Templates
+#
+controller_templates:
+  - name: Windows Operations / Manage Hostname
+    description: >
+      This job template configures the Windows system hostname with validation and optional reboot.
+    ask_inventory_on_launch: true
+    labels:
+      - infra.windows_ops
+      - manage_hostname_pattern
+      - run_manage_hostname
+    playbook: "extensions/patterns/manage_hostname/playbooks/run_manage_hostname.yml"
+    project: Windows Operations / Project
+    survey_enabled: true
+    survey_spec: "{{ lookup('file', pattern.path.replace('setup.yml', '') + 'template_surveys/manage_hostname.yml') | from_yaml }}"
+    ask_credential_on_launch: true
+    execution_environment: apd-ee-25-windows

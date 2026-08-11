@@ -1,0 +1,21 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Configure Windows system hostname.
+    description:
+      - Configure Windows system hostname with validation and optional reboot.
+      - Validates hostname length (max 63 characters) and DNS naming rules.
+    options:
+      windows_manage_hostname_name:
+        type: str
+        description:
+          - The hostname to configure on the system.
+          - Should be a short name (not FQDN) and valid for DNS.
+        required: true
+      windows_manage_hostname_reboot:
+        type: bool
+        description:
+          - Whether to reboot the system after a hostname change.
+          - A reboot is required for the hostname change to take effect.
+        default: true

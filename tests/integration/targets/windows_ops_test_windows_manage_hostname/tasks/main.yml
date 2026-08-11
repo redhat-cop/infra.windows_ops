@@ -1,0 +1,72 @@
+---
+- name: Save original hostname
+  ansible.builtin.set_fact:
+    windows_manage_hostname_original: "{{ ansible_facts.hostname }}"
+
+- name: Test hostname configuration
+  block:
+    - name: Set hostname
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_hostname
+      vars:
+        windows_manage_hostname_name: "{{ windows_manage_hostname_test }}"
+        windows_manage_hostname_reboot: true
+
+    - name: Gather facts after reboot
+      ansible.windows.setup:
+        gather_subset:
+          - '!all'
+          - '!min'
+          - platform
+
+    - name: Verify hostname was changed
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.hostname == windows_manage_hostname_test
+        fail_msg: "Hostname was not changed to {{ windows_manage_hostname_test }}"
+
+    - name: Run role again to verify idempotency
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_hostname
+      vars:
+        windows_manage_hostname_name: "{{ windows_manage_hostname_test }}"
+        windows_manage_hostname_reboot: false
+      register: windows_manage_hostname_idempotency
+
+    - name: Test invalid hostname is rejected
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_hostname
+      vars:
+        windows_manage_hostname_name: "-invalid-hostname"
+        windows_manage_hostname_reboot: false
+      register: windows_manage_hostname_invalid
+      ignore_errors: true
+
+    - name: Verify invalid hostname was rejected
+      ansible.builtin.assert:
+        that:
+          - windows_manage_hostname_invalid is failed
+        fail_msg: "Invalid hostname should have been rejected"
+
+    - name: Test hostname too long is rejected
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_hostname
+      vars:
+        windows_manage_hostname_name: "{{ 'A' * 64 }}"
+        windows_manage_hostname_reboot: false
+      register: windows_manage_hostname_long
+      ignore_errors: true
+
+    - name: Verify long hostname was rejected
+      ansible.builtin.assert:
+        that:
+          - windows_manage_hostname_long is failed
+        fail_msg: "Hostname exceeding 63 characters should have been rejected"
+
+  always:
+    - name: Restore original hostname
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_hostname
+      vars:
+        windows_manage_hostname_name: "{{ windows_manage_hostname_original }}"
+        windows_manage_hostname_reboot: true

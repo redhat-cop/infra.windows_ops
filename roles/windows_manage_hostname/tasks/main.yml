@@ -1,0 +1,40 @@
+---
+- name: Gather needed facts
+  ansible.windows.setup:
+    gather_subset:
+      - '!all'
+      - '!min'
+      - platform
+  when: ansible_facts.hostname is not defined
+
+- name: Fail if hostname is too long
+  ansible.builtin.fail:
+    msg: "Maximum hostname length allowed is 63 characters."
+  when: windows_manage_hostname_name | length > 63
+
+- name: Fail if hostname is invalid
+  ansible.builtin.fail:
+    msg: "The provided hostname is invalid."
+  when: >
+    windows_manage_hostname_name | regex_search("[^a-zA-Z0-9-.:]") is not none or
+    windows_manage_hostname_name.startswith('-') or
+    windows_manage_hostname_name.startswith('.') or
+    windows_manage_hostname_name.endswith('-') or
+    windows_manage_hostname_name.endswith('.')
+
+- name: Configure system hostname
+  ansible.windows.win_hostname:
+    name: "{{ windows_manage_hostname_name }}"
+  register: windows_manage_hostname_result
+  when:
+    - "':' not in windows_manage_hostname_name"
+    - windows_manage_hostname_name != 'localhost.localdomain'
+    - windows_manage_hostname_name | regex_search('[a-zA-Z]') is not none
+
+- name: Reboot system
+  ansible.windows.win_reboot:
+    reboot_timeout: 600
+    msg: "Ansible reboot after system hostname change"
+  when:
+    - windows_manage_hostname_reboot | bool
+    - windows_manage_hostname_result.reboot_required

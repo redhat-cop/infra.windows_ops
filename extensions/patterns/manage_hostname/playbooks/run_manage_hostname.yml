@@ -1,0 +1,11 @@
+---
+- name: Configure Windows Hostname Play
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Configure system hostname
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_hostname
+      vars:
+        windows_manage_hostname_name: "{{ hostname_name }}"
+        windows_manage_hostname_reboot: "{{ hostname_reboot | default(true) }}"
