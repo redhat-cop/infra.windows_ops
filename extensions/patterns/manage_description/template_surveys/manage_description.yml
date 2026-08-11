@@ -1,0 +1,21 @@
+---
+name: "Manage Description Configuration Survey"
+description: "Survey to configure Windows system description fields"
+spec:
+  - type: "text"
+    question_name: "Organization"
+    question_description: "The registered organization for the system"
+    variable: "description_organization"
+    required: false
+
+  - type: "text"
+    question_name: "Owner"
+    question_description: "The registered owner of the system"
+    variable: "description_owner"
+    required: false
+
+  - type: "text"
+    question_name: "Description"
+    question_description: "The system description text"
+    variable: "description_text"
+    required: false

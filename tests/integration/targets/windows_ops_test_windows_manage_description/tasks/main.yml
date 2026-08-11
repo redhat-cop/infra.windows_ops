@@ -1,0 +1,47 @@
+---
+- name: Test system description configuration
+  block:
+    - name: Set system description
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_description
+      vars:
+        windows_manage_description_organization: "{{ windows_manage_description_test_org }}"
+        windows_manage_description_owner: "{{ windows_manage_description_test_owner }}"
+        windows_manage_description_text: "{{ windows_manage_description_test_text }}"
+
+    - name: Verify description was set
+      ansible.windows.win_powershell:
+        script: |
+          $os = Get-CimInstance -ClassName Win32_OperatingSystem
+          $Ansible.Result = @{
+            organization = $os.Organization
+            owner = $os.RegisteredUser
+            description = $os.Description
+          }
+      register: windows_manage_description_verify
+
+    - name: Assert description values
+      ansible.builtin.assert:
+        that:
+          - windows_manage_description_verify.result.organization == windows_manage_description_test_org
+          - windows_manage_description_verify.result.owner == windows_manage_description_test_owner
+          - windows_manage_description_verify.result.description == windows_manage_description_test_text
+        fail_msg: "System description was not set correctly"
+
+    - name: Run role again to verify idempotency
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_description
+      vars:
+        windows_manage_description_organization: "{{ windows_manage_description_test_org }}"
+        windows_manage_description_owner: "{{ windows_manage_description_test_owner }}"
+        windows_manage_description_text: "{{ windows_manage_description_test_text }}"
+      register: windows_manage_description_idempotent
+
+  always:
+    - name: Clear system description
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_description
+      vars:
+        windows_manage_description_organization: ""
+        windows_manage_description_owner: ""
+        windows_manage_description_text: ""

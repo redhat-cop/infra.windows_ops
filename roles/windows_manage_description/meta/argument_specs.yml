@@ -1,0 +1,22 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Configure Windows system description.
+    description:
+      - Configure Windows system description, organization, and owner fields.
+      - All fields are optional. Undefined fields are not modified.
+      - Use an empty string to clear a field.
+    options:
+      windows_manage_description_organization:
+        type: str
+        description:
+          - The registered organization for the system.
+      windows_manage_description_owner:
+        type: str
+        description:
+          - The registered owner of the system.
+      windows_manage_description_text:
+        type: str
+        description:
+          - The system description text.
