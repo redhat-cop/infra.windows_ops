@@ -1,0 +1,12 @@
+---
+- name: Configure Windows System Description Play
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Configure system description
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_description
+      vars:
+        windows_manage_description_organization: "{{ description_organization | default(omit) }}"
+        windows_manage_description_owner: "{{ description_owner | default(omit) }}"
+        windows_manage_description_text: "{{ description_text | default(omit) }}"

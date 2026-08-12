@@ -1,0 +1,9 @@
+---
+- name: Configure system description
+  ansible.windows.win_computer_description:
+    organization: "{{ windows_manage_description_organization | default(omit) }}"
+    owner: "{{ windows_manage_description_owner | default(omit) }}"
+    description: "{{ windows_manage_description_text | default(omit) }}"
+  when: windows_manage_description_organization is defined or
+        windows_manage_description_owner is defined or
+        windows_manage_description_text is defined

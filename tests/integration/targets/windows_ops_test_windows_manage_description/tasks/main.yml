@@ -1,0 +1,43 @@
+---
+- name: Test system description configuration
+  block:
+    - name: Capture current description
+      ansible.windows.setup:
+        gather_subset:
+          - min
+      register: windows_manage_description_facts
+
+    - name: Record original description
+      ansible.builtin.set_fact:
+        windows_manage_description_original: "{{ windows_manage_description_facts.ansible_facts.ansible_system_description | default('', true) }}"
+
+    - name: Set system description
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_description
+      vars:
+        windows_manage_description_text: "{{ windows_manage_description_test_text }}"
+
+    - name: Gather facts to verify description was set
+      ansible.windows.setup:
+        gather_subset:
+          - min
+      register: windows_manage_description_verify_facts
+
+    - name: Assert description value
+      ansible.builtin.assert:
+        that:
+          - windows_manage_description_verify_facts.ansible_facts.ansible_system_description == windows_manage_description_test_text
+        fail_msg: "System description was not set correctly"
+
+    - name: Run role again to verify idempotency
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_description
+      vars:
+        windows_manage_description_text: "{{ windows_manage_description_test_text }}"
+
+  always:
+    - name: Restore original description
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_description
+      vars:
+        windows_manage_description_text: "{{ windows_manage_description_original | default('', true) }}"
