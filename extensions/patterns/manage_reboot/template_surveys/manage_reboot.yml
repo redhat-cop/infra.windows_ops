@@ -1,0 +1,17 @@
+---
+name: "Reboot System Configuration Survey"
+description: "Survey to configure Windows system reboot options"
+spec:
+  - type: "integer"
+    question_name: "Reboot Timeout"
+    question_description: "Maximum time in seconds to wait for the system to reboot and become reachable"
+    variable: "reboot_timeout"
+    required: true
+    default: 600
+
+  - type: "text"
+    question_name: "Reboot Message"
+    question_description: "Message displayed to logged-in users before the reboot"
+    variable: "reboot_message"
+    required: false
+    default: "Reboot initiated by Ansible"

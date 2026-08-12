@@ -1,0 +1,28 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Reboot a Windows system.
+    description:
+      - Reboot a Windows system with configurable pre/post delays, timeout, and user message.
+    options:
+      windows_manage_reboot_timeout:
+        type: float
+        description:
+          - Maximum time in seconds to wait for the system to reboot and become reachable.
+        default: 600
+      windows_manage_reboot_delay_pre:
+        type: float
+        description:
+          - Delay in seconds before initiating the reboot.
+        default: 2
+      windows_manage_reboot_delay_post:
+        type: float
+        description:
+          - Delay in seconds after the reboot before continuing with tasks.
+        default: 0
+      windows_manage_reboot_message:
+        type: str
+        description:
+          - Message displayed to logged-in users before the reboot.
+        default: "Reboot initiated by Ansible"

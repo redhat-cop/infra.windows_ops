@@ -1,0 +1,3 @@
+---
+windows_manage_reboot_test_timeout: 300
+windows_manage_reboot_test_message: "Integration test reboot"

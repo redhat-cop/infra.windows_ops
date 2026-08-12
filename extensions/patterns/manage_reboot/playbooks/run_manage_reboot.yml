@@ -1,0 +1,11 @@
+---
+- name: Reboot Windows System Play
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Reboot system
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_reboot
+      vars:
+        windows_manage_reboot_timeout: "{{ reboot_timeout | default(600) }}"
+        windows_manage_reboot_message: "{{ reboot_message | default('Reboot initiated by Ansible') }}"

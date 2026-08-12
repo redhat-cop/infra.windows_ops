@@ -1,0 +1,17 @@
+---
+- name: Reboot the system
+  ansible.builtin.include_role:
+    name: infra.windows_ops.windows_manage_reboot
+  vars:
+    windows_manage_reboot_timeout: "{{ windows_manage_reboot_test_timeout }}"
+    windows_manage_reboot_message: "{{ windows_manage_reboot_test_message }}"
+
+- name: Verify system is reachable after reboot
+  ansible.windows.win_ping:
+  register: windows_manage_reboot_ping
+
+- name: Assert system is reachable
+  ansible.builtin.assert:
+    that:
+      - windows_manage_reboot_ping.ping == 'pong'
+    fail_msg: "System is not reachable after reboot"
