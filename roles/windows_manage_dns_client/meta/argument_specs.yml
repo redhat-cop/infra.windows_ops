@@ -1,0 +1,35 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Configure Windows DNS client settings.
+    description:
+      - Configure DNS servers and suffix search lists per network adapter.
+      - Automatically flushes the DNS resolver cache after changes.
+    options:
+      windows_manage_dns_client_configurations:
+        type: list
+        elements: dict
+        description:
+          - List of DNS client configurations to apply.
+          - Each item configures DNS servers for one or more network adapters.
+        default: []
+        options:
+          adapter_names:
+            type: raw
+            description:
+              - Adapter name or list of adapter names to configure.
+              - Use C('*') for all adapters.
+            required: true
+          dns_servers:
+            type: list
+            elements: str
+            description:
+              - Ordered list of DNS server IP addresses.
+            required: true
+          suffix_search_list:
+            type: list
+            elements: str
+            description:
+              - DNS suffix search list for name resolution.
+            required: false

@@ -1,0 +1,14 @@
+---
+- name: Configure DNS client
+  ansible.windows.win_dns_client:
+    adapter_names: "{{ item.adapter_names }}"
+    dns_servers: "{{ item.dns_servers }}"
+    suffix_search_list: "{{ item.suffix_search_list | default(omit, true) }}"
+  register: windows_manage_dns_client_result
+  loop: "{{ windows_manage_dns_client_configurations | select }}"
+  loop_control:
+    label: "{{ item.adapter_names }}"
+
+- name: Flush DNS resolver cache
+  ansible.windows.win_command: ipconfig.exe /flushdns
+  when: windows_manage_dns_client_result is changed

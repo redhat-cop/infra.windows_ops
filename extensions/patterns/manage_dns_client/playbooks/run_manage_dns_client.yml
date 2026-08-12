@@ -1,0 +1,13 @@
+---
+- name: Manage Windows DNS Client
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Configure DNS client
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_dns_client
+      vars:
+        windows_manage_dns_client_configurations:
+          - adapter_names: "{{ dns_client_adapter_names | default('*') }}"  # Set by survey
+            dns_servers: "{{ dns_client_dns_servers | split(',') }}"  # Set by survey
+...

@@ -1,0 +1,12 @@
+---
+# List of DNS client configurations
+# Each item requires: adapter_names, dns_servers
+# Optional: suffix_search_list
+windows_manage_dns_client_configurations: []
+#  - adapter_names: '*'
+#    dns_servers:
+#      - 1.1.1.1
+#      - 8.8.8.8
+#    suffix_search_list:
+#      - contoso.com
+#      - example.com

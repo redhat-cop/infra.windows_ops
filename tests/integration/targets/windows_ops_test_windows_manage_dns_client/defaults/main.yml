@@ -1,0 +1,8 @@
+---
+windows_manage_dns_client_test_adapter: Ethernet Instance 0
+windows_manage_dns_client_test_dns_a:
+  - 10.46.109.207
+  - 8.8.8.8
+windows_manage_dns_client_test_dns_b:
+  - 10.46.109.207
+  - 1.1.1.1

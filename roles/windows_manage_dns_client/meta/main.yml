@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  author: Hen Yaish
+  description: Configure Windows DNS client settings
+  company: Red Hat
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.18"
+  platforms:
+    - name: Windows
+      versions:
+        - all
+  galaxy_tags:
+    - windows
+    - dns
+    - networking
+    - system
+
+dependencies: []
