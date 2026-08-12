@@ -1,3 +1,4 @@
 ---
 minor_changes:
-  - "windows_manage_winrm - new role for configuring Windows Remote Management service, listeners, and firewall rules."
+  - "windows_manage_winrm - new role for configuring Windows Remote Management service, listeners, and firewall rules
+    (https://github.com/redhat-cop/infra.windows_ops/pull/74)."
