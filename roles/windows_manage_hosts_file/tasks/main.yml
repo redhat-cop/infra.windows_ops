@@ -55,8 +55,4 @@
   ansible.windows.win_copy:
     content: "{{ _hosts_content }}"
     dest: C:\Windows\System32\drivers\etc\hosts
-  register: windows_manage_hosts_file_result
-
-- name: Flush DNS resolver cache
-  ansible.windows.win_command: ipconfig.exe /flushdns
-  when: windows_manage_hosts_file_result is changed
+  notify: Flush DNS resolver cache
