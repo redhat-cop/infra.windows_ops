@@ -7,6 +7,6 @@
       ansible.builtin.include_role:
         name: infra.windows_ops.windows_manage_hosts_file
       vars:
-        windows_manage_hosts_file_entries: "{{ hosts_file_entries | default([]) | split('\n') if hosts_file_entries is string else hosts_file_entries | default([]) }}"  # Set by survey
+        windows_manage_hosts_file_entries: "{{ (hosts_file_entries.split('\n') | reject('equalto', '') | list) if hosts_file_entries is string and hosts_file_entries | length > 0 else (hosts_file_entries if hosts_file_entries is not string else []) | default([]) }}"  # Set by survey
         windows_manage_hosts_file_self_add: "{{ hosts_file_self_add | default(false) | bool }}"  # Set by survey
 ...

@@ -20,39 +20,7 @@
     - not windows_manage_hosts_file_self_domain | default(ansible_facts.domain, true)
 
 - name: Create hosts file
-  vars:
-    _default_ipv4: "{{ ansible_facts.ip_addresses | map('regex_search', '^\\d+(\\.\\d+){3}$') | select | first }}"
-    _default_ipv6: "{{ ansible_facts.ip_addresses | map('regex_search', '.*:.*') | select | first }}"
-    _self_host: "{{ ansible_facts.hostname.split('.')[0] }}"
-    _self_domain: "{{ windows_manage_hosts_file_self_domain | default(ansible_facts.domain, true) }}"
-    _self_fqdn: "{{ _self_host + '.' + _self_domain }}"
-    _hosts_self: |
-      {% if windows_manage_hosts_file_self_add | bool and 'localhost' not in ansible_facts.hostname %}
-      {% if _self_domain != '' and
-            windows_manage_hosts_file_omit_entries != 'ipv4' and
-            _default_ipv4 is defined and
-            _default_ipv4 | length > 0 %}
-      {{ '%-16s' | format(_default_ipv4) }} {{ _self_fqdn }} {{ _self_host }}
-      {% endif %}
-      {% if _self_domain != '' and
-            windows_manage_hosts_file_omit_entries != 'ipv6' and
-            _default_ipv6 is defined and
-            _default_ipv6 | length > 0 %}
-      {{ '%-40s' | format(_default_ipv6) }} {{ _self_fqdn }} {{ _self_host }}
-      {% endif %}
-      {% endif %}
-    _hosts_content: |
-      {% for line in (windows_manage_hosts_file_header.split('\n') if windows_manage_hosts_file_header else ['omit']) +
-                     (_hosts_self.split('\n') if windows_manage_hosts_file_self_add | bool else ['omit']) +
-                     (windows_manage_hosts_file_entries | default(['omit'], true)) %}
-      {% if line !='omit' and
-            (windows_manage_hosts_file_omit_entries == 'none' or
-             (windows_manage_hosts_file_omit_entries == 'ipv4' and '.' not in line.split(' ')[0]) or
-             (windows_manage_hosts_file_omit_entries == 'ipv6' and ':' not in line.split(' ')[0])) %}
-      {{ line }}
-      {% endif %}
-      {% endfor %}
-  ansible.windows.win_copy:
-    content: "{{ _hosts_content }}"
+  ansible.windows.win_template:
+    src: hosts.j2
     dest: C:\Windows\System32\drivers\etc\hosts
   notify: Flush DNS resolver cache
