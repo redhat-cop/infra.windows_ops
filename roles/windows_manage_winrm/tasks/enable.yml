@@ -37,14 +37,17 @@
   check_mode: false
   ansible.windows.win_powershell:
     error_action: stop
+    parameters:
+      CheckMode: "{{ ansible_check_mode }}"
     script: |
+      param($CheckMode)
       $Ansible.Changed = $false
       $friendlyName = 'WinRM over HTTPS'
       $cert = Get-ChildItem -Path Cert:\LocalMachine\My | ? FriendlyName -eq $friendlyName
       $listener = Get-WSManInstance winrm/config/Listener -Enumerate | ? Transport -eq 'HTTPS'
       if (-not $listener) {
         $Ansible.Changed = $true
-        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+        if ($CheckMode) { Exit 0 }
         if (-not $cert) {
           $cert = New-SelfSignedCertificate -CertStoreLocation Cert:\LocalMachine\My `
                     -DnsName $env:COMPUTERNAME -NotAfter (get-date).AddYears(10) `
@@ -56,7 +59,7 @@
           -ValueSet @{CertificateThumbprint=$cert.Thumbprint;Enabled=$true}
       } elseif ($listener.Enabled -ne $true) {
         $Ansible.Changed = $true
-        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+        if ($CheckMode) { Exit 0 }
         Set-WSManInstance -ResourceURI winrm/config/Listener `
           -SelectorSet @{Address='*';Transport='HTTPS'} `
           -ValueSet @{Enabled=$true}
@@ -67,28 +70,30 @@
   check_mode: false
   ansible.windows.win_powershell:
     error_action: stop
+    parameters:
+      Key: "{{ item.key }}"
+      Value: "{{ item.value }}"
+      CheckMode: "{{ ansible_check_mode }}"
     script: |
+      param($Key, $Value, $CheckMode)
       $Ansible.Changed = $false
-      $key = '{{ item.key }}'
-      $value = '{{ item.value | to_json if item.value is mapping else item.value }}'
-      if ($value.StartsWith('{')) {
+      if ($Value -is [System.Collections.IDictionary] -or $Value -is [PSCustomObject]) {
         $hash = @{}
-        $value = $value | ConvertFrom-Json
-        $value.PSObject.Properties | ForEach-Object {
+        $Value.PSObject.Properties | ForEach-Object {
           $hash[$_.Name] = $_.Value
         }
-        $value = $hash
+        $Value = $hash
       }
-      if ($key -ne 'Auth') {
-        $current = Get-ChildItem -Path WSMan:\localhost\Service\$key
-        if ($value.ToString().ToLower() -ne $current.Value.ToLower()) {
+      if ($Key -ne 'Auth') {
+        $current = Get-ChildItem -Path WSMan:\localhost\Service\$Key
+        if ($Value.ToString().ToLower() -ne $current.Value.ToLower()) {
           $Ansible.Changed = $true
-          if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
-          Set-Item -Path WSMan:\localhost\Service\$key -Value $value
+          if ($CheckMode) { Exit 0 }
+          Set-Item -Path WSMan:\localhost\Service\$Key -Value $Value
         }
       }
-      if ($key -eq 'Auth') {
-        $value.GetEnumerator() | ForEach-Object {
+      if ($Key -eq 'Auth') {
+        $Value.GetEnumerator() | ForEach-Object {
           $k = $_.key
           $v = $_.value
           $current = Get-ChildItem -Path WSMan:\localhost\Service\Auth\$k
@@ -97,7 +102,7 @@
           }
           if ($v.ToString().ToLower() -ne $current.Value.ToLower()) {
             $Ansible.Changed = $true
-            if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+            if ($CheckMode) { Exit 0 }
             Set-Item -Path WSMan:\localhost\Service\Auth\$k -Value $v
           }
         }
