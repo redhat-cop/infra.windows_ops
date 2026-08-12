@@ -25,6 +25,7 @@
     name: UserAuthentication
     type: dword
     data: "{{ 1 if windows_manage_rdp_authenticate | bool else 0 }}"
+  when: windows_manage_rdp_enable | bool
 
 - name: Enable RDP service
   ansible.windows.win_regedit:
