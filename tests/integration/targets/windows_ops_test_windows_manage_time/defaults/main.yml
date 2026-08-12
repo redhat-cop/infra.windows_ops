@@ -1,0 +1,4 @@
+---
+windows_manage_time_test_timezone: "UTC"
+windows_manage_time_test_ntp_servers:
+  - time.windows.com

@@ -1,0 +1,10 @@
+---
+# NTP server list
+windows_manage_time_ntp_servers:
+  - time.windows.com
+
+# Timezone (use tzutil /l on Windows for valid values)
+windows_manage_time_timezone: UTC
+
+# Reboot after timezone change
+windows_manage_time_reboot: true

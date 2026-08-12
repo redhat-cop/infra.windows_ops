@@ -1,0 +1,9 @@
+---
+- name: Apply NTP configuration
+  ansible.windows.win_command: w32tm /config /update
+
+- name: Reboot after timezone change
+  ansible.windows.win_reboot:
+    reboot_timeout: 600
+    msg: "Ansible reboot after timezone configuration"
+  when: windows_manage_time_reboot | bool

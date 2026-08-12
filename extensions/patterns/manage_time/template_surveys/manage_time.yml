@@ -1,0 +1,27 @@
+---
+name: "Manage Time Configuration Survey"
+description: "Survey to configure Windows NTP and timezone settings"
+spec:
+  - type: "text"
+    question_name: "NTP Servers"
+    question_description: "Comma-separated list of NTP server addresses"
+    variable: "time_ntp_servers"
+    required: false
+    default: "time.windows.com"
+
+  - type: "text"
+    question_name: "Timezone"
+    question_description: "Timezone identifier (e.g., UTC, Eastern Standard Time)"
+    variable: "time_timezone"
+    required: true
+    default: "UTC"
+
+  - type: "multiplechoice"
+    question_name: "Reboot After Change"
+    question_description: "Whether to reboot after timezone changes"
+    variable: "time_reboot"
+    required: true
+    default: "true"
+    choices:
+      - "true"
+      - "false"

@@ -1,0 +1,71 @@
+---
+- name: Test time configuration
+  block:
+    - name: Capture current time settings
+      ansible.windows.win_powershell:
+        script: |
+          $Ansible.Changed = $false
+          $Ansible.Result = @{
+            timezone = (Get-TimeZone).Id
+            ntp = (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\Parameters' -Name NtpServer).NtpServer
+          }
+      register: windows_manage_time_original
+
+    - name: Set timezone to Eastern Standard Time
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_time
+      vars:
+        windows_manage_time_ntp_servers: "{{ windows_manage_time_test_ntp_servers }}"
+        windows_manage_time_timezone: "Eastern Standard Time"
+        windows_manage_time_reboot: false
+
+    - name: Verify timezone changed
+      ansible.windows.win_powershell:
+        script: |
+          $Ansible.Changed = $false
+          $Ansible.Result = (Get-TimeZone).Id
+      register: windows_manage_time_verify_est
+
+    - name: Assert timezone is Eastern Standard Time
+      ansible.builtin.assert:
+        that:
+          - windows_manage_time_verify_est.result == "Eastern Standard Time"
+        fail_msg: "Timezone was not changed to Eastern Standard Time"
+
+    - name: Set timezone to UTC
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_time
+      vars:
+        windows_manage_time_ntp_servers: "{{ windows_manage_time_test_ntp_servers }}"
+        windows_manage_time_timezone: "{{ windows_manage_time_test_timezone }}"
+        windows_manage_time_reboot: false
+
+    - name: Verify timezone changed to UTC
+      ansible.windows.win_powershell:
+        script: |
+          $Ansible.Changed = $false
+          $Ansible.Result = (Get-TimeZone).Id
+      register: windows_manage_time_verify_utc
+
+    - name: Assert timezone is UTC
+      ansible.builtin.assert:
+        that:
+          - windows_manage_time_verify_utc.result == windows_manage_time_test_timezone
+        fail_msg: "Timezone was not changed to UTC"
+
+    - name: Run role again for idempotency
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_time
+      vars:
+        windows_manage_time_ntp_servers: "{{ windows_manage_time_test_ntp_servers }}"
+        windows_manage_time_timezone: "{{ windows_manage_time_test_timezone }}"
+        windows_manage_time_reboot: false
+
+  always:
+    - name: Restore original timezone
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_time
+      vars:
+        windows_manage_time_ntp_servers: "{{ windows_manage_time_test_ntp_servers }}"
+        windows_manage_time_timezone: "{{ windows_manage_time_original.result.timezone }}"
+        windows_manage_time_reboot: false

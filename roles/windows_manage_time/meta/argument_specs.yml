@@ -1,0 +1,25 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Configure Windows time settings.
+    description:
+      - Configure Windows NTP servers and timezone.
+    options:
+      windows_manage_time_ntp_servers:
+        type: list
+        elements: str
+        description:
+          - List of NTP server addresses.
+        default:
+          - time.windows.com
+      windows_manage_time_timezone:
+        type: str
+        description:
+          - Timezone identifier. Use C(tzutil /l) on Windows for valid values.
+        default: "UTC"
+      windows_manage_time_reboot:
+        type: bool
+        description:
+          - Whether to reboot the system after timezone changes.
+        default: true
