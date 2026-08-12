@@ -1,0 +1,40 @@
+---
+controller_labels:
+  - name: infra.windows_ops
+    organization: "{{ organization | default('Default') }}"
+  - name: manage_time_pattern
+    organization: "{{ organization | default('Default') }}"
+
+controller_execution_environments:
+  - name: apd-ee-25-windows
+    description: Allow running Windows experience demo. Based on apd-ee-25.
+    image: quay.io/p3ck/apd-ee-25-experience:latest
+    pull: always
+
+controller_projects:
+  - name: Windows Operations / Project
+    description: >
+      This project provides the foundation for automating Windows time configuration.
+    organization: Default
+    scm_branch: main
+    scm_clean: 'no'
+    scm_delete_on_update: 'no'
+    scm_type: git
+    scm_update_on_launch: 'yes'
+    scm_url: https://github.com/redhat-cop/infra.windows_ops.git
+    credential: "{{ credential | default(omit, true) }}"
+
+controller_templates:
+  - name: Windows Operations / Manage Time
+    description: >
+      This job template configures Windows NTP servers and timezone.
+    ask_inventory_on_launch: true
+    labels:
+      - infra.windows_ops
+      - manage_time_pattern
+    playbook: "extensions/patterns/manage_time/playbooks/run_manage_time.yml"
+    project: Windows Operations / Project
+    survey_enabled: true
+    survey_spec: "{{ lookup('file', pattern.path.replace('setup.yml', '') + 'template_surveys/manage_time.yml') | from_yaml }}"
+    ask_credential_on_launch: true
+    execution_environment: apd-ee-25-windows

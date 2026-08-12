@@ -1,0 +1,14 @@
+---
+- name: Configure NTP servers
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
+    name: NtpServer
+    data: "{{ windows_manage_time_ntp_servers | join(' ') }}"
+    type: string
+  notify: Apply NTP configuration
+  when: windows_manage_time_ntp_servers | length > 0
+
+- name: Configure timezone
+  ansible.windows.win_timezone:
+    timezone: "{{ windows_manage_time_timezone }}"
+  notify: Reboot after timezone change

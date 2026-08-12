@@ -1,0 +1,12 @@
+---
+- name: Configure Windows Time Play
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Configure time settings
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_time
+      vars:
+        windows_manage_time_ntp_servers: "{{ (time_ntp_servers | default('time.windows.com')).split(',') | map('trim') | list }}"
+        windows_manage_time_timezone: "{{ time_timezone | default('UTC') }}"
+        windows_manage_time_reboot: "{{ time_reboot | default(true) }}"

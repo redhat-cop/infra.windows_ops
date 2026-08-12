@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  author: Red Hat Ansible Content Team
+  description: Configure Windows NTP servers and timezone.
+  company: Red Hat, Inc.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.18"
+  platforms:
+    - name: Windows
+      versions:
+        - "2019"
+        - "2022"
+        - "2025"
+  galaxy_tags:
+    - windows
+    - configuration
+    - time
+    - ntp
+    - timezone
+dependencies: []
