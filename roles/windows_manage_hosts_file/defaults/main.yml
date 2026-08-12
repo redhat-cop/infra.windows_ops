@@ -1,0 +1,41 @@
+---
+# Header to always apply (subject to windows_manage_hosts_file_omit_entries)
+windows_manage_hosts_file_header: |
+  #  Copyright (c) 1993-2009 Microsoft Corp.
+  #
+  # This is a sample HOSTS file used by Microsoft TCP/IP for Windows.
+  #
+  # This file contains the mappings of IP addresses to host names. Each
+  # entry should be kept on an individual line. The IP address should
+  # be placed in the first column followed by the corresponding host name.
+  # The IP address and the host name should be separated by at least one
+  # space.
+  #
+  # Additionally, comments (such as these) may be inserted on individual
+  # lines or following the machine name denoted by a '#' symbol.
+  #
+  # For example:
+  #
+  #      102.54.94.97     rhino.acme.com          # source server
+  #       38.25.63.10     x.acme.com              # x client host
+
+  # localhost name resolution is handled within DNS itself.
+  #	127.0.0.1       localhost
+  #	::1             localhost
+
+# Add entry for host itself based on Ansible facts
+# Uses the first IP address found in the system
+# Should be disabled when not using static IP
+windows_manage_hosts_file_self_add: false
+
+# Force domain name used in host self entry
+# If unset defaults to ansible_facts.domain
+# Required if ansible_facts.domain is empty
+windows_manage_hosts_file_self_domain:
+
+# List of lines to add to hosts file
+# Other entries will be removed
+windows_manage_hosts_file_entries: []
+
+# Entries to omit: none, ipv4, or ipv6
+windows_manage_hosts_file_omit_entries: none

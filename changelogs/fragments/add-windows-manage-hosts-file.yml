@@ -1,0 +1,3 @@
+---
+minor_changes:
+  - "windows_manage_hosts_file - new role for managing Windows hosts file entries with optional self-entry and IPv4/IPv6 filtering."

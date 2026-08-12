@@ -1,0 +1,19 @@
+---
+name: "Manage Hosts File Configuration Survey"
+description: "Survey to configure hosts file options"
+spec:
+  - question_name: "Host Entries"
+    question_description: "Enter host entries, one per line (e.g., 192.168.1.10 app.example.com app)"
+    required: false
+    variable: "hosts_file_entries"
+    type: "textarea"
+
+  - question_name: "Add Self Entry"
+    question_description: "Add an entry for this host based on Ansible facts"
+    required: true
+    variable: "hosts_file_self_add"
+    type: "multiplechoice"
+    choices:
+      - "false"
+      - "true"
+    default: "false"

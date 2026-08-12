@@ -1,0 +1,47 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Manage Windows hosts file.
+    description:
+      - Manage the Windows hosts file with header, self-entry, and custom entries.
+      - Supports selective IPv4 or IPv6 entry filtering.
+      - Automatically flushes the DNS resolver cache after changes.
+    options:
+      windows_manage_hosts_file_header:
+        type: str
+        description:
+          - Header content for the hosts file.
+          - Applied subject to I(windows_manage_hosts_file_omit_entries) filtering.
+        required: false
+      windows_manage_hosts_file_self_add:
+        type: bool
+        description:
+          - Add an entry for the host itself based on Ansible facts.
+          - Uses the first IPv4 and IPv6 addresses found on the system.
+          - Should be disabled when not using static IP addresses.
+        default: false
+      windows_manage_hosts_file_self_domain:
+        type: str
+        description:
+          - Override domain name used in the host self-entry.
+          - Defaults to C(ansible_facts.domain) if not set.
+          - Required if C(ansible_facts.domain) is empty and I(windows_manage_hosts_file_self_add) is true.
+        required: false
+      windows_manage_hosts_file_entries:
+        type: list
+        elements: str
+        description:
+          - List of lines to add to the hosts file.
+          - Each line should be in the format C(IP_ADDRESS HOSTNAME [ALIAS...]).
+          - Existing entries not in this list will be removed.
+        default: []
+      windows_manage_hosts_file_omit_entries:
+        type: str
+        description:
+          - Filter entries by address type.
+        default: none
+        choices:
+          - none
+          - ipv4
+          - ipv6

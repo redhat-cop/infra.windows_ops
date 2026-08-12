@@ -1,0 +1,5 @@
+---
+windows_manage_hosts_file_test_entries_a:
+  - "198.51.100.10   test-host-a.example.com test-host-a"
+windows_manage_hosts_file_test_entries_b:
+  - "203.0.113.20    test-host-b.example.com test-host-b"

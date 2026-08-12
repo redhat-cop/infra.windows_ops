@@ -1,0 +1,75 @@
+---
+- name: Test hosts file configuration
+  block:
+    - name: Capture original hosts file
+      ansible.windows.win_shell: |
+        Get-Content C:\Windows\System32\drivers\etc\hosts -Raw
+      register: windows_manage_hosts_file_original_raw
+      changed_when: false
+
+    - name: Record original hosts file content
+      ansible.builtin.set_fact:
+        windows_manage_hosts_file_original_content: "{{ windows_manage_hosts_file_original_raw.stdout }}"
+
+    - name: Configure hosts file (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_hosts_file
+      vars:
+        windows_manage_hosts_file_entries: "{{ windows_manage_hosts_file_test_entries_a }}"
+
+    - name: Verify hosts file contains state A entry
+      ansible.windows.win_shell: |
+        Select-String -Path C:\Windows\System32\drivers\etc\hosts -Pattern 'test-host-a' -Quiet
+      register: windows_manage_hosts_file_verify_a
+      changed_when: false
+
+    - name: Assert state A entry exists
+      ansible.builtin.assert:
+        that:
+          - "'True' in windows_manage_hosts_file_verify_a.stdout"
+        fail_msg: "Hosts file does not contain state A entry"
+
+    - name: Run role again to verify idempotency (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_hosts_file
+      vars:
+        windows_manage_hosts_file_entries: "{{ windows_manage_hosts_file_test_entries_a }}"
+
+    - name: Configure hosts file (state B)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_hosts_file
+      vars:
+        windows_manage_hosts_file_entries: "{{ windows_manage_hosts_file_test_entries_b }}"
+
+    - name: Verify hosts file contains state B entry
+      ansible.windows.win_shell: |
+        Select-String -Path C:\Windows\System32\drivers\etc\hosts -Pattern 'test-host-b' -Quiet
+      register: windows_manage_hosts_file_verify_b
+      changed_when: false
+
+    - name: Assert state B entry exists
+      ansible.builtin.assert:
+        that:
+          - "'True' in windows_manage_hosts_file_verify_b.stdout"
+        fail_msg: "Hosts file does not contain state B entry"
+
+    - name: Verify state A entry was replaced
+      ansible.windows.win_shell: |
+        Select-String -Path C:\Windows\System32\drivers\etc\hosts -Pattern 'test-host-a' -Quiet
+      register: windows_manage_hosts_file_verify_a_gone
+      changed_when: false
+
+    - name: Assert state A entry no longer exists
+      ansible.builtin.assert:
+        that:
+          - "'True' not in windows_manage_hosts_file_verify_a_gone.stdout"
+        fail_msg: "State A entry was not replaced by state B"
+
+  always:
+    - name: Restore original hosts file
+      ansible.windows.win_copy:
+        content: "{{ windows_manage_hosts_file_original_content }}"
+        dest: C:\Windows\System32\drivers\etc\hosts
+
+    - name: Flush DNS after restore
+      ansible.windows.win_command: ipconfig.exe /flushdns
