@@ -1,0 +1,46 @@
+---
+- name: Configure IPv6 on all interfaces
+  community.windows.win_net_adapter_feature:
+    interface: '*'
+    component_id:
+      - ms_tcpip6
+    state: "{{ 'enabled' if windows_manage_network_ipv6_enable | bool else 'disabled' }}"
+  register: windows_manage_network_ipv6
+
+- name: Configure LMHOSTS lookup setting
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters
+    name: EnableLMHOSTS
+    type: dword
+    data: "{{ 1 if windows_manage_network_lmhosts_enable | bool else 0 }}"
+
+- name: Configure NetBIOS on all interfaces
+  community.windows.win_netbios:
+    state: "{{ 'enabled' if windows_manage_network_netbios_enable | bool else 'disabled' }}"
+  register: windows_manage_network_netbios
+
+- name: Configure static network routes
+  ansible.windows.win_route:
+    destination: "{{ item.destination }}"
+    gateway: "{{ item.gateway | default(omit) }}"
+    metric: "{{ item.metric | default(omit) }}"
+    state: "{{ item.state }}"
+  loop: "{{ windows_manage_network_routes | select }}"
+  loop_control:
+    label: "{{ item.destination }}"
+
+- name: Flush DNS resolver cache
+  ansible.windows.win_command: ipconfig.exe /flushdns
+  when:
+    - not windows_manage_network_reboot | bool
+    - windows_manage_network_ipv6 is changed or
+      windows_manage_network_netbios is changed
+
+- name: Reboot system
+  ansible.windows.win_reboot:
+    reboot_timeout: 600
+    msg: "Ansible reboot after network configuration"
+  when:
+    - windows_manage_network_reboot | bool
+    - windows_manage_network_ipv6 is changed or
+      windows_manage_network_netbios is changed
