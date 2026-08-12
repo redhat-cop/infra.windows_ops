@@ -40,9 +40,11 @@
             msg: "WinRM disable should have been refused over WinRM connection"
 
       rescue:
-        - name: Confirm disable was refused
-          ansible.builtin.debug:
-            msg: "WinRM disable was correctly refused over WinRM connection"
+        - name: Assert disable was refused for the right reason
+          ansible.builtin.assert:
+            that:
+              - ansible_failed_result.msg is search('Refusing to disable WinRM')
+            fail_msg: "Role failed for unexpected reason: {{ ansible_failed_result.msg }}"
 
   always:
     - name: Ensure WinRM is still enabled

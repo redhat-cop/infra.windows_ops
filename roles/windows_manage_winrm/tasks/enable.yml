@@ -10,7 +10,7 @@
     protocol: tcp
     profiles: "{{ windows_manage_winrm_firewall_profiles | default(omit, true) }}"
   when:
-    - ansible_winrm_port | default(0) != 5985
+    - ansible_winrm_port | default(0) | int != 5985
     - windows_manage_winrm_http_block | bool
 
 - name: Block firewall WinRM HTTPS port
@@ -24,7 +24,7 @@
     protocol: tcp
     profiles: "{{ windows_manage_winrm_firewall_profiles | default(omit, true) }}"
   when:
-    - ansible_winrm_port | default(0) != 5986
+    - ansible_winrm_port | default(0) | int != 5986
     - not windows_manage_winrm_https_enable | bool
 
 - name: Enable WinRM service
@@ -34,23 +34,24 @@
     state: started
 
 - name: Enable WinRM service HTTPS listener
-  check_mode: false
   ansible.windows.win_powershell:
     error_action: stop
-    parameters:
-      CheckMode: "{{ ansible_check_mode }}"
     script: |
-      param($CheckMode)
       $Ansible.Changed = $false
       $friendlyName = 'WinRM over HTTPS'
       $cert = Get-ChildItem -Path Cert:\LocalMachine\My | ? FriendlyName -eq $friendlyName
       $listener = Get-WSManInstance winrm/config/Listener -Enumerate | ? Transport -eq 'HTTPS'
       if (-not $listener) {
         $Ansible.Changed = $true
-        if ($CheckMode) { Exit 0 }
+        if ($Ansible.CheckMode) { return }
         if (-not $cert) {
+          $dnsNames = @($env:COMPUTERNAME)
+          $domain = (Get-WmiObject Win32_ComputerSystem).Domain
+          if ($domain -and $domain -ne 'WORKGROUP') {
+            $dnsNames += "$($env:COMPUTERNAME).$domain"
+          }
           $cert = New-SelfSignedCertificate -CertStoreLocation Cert:\LocalMachine\My `
-                    -DnsName $env:COMPUTERNAME -NotAfter (get-date).AddYears(10) `
+                    -DnsName $dnsNames -NotAfter (get-date).AddYears(10) `
                     -Provider 'Microsoft Software Key Storage Provider'
           $cert.FriendlyName = $friendlyName
         }
@@ -59,7 +60,7 @@
           -ValueSet @{CertificateThumbprint=$cert.Thumbprint;Enabled=$true}
       } elseif ($listener.Enabled -ne $true) {
         $Ansible.Changed = $true
-        if ($CheckMode) { Exit 0 }
+        if ($Ansible.CheckMode) { return }
         Set-WSManInstance -ResourceURI winrm/config/Listener `
           -SelectorSet @{Address='*';Transport='HTTPS'} `
           -ValueSet @{Enabled=$true}
@@ -67,15 +68,13 @@
   when: windows_manage_winrm_https_enable | bool
 
 - name: Configure WinRM service
-  check_mode: false
   ansible.windows.win_powershell:
     error_action: stop
     parameters:
       Key: "{{ item.key }}"
       Value: "{{ item.value }}"
-      CheckMode: "{{ ansible_check_mode }}"
     script: |
-      param($Key, $Value, $CheckMode)
+      param($Key, $Value)
       $Ansible.Changed = $false
       if ($Value -is [System.Collections.IDictionary] -or $Value -is [PSCustomObject]) {
         $hash = @{}
@@ -88,8 +87,9 @@
         $current = Get-ChildItem -Path WSMan:\localhost\Service\$Key
         if ($Value.ToString().ToLower() -ne $current.Value.ToLower()) {
           $Ansible.Changed = $true
-          if ($CheckMode) { Exit 0 }
-          Set-Item -Path WSMan:\localhost\Service\$Key -Value $Value
+          if (-not $Ansible.CheckMode) {
+            Set-Item -Path WSMan:\localhost\Service\$Key -Value $Value
+          }
         }
       }
       if ($Key -eq 'Auth') {
@@ -102,8 +102,9 @@
           }
           if ($v.ToString().ToLower() -ne $current.Value.ToLower()) {
             $Ansible.Changed = $true
-            if ($CheckMode) { Exit 0 }
-            Set-Item -Path WSMan:\localhost\Service\Auth\$k -Value $v
+            if (-not $Ansible.CheckMode) {
+              Set-Item -Path WSMan:\localhost\Service\Auth\$k -Value $v
+            }
           }
         }
       }
