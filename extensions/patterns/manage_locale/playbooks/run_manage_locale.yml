@@ -1,0 +1,13 @@
+---
+- name: Configure Windows Locale Play
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Configure locale settings
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_locale
+      vars:
+        windows_manage_locale_system: "{{ locale_system | default('en-US') }}"
+        windows_manage_locale_ui: "{{ locale_ui | default('en-US') }}"
+        windows_manage_locale_user: "{{ locale_user | default('en-US') }}"
+        windows_manage_locale_reboot: "{{ locale_reboot | default(true) }}"

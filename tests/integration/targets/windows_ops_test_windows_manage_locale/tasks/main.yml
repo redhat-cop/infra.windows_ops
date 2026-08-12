@@ -1,0 +1,82 @@
+---
+- name: Test locale configuration
+  block:
+    - name: Capture current locale settings
+      ansible.windows.win_powershell:
+        script: |
+          $Ansible.Changed = $false
+          $Ansible.Result = @{
+            system_locale = (Get-WinSystemLocale).Name
+            user_locale = (Get-Culture).Name
+            location = (Get-WinHomeLocation).GeoId
+          }
+      register: windows_manage_locale_original
+
+    - name: Set locale to en-GB to verify a real change
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_locale
+      vars:
+        windows_manage_locale_user: "en-GB"
+        windows_manage_locale_location: 242
+        windows_manage_locale_reboot: false
+
+    - name: Verify locale changed to en-GB
+      ansible.windows.win_powershell:
+        script: |
+          $Ansible.Changed = $false
+          $Ansible.Result = @{
+            user_locale = (Get-Culture).Name
+            location = (Get-WinHomeLocation).GeoId
+          }
+      register: windows_manage_locale_verify_gb
+
+    - name: Assert locale is en-GB
+      ansible.builtin.assert:
+        that:
+          - windows_manage_locale_verify_gb.result.user_locale == "en-GB"
+          - windows_manage_locale_verify_gb.result.location == 242
+        fail_msg: "Locale was not changed to en-GB"
+
+    - name: Set locale back to en-US
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_locale
+      vars:
+        windows_manage_locale_system: "{{ windows_manage_locale_test_system }}"
+        windows_manage_locale_ui: "{{ windows_manage_locale_test_ui }}"
+        windows_manage_locale_user: "{{ windows_manage_locale_test_user }}"
+        windows_manage_locale_reboot: false
+
+    - name: Verify locale restored to en-US
+      ansible.windows.win_powershell:
+        script: |
+          $Ansible.Changed = $false
+          $Ansible.Result = @{
+            system_locale = (Get-WinSystemLocale).Name
+            user_locale = (Get-Culture).Name
+          }
+      register: windows_manage_locale_verify_us
+
+    - name: Assert locale is en-US
+      ansible.builtin.assert:
+        that:
+          - windows_manage_locale_verify_us.result.system_locale == windows_manage_locale_test_system
+          - windows_manage_locale_verify_us.result.user_locale == windows_manage_locale_test_user
+        fail_msg: "Locale was not restored to en-US"
+
+    - name: Run role again for idempotency
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_locale
+      vars:
+        windows_manage_locale_system: "{{ windows_manage_locale_test_system }}"
+        windows_manage_locale_ui: "{{ windows_manage_locale_test_ui }}"
+        windows_manage_locale_user: "{{ windows_manage_locale_test_user }}"
+        windows_manage_locale_reboot: false
+
+  always:
+    - name: Restore original locale settings
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_locale
+      vars:
+        windows_manage_locale_user: "{{ windows_manage_locale_original.result.user_locale }}"
+        windows_manage_locale_location: "{{ windows_manage_locale_original.result.location }}"
+        windows_manage_locale_reboot: false

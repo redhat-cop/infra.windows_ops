@@ -1,0 +1,45 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Configure Windows locale settings.
+    description:
+      - Configure Windows locale, language, input methods, and regional settings.
+      - Supports system locale, UI language, user format, input profiles, and Welcome screen propagation.
+    options:
+      windows_manage_locale_location:
+        type: int
+        description:
+          - Geographic location identifier (GeoId).
+          - See Microsoft documentation for valid values.
+        default: 244
+      windows_manage_locale_system:
+        type: str
+        description:
+          - System locale affecting non-Unicode programs.
+        default: "en-US"
+      windows_manage_locale_ui:
+        type: str
+        description:
+          - UI display language.
+        default: "en-US"
+      windows_manage_locale_user:
+        type: str
+        description:
+          - User locale for date, time, and number formats.
+        default: "en-US"
+      windows_manage_locale_input:
+        type: str
+        description:
+          - Input method profiles as semicolon-separated locale names or hex code pairs.
+        default: "en-US"
+      windows_manage_locale_welcome_screen_update_always:
+        type: bool
+        description:
+          - Force updating Welcome screen settings even if locale config was not changed.
+        default: false
+      windows_manage_locale_reboot:
+        type: bool
+        description:
+          - Whether to reboot the system after locale changes.
+        default: true
