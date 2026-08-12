@@ -1,0 +1,7 @@
+---
+# System hostname to be configured
+# Should be short name (not FQDN) and valid for DNS
+windows_manage_hostname_name: "{{ ansible_facts.hostname | upper }}"
+
+# Reboot after system hostname change
+windows_manage_hostname_reboot: true

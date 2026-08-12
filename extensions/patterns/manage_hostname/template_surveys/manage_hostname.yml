@@ -1,0 +1,19 @@
+---
+name: "Manage Hostname Configuration Survey"
+description: "Survey to configure Windows system hostname"
+spec:
+  - type: "text"
+    question_name: "Hostname"
+    question_description: "The hostname to configure on the system (short name, not FQDN, max 63 characters)"
+    variable: "hostname_name"
+    required: true
+
+  - type: "multiplechoice"
+    question_name: "Reboot After Change"
+    question_description: "Whether to reboot the system after the hostname change"
+    variable: "hostname_reboot"
+    required: true
+    default: "true"
+    choices:
+      - "true"
+      - "false"
