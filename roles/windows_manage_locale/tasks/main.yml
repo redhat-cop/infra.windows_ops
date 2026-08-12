@@ -1,34 +1,35 @@
 ---
-- name: Configure locale settings
+- name: Validate MUI language pack is installed
+  ansible.windows.win_powershell:
+    error_action: stop
+    script: |
+      $Ansible.Changed = $false
+      $muiLangs = (Get-WmiObject -Class Win32_OperatingSystem).MUILanguages
+      if (-not $muiLangs.Contains('{{ windows_manage_locale_ui }}')) {
+        $Ansible.Failed = $true
+        $Ansible.Result = 'No MUI language pack installed for {{ windows_manage_locale_ui }}'
+      }
+  check_mode: false
+
+- name: Configure regional settings
+  ansible.windows.win_region:
+    location: "{{ windows_manage_locale_location }}"
+    unicode_language: "{{ windows_manage_locale_system }}"
+    format: "{{ windows_manage_locale_user }}"
+  register: windows_manage_locale_region
+
+- name: Configure UI language and keyboard layouts
   check_mode: false
   ansible.windows.win_powershell:
     error_action: stop
     script: |
       $Ansible.Changed = $false
 
-      if (-not (Get-WmiObject -Class Win32_OperatingSystem).MUILanguages.Contains('{{ windows_manage_locale_ui }}')) {
-        $Ansible.Result = 'No MUI language pack installed for {{ windows_manage_locale_ui }}.'
-        $Ansible.Failed = $true
-        Exit 1
-      }
-
       $sli = '{{ windows_manage_locale_input }}'
       if ($sli -match ',' -or ($sli -notmatch '-' -and $sli -notmatch ':')) {
         $Ansible.Result = 'Invalid value "{{ windows_manage_locale_input }}" for windows_manage_locale_input.'
         $Ansible.Failed = $true
         Exit 1
-      }
-
-      if ((Get-WinHomeLocation).GeoId -ne '{{ windows_manage_locale_location }}') {
-        $Ansible.Changed = $true
-        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
-        Set-WinHomeLocation -GeoId {{ windows_manage_locale_location }}
-      }
-
-      if ((Get-WinSystemLocale).Name -ne '{{ windows_manage_locale_system }}') {
-        $Ansible.Changed = $true
-        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
-        Set-WinSystemLocale -SystemLocale {{ windows_manage_locale_system }}
       }
 
       if ((Get-WmiObject -Class Win32_OperatingSystem).MUILanguages.Length -eq 1 -and
@@ -42,12 +43,6 @@
         $Ansible.Changed = $true
         if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
         Set-WinUILanguageOverride -Language {{ windows_manage_locale_ui }}
-      }
-
-      if ((Get-Culture).Name -ne '{{ windows_manage_locale_user }}') {
-        $Ansible.Changed = $true
-        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
-        Set-Culture -CultureInfo {{ windows_manage_locale_user }}
       }
 
       if (Get-WinDefaultInputMethodOverride) {
@@ -282,6 +277,7 @@
       }
   register: windows_manage_locale_copy_cmdlet
   when: windows_manage_locale_welcome_screen_update_always | bool or
+        windows_manage_locale_region is changed or
         windows_manage_locale_config is changed
 
 - name: Copy locale settings to Welcome Screen and new users
@@ -292,6 +288,7 @@
   register: windows_manage_locale_welcome
   when:
     - windows_manage_locale_welcome_screen_update_always | bool or
+      windows_manage_locale_region is changed or
       windows_manage_locale_config is changed
     - "'is available' in windows_manage_locale_copy_cmdlet.result"
 
@@ -330,6 +327,7 @@
   register: windows_manage_locale_legacy
   when:
     - windows_manage_locale_welcome_screen_update_always | bool or
+      windows_manage_locale_region is changed or
       windows_manage_locale_config is changed
     - "'is available' not in windows_manage_locale_copy_cmdlet.result"
 
@@ -339,6 +337,7 @@
     msg: "Ansible reboot after locale configuration"
   when:
     - windows_manage_locale_reboot | bool
-    - windows_manage_locale_config is changed or
+    - windows_manage_locale_region is changed or
+      windows_manage_locale_config is changed or
       windows_manage_locale_welcome is changed or
       windows_manage_locale_legacy is changed
