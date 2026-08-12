@@ -1,0 +1,29 @@
+---
+- name: Check if init marker file exists
+  ansible.windows.win_stat:
+    path: "{{ windows_manage_init_file }}"
+  register: windows_manage_init_marker
+
+- name: Run initialization
+  when: not windows_manage_init_marker.stat.exists
+  block:
+    - name: Create init marker file
+      ansible.windows.win_copy:
+        content: "{{ windows_manage_init_message }}"
+        dest: "{{ windows_manage_init_file }}"
+
+    - name: Write event log entry
+      community.windows.win_eventlog_entry:
+        log: Application
+        source: Ansible
+        event_id: 1
+        message: "{{ windows_manage_init_log_message }}"
+      when:
+        - "'syslog' in windows_manage_init_final_actions"
+        - windows_manage_init_log_message | length > 0
+
+    - name: Reboot system
+      ansible.windows.win_reboot:
+        reboot_timeout: 600
+        msg: "Ansible reboot after system initialization"
+      when: "'reboot' in windows_manage_init_final_actions"

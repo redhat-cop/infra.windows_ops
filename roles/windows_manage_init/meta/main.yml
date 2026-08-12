@@ -1,0 +1,19 @@
+---
+galaxy_info:
+  author: Red Hat Ansible Content Team
+  description: Run one-time system initialization tasks on Windows.
+  company: Red Hat, Inc.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.18"
+  platforms:
+    - name: Windows
+      versions:
+        - "2019"
+        - "2022"
+        - "2025"
+  galaxy_tags:
+    - windows
+    - configuration
+    - init
+    - initialization
+dependencies: []

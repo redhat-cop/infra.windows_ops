@@ -1,0 +1,32 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Run one-time system initialization.
+    description:
+      - Run one-time system initialization tasks on Windows.
+      - Creates a marker file to ensure initialization runs only once.
+      - Optionally writes a Windows event log entry and reboots.
+    options:
+      windows_manage_init_file:
+        type: path
+        description:
+          - Path to the init marker file.
+        default: "C:\\Windows\\init_info_system.txt"
+      windows_manage_init_message:
+        type: str
+        description:
+          - Message written to the init marker file.
+        default: "System initialized by Ansible"
+      windows_manage_init_log_message:
+        type: str
+        description:
+          - Event log message. Set to empty string to skip event log entry.
+        default: ""
+      windows_manage_init_final_actions:
+        type: list
+        elements: str
+        description:
+          - List of final actions after initialization.
+          - Supported values are C(reboot) and C(syslog).
+        default: []

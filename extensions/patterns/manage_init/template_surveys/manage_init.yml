@@ -1,0 +1,27 @@
+---
+name: "System Initialization Survey"
+description: "Survey for one-time Windows system initialization"
+spec:
+  - type: "text"
+    question_name: "Init Message"
+    question_description: "Message to write to the init marker file"
+    variable: "init_message"
+    required: true
+    default: "System initialized by Ansible"
+
+  - type: "text"
+    question_name: "Event Log Message"
+    question_description: "Message to write to the Windows Event Log (leave empty to skip)"
+    variable: "init_log_message"
+    required: false
+    default: ""
+
+  - type: "multiselect"
+    question_name: "Final Actions"
+    question_description: "Actions to run after initialization (select syslog to write event log)"
+    variable: "init_final_actions"
+    required: false
+    default: ""
+    choices:
+      - "reboot"
+      - "syslog"
