@@ -1,0 +1,8 @@
+---
+- name: Disable WinRM
+  ansible.builtin.include_tasks: disable.yml
+  when: not windows_manage_winrm_enable | bool
+
+- name: Enable WinRM
+  ansible.builtin.include_tasks: enable.yml
+  when: windows_manage_winrm_enable | bool

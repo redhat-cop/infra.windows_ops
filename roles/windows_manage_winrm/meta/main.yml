@@ -1,0 +1,19 @@
+---
+galaxy_info:
+  role_name: windows_manage_winrm
+  author: Hen Yaish
+  company: Red Hat, Inc.
+  description: Configure Windows Remote Management (WinRM) service, listeners, and firewall rules.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.18"
+  platforms:
+    - name: Windows
+      versions:
+        - "2019"
+        - "2022"
+        - "2025"
+  galaxy_tags:
+    - windows
+    - winrm
+    - configuration
+dependencies: []

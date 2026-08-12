@@ -1,0 +1,35 @@
+---
+# Enable or disable WinRM
+windows_manage_winrm_enable: true
+
+# WinRM service start mode: auto or delayed
+windows_manage_winrm_start_mode: auto
+
+# Block WinRM HTTP port if using HTTPS
+# Kerberos and NTLM encrypt traffic with HTTP
+windows_manage_winrm_http_block: false
+
+# Enable WinRM HTTPS listener with self-signed cert
+windows_manage_winrm_https_enable: false
+
+# WinRM service configuration
+# CBT is None, Relaxed, or Strict
+windows_manage_winrm_service_config:
+  AllowUnencrypted: false
+  Auth:
+    Basic: false
+    Kerberos: true
+    Negotiate: true
+    Certificate: false
+    CredSSP: false
+    CbtHardeningLevel: Relaxed
+  IPv4Filter: '*'
+  IPv6Filter: '*'
+
+# Firewall profiles to apply rules
+windows_manage_winrm_firewall_profiles:
+  - domain
+  - private
+
+# Display current WinRM configuration
+windows_manage_winrm_display_config: false

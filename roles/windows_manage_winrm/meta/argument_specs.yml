@@ -1,0 +1,56 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Configure Windows Remote Management (WinRM).
+    description:
+      - Enable or disable the WinRM service with listener and firewall configuration.
+      - Supports HTTPS listener with self-signed certificates.
+      - Includes safety check to prevent disabling WinRM over a WinRM connection.
+    options:
+      windows_manage_winrm_enable:
+        type: bool
+        description:
+          - Enable or disable the WinRM service.
+        default: true
+      windows_manage_winrm_start_mode:
+        type: str
+        description:
+          - WinRM service start mode.
+        default: auto
+        choices:
+          - auto
+          - delayed
+      windows_manage_winrm_http_block:
+        type: bool
+        description:
+          - Block the WinRM HTTP port (5985) in the firewall.
+          - Useful when using HTTPS only.
+          - Kerberos and NTLM encrypt traffic even over HTTP.
+        default: false
+      windows_manage_winrm_https_enable:
+        type: bool
+        description:
+          - Enable the WinRM HTTPS listener.
+          - Creates a self-signed certificate if no HTTPS listener exists.
+        default: false
+      windows_manage_winrm_service_config:
+        type: dict
+        description:
+          - WinRM service configuration settings.
+          - Supports Auth sub-keys (Basic, Kerberos, Negotiate, Certificate, CredSSP, CbtHardeningLevel).
+          - Supports AllowUnencrypted, IPv4Filter, IPv6Filter.
+        required: false
+      windows_manage_winrm_firewall_profiles:
+        type: list
+        elements: str
+        description:
+          - Firewall profiles to apply WinRM rules to.
+        default:
+          - domain
+          - private
+      windows_manage_winrm_display_config:
+        type: bool
+        description:
+          - Display the current WinRM configuration after changes.
+        default: false

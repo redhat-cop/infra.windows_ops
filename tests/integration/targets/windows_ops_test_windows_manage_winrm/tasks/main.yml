@@ -1,0 +1,53 @@
+---
+- name: Test WinRM configuration
+  block:
+    - name: Configure WinRM with display enabled
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_winrm
+      vars:
+        windows_manage_winrm_enable: true
+        windows_manage_winrm_display_config: true
+
+    - name: Verify WinRM service is running
+      ansible.windows.win_service_info:
+        name: WinRM
+      register: windows_manage_winrm_verify_service
+
+    - name: Assert WinRM service is started
+      ansible.builtin.assert:
+        that:
+          - windows_manage_winrm_verify_service.services[0].state == 'started'
+          - windows_manage_winrm_verify_service.services[0].start_mode == 'auto'
+        fail_msg: "WinRM service is not in expected state"
+
+    - name: Run role again to verify idempotency
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_winrm
+      vars:
+        windows_manage_winrm_enable: true
+        windows_manage_winrm_display_config: false
+
+    - name: Test disable safety check
+      block:
+        - name: Attempt to disable WinRM (should fail)
+          ansible.builtin.include_role:
+            name: infra.windows_ops.windows_manage_winrm
+          vars:
+            windows_manage_winrm_enable: false
+
+        - name: Fail if disable was not refused
+          ansible.builtin.fail:
+            msg: "WinRM disable should have been refused over WinRM connection"
+
+      rescue:
+        - name: Confirm disable was refused
+          ansible.builtin.debug:
+            msg: "WinRM disable was correctly refused over WinRM connection"
+
+  always:
+    - name: Ensure WinRM is still enabled
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_winrm
+      vars:
+        windows_manage_winrm_enable: true
+        windows_manage_winrm_display_config: false

@@ -1,0 +1,3 @@
+---
+# Test uses display_config toggle and verifies service state
+# Does not test disable path (would break WinRM connection)
