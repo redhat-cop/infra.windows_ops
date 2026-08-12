@@ -1,0 +1,11 @@
+---
+# Enable or disable RDP
+windows_manage_rdp_enable: true
+
+# Firewall profiles to apply rules
+windows_manage_rdp_firewall_profiles:
+  - domain
+  - private
+
+# Require authentication for RDP
+windows_manage_rdp_authenticate: true

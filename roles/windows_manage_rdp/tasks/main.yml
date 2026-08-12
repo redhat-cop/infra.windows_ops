@@ -1,0 +1,47 @@
+---
+- name: Disable RDP service
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server
+    name: fDenyTSConnections
+    type: dword
+    data: 1
+  when: not windows_manage_rdp_enable | bool
+
+- name: Block firewall RDP port
+  community.windows.win_firewall_rule:
+    name: Remote Desktop - User Mode (TCP-In)
+    state: present
+    enabled: true
+    action: block
+    direction: in
+    localport: 3389
+    protocol: tcp
+    profiles: "{{ windows_manage_rdp_firewall_profiles | default(omit, true) }}"
+  when: not windows_manage_rdp_enable | bool
+
+- name: Configure RDP user authentication
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-TCP
+    name: UserAuthentication
+    type: dword
+    data: "{{ 1 if windows_manage_rdp_authenticate | bool else 0 }}"
+
+- name: Enable RDP service
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server
+    name: fDenyTSConnections
+    type: dword
+    data: 0
+  when: windows_manage_rdp_enable | bool
+
+- name: Allow firewall RDP port
+  community.windows.win_firewall_rule:
+    name: Remote Desktop - User Mode (TCP-In)
+    state: present
+    enabled: true
+    action: allow
+    direction: in
+    localport: 3389
+    protocol: tcp
+    profiles: "{{ windows_manage_rdp_firewall_profiles | default(omit, true) }}"
+  when: windows_manage_rdp_enable | bool
