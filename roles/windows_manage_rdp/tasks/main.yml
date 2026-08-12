@@ -7,7 +7,7 @@
     data: 1
   when: not windows_manage_rdp_enable | bool
 
-- name: Block firewall RDP port
+- name: Block firewall RDP TCP port
   community.windows.win_firewall_rule:
     name: Remote Desktop - User Mode (TCP-In)
     state: present
@@ -16,6 +16,18 @@
     direction: in
     localport: 3389
     protocol: tcp
+    profiles: "{{ windows_manage_rdp_firewall_profiles | default(omit, true) }}"
+  when: not windows_manage_rdp_enable | bool
+
+- name: Block firewall RDP UDP port
+  community.windows.win_firewall_rule:
+    name: Remote Desktop - User Mode (UDP-In)
+    state: present
+    enabled: true
+    action: block
+    direction: in
+    localport: 3389
+    protocol: udp
     profiles: "{{ windows_manage_rdp_firewall_profiles | default(omit, true) }}"
   when: not windows_manage_rdp_enable | bool
 
@@ -35,7 +47,7 @@
     data: 0
   when: windows_manage_rdp_enable | bool
 
-- name: Allow firewall RDP port
+- name: Allow firewall RDP TCP port
   community.windows.win_firewall_rule:
     name: Remote Desktop - User Mode (TCP-In)
     state: present
@@ -44,5 +56,17 @@
     direction: in
     localport: 3389
     protocol: tcp
+    profiles: "{{ windows_manage_rdp_firewall_profiles | default(omit, true) }}"
+  when: windows_manage_rdp_enable | bool
+
+- name: Allow firewall RDP UDP port
+  community.windows.win_firewall_rule:
+    name: Remote Desktop - User Mode (UDP-In)
+    state: present
+    enabled: true
+    action: allow
+    direction: in
+    localport: 3389
+    protocol: udp
     profiles: "{{ windows_manage_rdp_firewall_profiles | default(omit, true) }}"
   when: windows_manage_rdp_enable | bool
