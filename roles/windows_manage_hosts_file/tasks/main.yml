@@ -1,4 +1,12 @@
 ---
+- name: Validate omit_entries value
+  ansible.builtin.assert:
+    that:
+      - windows_manage_hosts_file_omit_entries in ['none', 'ipv4', 'ipv6']
+    fail_msg: >-
+      windows_manage_hosts_file_omit_entries must be 'none', 'ipv4', or 'ipv6',
+      got '{{ windows_manage_hosts_file_omit_entries }}'.
+
 - name: Gather needed facts
   ansible.windows.setup:
     gather_subset:
@@ -14,7 +22,9 @@
 
 - name: Fail if domainname not set for self entry
   ansible.builtin.fail:
-    msg: "No domainname set."
+    msg: >-
+      No domain name available. Set 'windows_manage_hosts_file_self_domain'
+      or ensure the host is domain-joined.
   when:
     - windows_manage_hosts_file_self_add | bool
     - not windows_manage_hosts_file_self_domain | default(ansible_facts.domain, true)

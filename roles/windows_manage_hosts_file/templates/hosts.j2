@@ -1,6 +1,7 @@
 {% if windows_manage_hosts_file_header %}
 {% for line in windows_manage_hosts_file_header.split('\n') %}
-{% if windows_manage_hosts_file_omit_entries == 'none' or
+{% if line.strip().startswith('#') or
+      windows_manage_hosts_file_omit_entries == 'none' or
       (windows_manage_hosts_file_omit_entries == 'ipv4' and '.' not in line.split(' ')[0]) or
       (windows_manage_hosts_file_omit_entries == 'ipv6' and ':' not in line.split(' ')[0]) %}
 {{ line }}
