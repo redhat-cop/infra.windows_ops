@@ -1,0 +1,9 @@
+---
+- name: Manage OpenSSH Server
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Manage OpenSSH Server
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_sshd
+...

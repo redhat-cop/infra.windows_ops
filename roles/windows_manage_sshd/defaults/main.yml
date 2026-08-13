@@ -1,0 +1,12 @@
+---
+windows_manage_sshd_enable: true
+windows_manage_sshd_start_mode: auto
+windows_manage_sshd_shell:
+windows_manage_sshd_admins_keys: {}
+windows_manage_sshd_firewall_profiles:
+  - domain
+  - private
+  - public
+windows_manage_sshd_config_validate: true
+windows_manage_sshd_config_file:
+windows_manage_sshd_options: {}

@@ -1,0 +1,8 @@
+---
+- name: Disable sshd
+  ansible.builtin.include_tasks: disable.yml
+  when: not windows_manage_sshd_enable | bool
+
+- name: Enable sshd
+  ansible.builtin.include_tasks: enable.yml
+  when: windows_manage_sshd_enable | bool

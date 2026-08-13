@@ -1,0 +1,43 @@
+---
+- name: Create temp sshd configuration file using template
+  check_mode: false
+  ansible.windows.win_template:
+    src: "{{ windows_manage_sshd_config_file }}"
+    dest: C:\ProgramData\ssh\sshd_config.tmp
+    newline_sequence: '\r\n'
+  register: windows_manage_sshd_config_template
+  when: windows_manage_sshd_config_file is string
+
+- name: Create temp sshd configuration file using options
+  vars:
+    windows_manage_sshd_file_content: >-
+      {{ windows_manage_sshd_options | default({}, true) | infra.windows_ops.sshd_config }}
+  check_mode: false
+  ansible.windows.win_copy:
+    content: "{{ windows_manage_sshd_file_content }}"
+    dest: C:\ProgramData\ssh\sshd_config.tmp
+  register: windows_manage_sshd_config_options
+  when:
+    - windows_manage_sshd_config_file is not string
+    - windows_manage_sshd_options is not none
+    - windows_manage_sshd_options | length > 0
+
+- name: Validate temp sshd configuration file
+  check_mode: false
+  ansible.windows.win_powershell:
+    error_action: stop
+    script: |
+      $p = Start-Process `
+        -FilePath C:\Windows\System32\OpenSSH\sshd.exe `
+        -ArgumentList '-tf C:\ProgramData\ssh\sshd_config.tmp' `
+        -WorkingDirectory C:\ProgramData\ssh `
+        -RedirectStandardError .\.tmp `
+        -NoNewWindow `
+        -PassThru `
+        -Wait
+      if ($p.ExitCode) {
+        $Ansible.Result = Get-Content -Raw .\.tmp
+        $Ansible.Failed = $true
+        Remove-Item .\.tmp -ErrorAction SilentlyContinue
+      }
+  changed_when: false

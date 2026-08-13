@@ -1,0 +1,23 @@
+---
+name: "Manage SSHD Configuration Survey"
+description: "Survey to configure OpenSSH Server settings"
+spec:
+  - question_name: "Enable SSHD"
+    question_description: "Enable or disable the OpenSSH Server"
+    required: true
+    variable: "windows_manage_sshd_enable"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"
+
+  - question_name: "Start Mode"
+    question_description: "Service start mode for sshd"
+    required: false
+    variable: "windows_manage_sshd_start_mode"
+    type: "multiplechoice"
+    choices:
+      - "auto"
+      - "delayed"
+    default: "auto"

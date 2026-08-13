@@ -1,0 +1,5 @@
+---
+minor_changes:
+  - "windows_manage_sshd - new role for managing OpenSSH Server on Windows with config validation,
+    admin key management, and disable safety check."
+  - "sshd_config filter plugin - new filter to render sshd_config content from an options dictionary."
