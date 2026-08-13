@@ -57,7 +57,33 @@
         windows_manage_network_routes:
           - "{{ windows_manage_network_test_route_a }}"
 
-    - name: Apply network configuration (state B - LMHOSTS enabled, route B)
+    - name: Verify LMHOSTS still disabled after idempotency run
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters
+        name: EnableLMHOSTS
+      register: windows_manage_network_verify_lmhosts_idempotent
+
+    - name: Assert LMHOSTS unchanged after idempotency run
+      ansible.builtin.assert:
+        that:
+          - windows_manage_network_verify_lmhosts_idempotent.value == 0
+        fail_msg: "LMHOSTS changed after a repeat run; role is not idempotent"
+
+    - name: Verify route A still present after idempotency run
+      ansible.windows.win_shell: |
+        Get-NetRoute -DestinationPrefix '{{ windows_manage_network_test_route_a.destination }}' -ErrorAction SilentlyContinue | Measure-Object | Select-Object -ExpandProperty Count
+      register: windows_manage_network_verify_route_a_idempotent
+      changed_when: false
+
+    - name: Assert route A unchanged after idempotency run
+      ansible.builtin.assert:
+        that:
+          - windows_manage_network_verify_route_a_idempotent.stdout | trim | int > 0
+        fail_msg: "Route A missing after a repeat run; role is not idempotent"
+
+    # State B flips LMHOSTS on, adds route B, and removes route A to exercise
+    # state: absent and confirm routes are managed additively (only listed ones).
+    - name: Apply network configuration (state B - LMHOSTS enabled, route B, route A removed)
       ansible.builtin.include_role:
         name: infra.windows_ops.windows_manage_network
       vars:
@@ -67,6 +93,8 @@
         windows_manage_network_reboot: false
         windows_manage_network_routes:
           - "{{ windows_manage_network_test_route_b }}"
+          - destination: "{{ windows_manage_network_test_route_a.destination }}"
+            state: absent
 
     - name: Verify LMHOSTS enabled after state B
       ansible.windows.win_reg_stat:
@@ -91,6 +119,18 @@
         that:
           - windows_manage_network_verify_route_b.stdout | trim | int > 0
         fail_msg: "Route B was not created"
+
+    - name: Verify route A removed after state B
+      ansible.windows.win_shell: |
+        Get-NetRoute -DestinationPrefix '{{ windows_manage_network_test_route_a.destination }}' -ErrorAction SilentlyContinue | Measure-Object | Select-Object -ExpandProperty Count
+      register: windows_manage_network_verify_route_a_absent
+      changed_when: false
+
+    - name: Assert route A was removed
+      ansible.builtin.assert:
+        that:
+          - windows_manage_network_verify_route_a_absent.stdout | trim | int == 0
+        fail_msg: "Route A was not removed by state: absent"
 
   always:
     - name: Restore original LMHOSTS setting

@@ -26,18 +26,26 @@
     gateway: "{{ item.gateway | default(omit) }}"
     metric: "{{ item.metric | default(omit) }}"
     state: "{{ item.state }}"
-  loop: "{{ windows_manage_network_routes | select }}"
+  loop: "{{ windows_manage_network_routes }}"
   loop_control:
     label: "{{ item.destination }}"
+
+# NetBIOS changes usually take effect immediately, so rely on the module's
+# reboot_required signal instead of a blanket "changed". IPv6 (adapter binding)
+# and LMHOSTS (registry) do not report a signal, so a change there is assumed
+# to require a reboot.
+- name: Determine whether network changes require a reboot
+  ansible.builtin.set_fact:
+    windows_manage_network_reboot_required: "{{ windows_manage_network_ipv6 is changed
+      or windows_manage_network_lmhosts is changed
+      or (windows_manage_network_netbios.reboot_required | default(false) | bool) }}"
 
 - name: Flush DNS resolver cache
   ansible.windows.win_command: ipconfig.exe /flushdns
   changed_when: false
   when:
     - not windows_manage_network_reboot | bool
-    - windows_manage_network_ipv6 is changed or
-      windows_manage_network_lmhosts is changed or
-      windows_manage_network_netbios is changed
+    - windows_manage_network_reboot_required | bool
 
 - name: Reboot system
   ansible.windows.win_reboot:
@@ -45,6 +53,4 @@
     msg: "Ansible reboot after network configuration"
   when:
     - windows_manage_network_reboot | bool
-    - windows_manage_network_ipv6 is changed or
-      windows_manage_network_lmhosts is changed or
-      windows_manage_network_netbios is changed
+    - windows_manage_network_reboot_required | bool

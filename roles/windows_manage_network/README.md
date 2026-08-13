@@ -15,16 +15,21 @@ Configure Windows network settings including IPv6, NetBIOS, LMHOSTS lookup, and 
 | `windows_manage_network_ipv6_enable` | bool | `true` | Enable or disable IPv6 on all interfaces |
 | `windows_manage_network_lmhosts_enable` | bool | `true` | Enable or disable LMHOSTS lookup |
 | `windows_manage_network_netbios_enable` | bool | `true` | Enable or disable NetBIOS on all interfaces |
-| `windows_manage_network_reboot` | bool | `true` | Reboot after changes (false = DNS flush only) |
+| `windows_manage_network_reboot` | bool | `true` | Reboot when a change requires it (false = DNS flush only) |
 | `windows_manage_network_routes` | list(dict) | `[]` | Static route configurations |
+
+> **Note:** IPv6, LMHOSTS, and NetBIOS are enforced to their configured values
+> on every run (full-state), so running the role only to manage routes still
+> applies those settings. Static routes are additive — only the routes listed
+> in `windows_manage_network_routes` are managed; any others are left untouched.
 
 Each route item supports:
 
 | Key | Type | Required | Description |
 |---|---|---|---|
 | `destination` | str | yes | Network destination in CIDR format |
-| `gateway` | str | when present | Gateway IP address |
-| `metric` | int | no | Route metric value |
+| `gateway` | str | no | Gateway IP address (defaults to `0.0.0.0`) |
+| `metric` | int | no | Route metric value (defaults to `1`) |
 | `state` | str | yes | `present` or `absent` |
 
 ## Example Playbook
