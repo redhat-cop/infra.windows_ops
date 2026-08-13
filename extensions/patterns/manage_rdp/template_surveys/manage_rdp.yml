@@ -1,0 +1,23 @@
+---
+name: "Manage RDP Configuration Survey"
+description: "Survey to configure RDP options"
+spec:
+  - question_name: "Enable RDP"
+    question_description: "Enable or disable Remote Desktop Protocol connections"
+    required: true
+    variable: "rdp_enable"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"
+
+  - question_name: "Require Authentication"
+    question_description: "Require Network Level Authentication (NLA) for RDP connections"
+    required: true
+    variable: "rdp_authenticate"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"

@@ -1,0 +1,12 @@
+---
+- name: Manage Windows RDP Configuration
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Configure RDP
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_rdp
+      vars:
+        windows_manage_rdp_enable: "{{ rdp_enable | default(true) | bool }}"  # Set by survey
+        windows_manage_rdp_authenticate: "{{ rdp_authenticate | default(true) | bool }}"  # Set by survey
+...

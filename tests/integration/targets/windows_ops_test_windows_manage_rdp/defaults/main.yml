@@ -1,0 +1,3 @@
+---
+# Test verifies RDP enable + authentication toggle
+# RDP stays enabled throughout to avoid lockout risk
