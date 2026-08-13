@@ -3,9 +3,15 @@
 windows_manage_rdp_enable: true
 
 # Firewall profiles to apply rules
+# Includes all profiles to ensure complete coverage when disabling
 windows_manage_rdp_firewall_profiles:
   - domain
   - private
+  - public
 
-# Require authentication for RDP
+# Require Network Level Authentication (NLA) for RDP connections.
+# WARNING: Setting this to false disables NLA, allowing any user to reach
+# the Windows login screen without pre-authentication. This significantly
+# increases attack surface and has historically enabled unauthenticated
+# RCE vulnerabilities (e.g., BlueKeep CVE-2019-0708).
 windows_manage_rdp_authenticate: true

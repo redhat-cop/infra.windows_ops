@@ -1,4 +1,13 @@
 ---
+- name: Validate firewall profiles
+  ansible.builtin.assert:
+    that:
+      - windows_manage_rdp_firewall_profiles | difference(['domain', 'private', 'public']) | length == 0
+    fail_msg: >-
+      windows_manage_rdp_firewall_profiles contains invalid values:
+      {{ windows_manage_rdp_firewall_profiles | difference(['domain', 'private', 'public']) }}.
+      Valid values are 'domain', 'private', 'public'.
+
 - name: Disable RDP service
   ansible.windows.win_regedit:
     path: HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server

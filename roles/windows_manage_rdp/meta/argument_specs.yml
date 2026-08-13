@@ -17,11 +17,15 @@ argument_specs:
         elements: str
         description:
           - Firewall profiles to apply RDP rules to.
+          - Valid values are C(domain), C(private), and C(public).
         default:
           - domain
           - private
+          - public
       windows_manage_rdp_authenticate:
         type: bool
         description:
           - Require Network Level Authentication (NLA) for RDP connections.
+          - "B(WARNING): Setting this to C(false) disables NLA, exposing the
+            Windows login screen to unauthenticated network access."
         default: true
