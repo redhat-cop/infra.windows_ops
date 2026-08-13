@@ -1,0 +1,52 @@
+---
+- name: Check WinRM service details
+  ansible.windows.win_service_info:
+    name: WinRM
+  register: windows_manage_winrm_service_info
+
+- name: Display WinRM service details
+  ansible.builtin.debug:
+    var: windows_manage_winrm_service_info.services[0]
+
+- name: Check WinRM service configuration
+  ansible.windows.win_powershell:
+    script: |
+      $config = @{}
+      Get-ChildItem -Path WSMan:\localhost\Service | ForEach-Object {
+        if ($_.PSIsContainer) {
+          $sub = @{}
+          Get-ChildItem -Path $_.PSPath | ForEach-Object {
+            $sub[$_.Name] = $_.Value
+          }
+          $config[$_.Name] = $sub
+        } else {
+          $config[$_.Name] = $_.Value
+        }
+      }
+      $Ansible.Result = $config
+  register: windows_manage_winrm_config_info
+  changed_when: false
+
+- name: Display WinRM service configuration
+  ansible.builtin.debug:
+    var: windows_manage_winrm_config_info.result
+
+- name: Check WinRM listener configuration
+  ansible.windows.win_powershell:
+    script: |
+      $listeners = @()
+      Get-WSManInstance winrm/config/Listener -Enumerate | ForEach-Object {
+        $listeners += @{
+          Address   = $_.Address
+          Transport = $_.Transport
+          Port      = $_.Port
+          Enabled   = $_.Enabled
+        }
+      }
+      $Ansible.Result = $listeners
+  register: windows_manage_winrm_listener_info
+  changed_when: false
+
+- name: Display WinRM listener configuration
+  ansible.builtin.debug:
+    var: windows_manage_winrm_listener_info.result

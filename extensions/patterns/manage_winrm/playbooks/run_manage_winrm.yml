@@ -1,0 +1,13 @@
+---
+- name: Manage Windows WinRM Configuration
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Configure WinRM
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_winrm
+      vars:
+        windows_manage_winrm_enable: "{{ winrm_enable | default(true) | bool }}"  # Set by survey
+        windows_manage_winrm_https_enable: "{{ winrm_https_enable | default(false) | bool }}"  # Set by survey
+        windows_manage_winrm_display_config: "{{ winrm_display_config | default(false) | bool }}"  # Set by survey
+...

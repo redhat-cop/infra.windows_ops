@@ -1,0 +1,33 @@
+---
+name: "Manage WinRM Configuration Survey"
+description: "Survey to configure WinRM options"
+spec:
+  - question_name: "Enable WinRM"
+    question_description: "Enable or disable the WinRM service"
+    required: true
+    variable: "winrm_enable"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"
+
+  - question_name: "Enable HTTPS"
+    question_description: "Enable WinRM HTTPS listener with self-signed certificate"
+    required: true
+    variable: "winrm_https_enable"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"
+
+  - question_name: "Display Configuration"
+    question_description: "Display the current WinRM configuration after changes"
+    required: true
+    variable: "winrm_display_config"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"

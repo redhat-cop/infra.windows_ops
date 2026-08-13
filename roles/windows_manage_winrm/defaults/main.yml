@@ -1,0 +1,42 @@
+---
+# Enable or disable WinRM
+windows_manage_winrm_enable: true
+
+# WinRM service start mode: auto or delayed
+windows_manage_winrm_start_mode: auto
+
+# Block WinRM HTTP port if using HTTPS
+# Kerberos and NTLM encrypt traffic with HTTP
+windows_manage_winrm_http_block: false
+
+# Enable WinRM HTTPS listener with self-signed cert
+windows_manage_winrm_https_enable: false
+
+# Validity period in years for the self-signed HTTPS certificate
+windows_manage_winrm_https_cert_validity_years: 2
+
+# WinRM service configuration
+# CbtHardeningLevel: Relaxed permits clients without Channel Binding Token
+# support. Use Strict for stronger NTLM relay protection at the cost of
+# compatibility with older clients.
+windows_manage_winrm_service_config:
+  AllowUnencrypted: false
+  Auth:
+    Basic: false
+    Kerberos: true
+    Negotiate: true
+    Certificate: false
+    CredSSP: false
+    CbtHardeningLevel: Relaxed
+  IPv4Filter: '*'
+  IPv6Filter: '*'
+
+# Firewall profiles to apply rules
+# Includes all profiles to ensure complete coverage when disabling
+windows_manage_winrm_firewall_profiles:
+  - domain
+  - private
+  - public
+
+# Display current WinRM configuration
+windows_manage_winrm_display_config: false

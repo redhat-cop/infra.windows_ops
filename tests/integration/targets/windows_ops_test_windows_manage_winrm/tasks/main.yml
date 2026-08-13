@@ -1,0 +1,350 @@
+---
+- name: Test WinRM configuration
+  block:
+    - name: Configure WinRM with display enabled
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_winrm
+      vars:
+        windows_manage_winrm_enable: true
+        windows_manage_winrm_display_config: true
+
+    - name: Verify WinRM service is running
+      ansible.windows.win_service_info:
+        name: WinRM
+      register: windows_manage_winrm_verify_service
+
+    - name: Assert WinRM service is started
+      ansible.builtin.assert:
+        that:
+          - windows_manage_winrm_verify_service.services[0].state == 'started'
+          - windows_manage_winrm_verify_service.services[0].start_mode == 'auto'
+        fail_msg: "WinRM service is not in expected state"
+
+    # -- Idempotency test --
+    - name: Capture WinRM auth config before idempotency re-run
+      ansible.windows.win_powershell:
+        script: |
+          $result = @{}
+          Get-ChildItem -Path WSMan:\localhost\Service\Auth | ForEach-Object {
+            $result[$_.Name] = $_.Value
+          }
+          $Ansible.Result = $result
+      register: windows_manage_winrm_auth_before
+      check_mode: false
+      changed_when: false
+
+    - name: Run role again to verify idempotency
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_winrm
+      vars:
+        windows_manage_winrm_enable: true
+        windows_manage_winrm_display_config: false
+
+    - name: Verify WinRM service still running after idempotent re-run
+      ansible.windows.win_service_info:
+        name: WinRM
+      register: windows_manage_winrm_verify_idempotent
+
+    - name: Capture WinRM auth config after idempotency re-run
+      ansible.windows.win_powershell:
+        script: |
+          $result = @{}
+          Get-ChildItem -Path WSMan:\localhost\Service\Auth | ForEach-Object {
+            $result[$_.Name] = $_.Value
+          }
+          $Ansible.Result = $result
+      register: windows_manage_winrm_auth_after
+      check_mode: false
+      changed_when: false
+
+    - name: Assert state unchanged after idempotent re-run
+      ansible.builtin.assert:
+        that:
+          - windows_manage_winrm_verify_idempotent.services[0].state == 'started'
+          - windows_manage_winrm_verify_idempotent.services[0].start_mode == 'auto'
+          - windows_manage_winrm_auth_before.result == windows_manage_winrm_auth_after.result
+        fail_msg: "Role is not idempotent - service or auth config changed on re-run"
+
+    # -- HTTPS listener test --
+    - name: Remove existing HTTPS listener if present
+      ansible.windows.win_powershell:
+        script: |
+          $Ansible.Changed = $false
+          $listener = Get-WSManInstance winrm/config/Listener -Enumerate |
+            Where-Object { $_.Transport -eq 'HTTPS' }
+          if ($listener) {
+            $Ansible.Changed = $true
+            Remove-WSManInstance -ResourceURI winrm/config/Listener `
+              -SelectorSet @{Address='*';Transport='HTTPS'}
+          }
+      register: windows_manage_winrm_pre_https_cleanup
+
+    - name: Configure WinRM with HTTPS enabled
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_winrm
+      vars:
+        windows_manage_winrm_enable: true
+        windows_manage_winrm_https_enable: true
+        windows_manage_winrm_display_config: false
+
+    - name: Verify HTTPS listener exists
+      ansible.windows.win_powershell:
+        script: |
+          $listener = Get-WSManInstance winrm/config/Listener -Enumerate |
+            Where-Object { $_.Transport -eq 'HTTPS' }
+          $Ansible.Result = @{
+            exists = [bool]$listener
+            port = if ($listener) { $listener.Port } else { $null }
+            enabled = if ($listener) { $listener.Enabled } else { $null }
+          }
+      register: windows_manage_winrm_verify_https
+      check_mode: false
+      changed_when: false
+
+    - name: Assert HTTPS listener is configured
+      ansible.builtin.assert:
+        that:
+          - windows_manage_winrm_verify_https.result.exists
+          - windows_manage_winrm_verify_https.result.port == '5986'
+        fail_msg: "HTTPS listener was not created"
+
+    - name: Verify HTTPS firewall rule is allowed
+      ansible.windows.win_powershell:
+        script: |
+          $rule = Get-NetFirewallRule -DisplayName 'Windows Remote Management (HTTPS-In)' -ErrorAction SilentlyContinue
+          if ($rule) {
+            $Ansible.Result = @{
+              exists = $true
+              action = $rule.Action.ToString()
+              enabled = $rule.Enabled.ToString()
+            }
+          } else {
+            $Ansible.Result = @{ exists = $false }
+          }
+      register: windows_manage_winrm_verify_https_fw
+      check_mode: false
+      changed_when: false
+
+    - name: Assert HTTPS firewall rule allows traffic
+      ansible.builtin.assert:
+        that:
+          - windows_manage_winrm_verify_https_fw.result.exists
+          - windows_manage_winrm_verify_https_fw.result.action == 'Allow'
+        fail_msg: "HTTPS firewall rule is not set to allow"
+
+    # -- http_block safety guard test --
+    - name: Capture HTTP firewall rule before http_block test
+      ansible.windows.win_powershell:
+        script: |
+          $rule = Get-NetFirewallRule -DisplayName 'Windows Remote Management (HTTP-In)' -ErrorAction SilentlyContinue
+          $Ansible.Result = @{
+            action = if ($rule) { $rule.Action.ToString() } else { 'NotFound' }
+          }
+      register: windows_manage_winrm_http_fw_before
+      check_mode: false
+      changed_when: false
+
+    - name: Configure WinRM with http_block enabled (guard should prevent block)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_winrm
+      vars:
+        windows_manage_winrm_enable: true
+        windows_manage_winrm_http_block: true
+        windows_manage_winrm_display_config: false
+
+    - name: Verify HTTP firewall rule was NOT blocked (safety guard)
+      ansible.windows.win_powershell:
+        script: |
+          $rule = Get-NetFirewallRule -DisplayName 'Windows Remote Management (HTTP-In)' -ErrorAction SilentlyContinue
+          $Ansible.Result = @{
+            action = if ($rule) { $rule.Action.ToString() } else { 'NotFound' }
+          }
+      register: windows_manage_winrm_http_fw_after
+      check_mode: false
+      changed_when: false
+
+    - name: Assert HTTP port not blocked while connected on it
+      ansible.builtin.assert:
+        that:
+          - windows_manage_winrm_http_fw_after.result.action == windows_manage_winrm_http_fw_before.result.action
+        fail_msg: >-
+          Safety guard failed - HTTP firewall rule changed from
+          {{ windows_manage_winrm_http_fw_before.result.action }} to
+          {{ windows_manage_winrm_http_fw_after.result.action }}
+
+    - name: Restore http_block to default
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_winrm
+      vars:
+        windows_manage_winrm_enable: true
+        windows_manage_winrm_http_block: false
+        windows_manage_winrm_display_config: false
+
+    # -- service_config test --
+    - name: Configure WinRM with custom service_config
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_winrm
+      vars:
+        windows_manage_winrm_enable: true
+        windows_manage_winrm_display_config: false
+        windows_manage_winrm_service_config:
+          AllowUnencrypted: false
+          Auth:
+            Basic: true
+            Kerberos: true
+            Negotiate: true
+            Certificate: false
+            CredSSP: false
+            CbtHardeningLevel: Relaxed
+          IPv4Filter: '*'
+          IPv6Filter: '*'
+
+    - name: Verify Basic auth was enabled
+      ansible.windows.win_powershell:
+        script: |
+          $basic = (Get-ChildItem -Path WSMan:\localhost\Service\Auth\Basic).Value
+          $Ansible.Result = @{ basic = $basic }
+      register: windows_manage_winrm_verify_basic
+      check_mode: false
+      changed_when: false
+
+    - name: Assert Basic auth is enabled
+      ansible.builtin.assert:
+        that:
+          - windows_manage_winrm_verify_basic.result.basic == 'true'
+        fail_msg: "Basic auth was not enabled by service_config"
+
+    - name: Restore default auth settings
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_winrm
+      vars:
+        windows_manage_winrm_enable: true
+        windows_manage_winrm_display_config: false
+        windows_manage_winrm_service_config:
+          AllowUnencrypted: false
+          Auth:
+            Basic: false
+            Kerberos: true
+            Negotiate: true
+            Certificate: false
+            CredSSP: false
+            CbtHardeningLevel: Relaxed
+          IPv4Filter: '*'
+          IPv6Filter: '*'
+
+    # -- start_mode: delayed test --
+    - name: Configure WinRM with delayed start
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_winrm
+      vars:
+        windows_manage_winrm_enable: true
+        windows_manage_winrm_start_mode: delayed
+        windows_manage_winrm_display_config: false
+
+    - name: Verify WinRM service start mode is delayed
+      ansible.windows.win_service_info:
+        name: WinRM
+      register: windows_manage_winrm_verify_delayed
+
+    - name: Assert start mode is delayed
+      ansible.builtin.assert:
+        that:
+          - windows_manage_winrm_verify_delayed.services[0].start_mode == 'delayed'
+        fail_msg: "WinRM start_mode was not set to delayed"
+
+    - name: Restore start mode to auto
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_winrm
+      vars:
+        windows_manage_winrm_enable: true
+        windows_manage_winrm_start_mode: auto
+        windows_manage_winrm_display_config: false
+
+    # -- Non-default firewall profiles test --
+    - name: Configure WinRM with domain-only firewall profiles
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_winrm
+      vars:
+        windows_manage_winrm_enable: true
+        windows_manage_winrm_firewall_profiles:
+          - domain
+        windows_manage_winrm_display_config: false
+
+    - name: Verify HTTP firewall rule profiles
+      ansible.windows.win_powershell:
+        script: |
+          $rule = Get-NetFirewallRule -DisplayName 'Windows Remote Management (HTTP-In)' -ErrorAction SilentlyContinue
+          if ($rule) {
+            $profiles = $rule.Profile.ToString()
+            $Ansible.Result = @{ profiles = $profiles }
+          } else {
+            $Ansible.Result = @{ profiles = 'NotFound' }
+          }
+      register: windows_manage_winrm_verify_profiles
+      check_mode: false
+      changed_when: false
+
+    - name: Assert firewall rule has domain profile
+      ansible.builtin.assert:
+        that:
+          - "'Domain' in windows_manage_winrm_verify_profiles.result.profiles"
+        fail_msg: >-
+          Firewall profiles not set correctly:
+          {{ windows_manage_winrm_verify_profiles.result.profiles }}
+
+    - name: Restore default firewall profiles
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_winrm
+      vars:
+        windows_manage_winrm_enable: true
+        windows_manage_winrm_firewall_profiles:
+          - domain
+          - private
+          - public
+        windows_manage_winrm_display_config: false
+
+    # -- Disable safety check --
+    - name: Test disable safety check
+      block:
+        - name: Attempt to disable WinRM (should fail)
+          ansible.builtin.include_role:
+            name: infra.windows_ops.windows_manage_winrm
+          vars:
+            windows_manage_winrm_enable: false
+
+        - name: Fail if disable was not refused
+          ansible.builtin.fail:
+            msg: "WinRM disable should have been refused over WinRM connection"
+
+      rescue:
+        - name: Assert disable was refused for the right reason
+          ansible.builtin.assert:
+            that:
+              - ansible_failed_result.msg is search('Refusing to disable WinRM')
+            fail_msg: "Role failed for unexpected reason: {{ ansible_failed_result.msg }}"
+
+  always:
+    - name: Clean up HTTPS listener
+      ansible.windows.win_powershell:
+        script: |
+          $Ansible.Changed = $false
+          $listener = Get-WSManInstance winrm/config/Listener -Enumerate |
+            Where-Object { $_.Transport -eq 'HTTPS' }
+          if ($listener) {
+            $Ansible.Changed = $true
+            Remove-WSManInstance -ResourceURI winrm/config/Listener `
+              -SelectorSet @{Address='*';Transport='HTTPS'}
+          }
+      check_mode: false
+
+    - name: Ensure WinRM is still enabled with defaults
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_winrm
+      vars:
+        windows_manage_winrm_enable: true
+        windows_manage_winrm_start_mode: auto
+        windows_manage_winrm_firewall_profiles:
+          - domain
+          - private
+          - public
+        windows_manage_winrm_display_config: false
