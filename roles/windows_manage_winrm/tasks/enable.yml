@@ -11,6 +11,7 @@
     profiles: "{{ windows_manage_winrm_firewall_profiles | default(omit, true) }}"
   when:
     - ansible_winrm_port | default(0) | int != 5985
+    - ansible_psrp_port | default(0) | int != 5985
     - windows_manage_winrm_http_block | bool
 
 - name: Block firewall WinRM HTTPS port
@@ -25,6 +26,7 @@
     profiles: "{{ windows_manage_winrm_firewall_profiles | default(omit, true) }}"
   when:
     - ansible_winrm_port | default(0) | int != 5986
+    - ansible_psrp_port | default(0) | int != 5986
     - not windows_manage_winrm_https_enable | bool
 
 - name: Enable WinRM service
@@ -36,7 +38,10 @@
 - name: Enable WinRM service HTTPS listener
   ansible.windows.win_powershell:
     error_action: stop
+    parameters:
+      CertValidityYears: "{{ windows_manage_winrm_https_cert_validity_years }}"
     script: |
+      param([int]$CertValidityYears)
       $Ansible.Changed = $false
       $friendlyName = 'WinRM over HTTPS'
       $cert = Get-ChildItem -Path Cert:\LocalMachine\My | ? FriendlyName -eq $friendlyName
@@ -46,12 +51,12 @@
         if ($Ansible.CheckMode) { return }
         if (-not $cert) {
           $dnsNames = @($env:COMPUTERNAME)
-          $domain = (Get-WmiObject Win32_ComputerSystem).Domain
+          $domain = (Get-CimInstance Win32_ComputerSystem).Domain
           if ($domain -and $domain -ne 'WORKGROUP') {
             $dnsNames += "$($env:COMPUTERNAME).$domain"
           }
           $cert = New-SelfSignedCertificate -CertStoreLocation Cert:\LocalMachine\My `
-                    -DnsName $dnsNames -NotAfter (get-date).AddYears(10) `
+                    -DnsName $dnsNames -NotAfter (get-date).AddYears($CertValidityYears) `
                     -Provider 'Microsoft Software Key Storage Provider'
           $cert.FriendlyName = $friendlyName
         }

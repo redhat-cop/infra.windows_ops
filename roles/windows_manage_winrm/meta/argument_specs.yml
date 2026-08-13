@@ -7,6 +7,8 @@ argument_specs:
       - Enable or disable the WinRM service with listener and firewall configuration.
       - Supports HTTPS listener with self-signed certificates.
       - Includes safety check to prevent disabling WinRM over a WinRM connection.
+      - "B(NOTE): The safety check uses C(ansible.builtin.fail) which can be
+        bypassed by wrapping the role call in a C(rescue) block."
     options:
       windows_manage_winrm_enable:
         type: bool
@@ -34,21 +36,32 @@ argument_specs:
           - Enable the WinRM HTTPS listener.
           - Creates a self-signed certificate if no HTTPS listener exists.
         default: false
+      windows_manage_winrm_https_cert_validity_years:
+        type: int
+        description:
+          - Validity period in years for the self-signed HTTPS certificate.
+          - The role does not provide certificate rotation. Plan for renewal
+            before expiry.
+        default: 2
       windows_manage_winrm_service_config:
         type: dict
         description:
-          - WinRM service configuration settings.
-          - Supports Auth sub-keys (Basic, Kerberos, Negotiate, Certificate, CredSSP, CbtHardeningLevel).
-          - Supports AllowUnencrypted, IPv4Filter, IPv6Filter.
+          - WinRM service configuration settings applied to WSMan:\\localhost\\Service.
+          - "Flat keys (C(AllowUnencrypted), C(IPv4Filter), C(IPv6Filter)) must have
+            string values."
+          - "The C(Auth) key accepts a nested dict with sub-keys: C(Basic), C(Kerberos),
+            C(Negotiate), C(Certificate), C(CredSSP), C(CbtHardeningLevel)."
         required: false
       windows_manage_winrm_firewall_profiles:
         type: list
         elements: str
         description:
           - Firewall profiles to apply WinRM rules to.
+          - Valid values are C(domain), C(private), and C(public).
         default:
           - domain
           - private
+          - public
       windows_manage_winrm_display_config:
         type: bool
         description:
