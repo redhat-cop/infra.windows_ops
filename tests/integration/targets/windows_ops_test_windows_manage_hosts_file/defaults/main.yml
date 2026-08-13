@@ -3,3 +3,7 @@ windows_manage_hosts_file_test_entries_a:
   - "198.51.100.10   test-host-a.example.com test-host-a"
 windows_manage_hosts_file_test_entries_b:
   - "203.0.113.20    test-host-b.example.com test-host-b"
+
+windows_manage_hosts_file_test_entries_mixed:
+  - "198.51.100.30   ipv4-only.example.com ipv4-only"
+  - "fd00::30        ipv6-only.example.com ipv6-only"

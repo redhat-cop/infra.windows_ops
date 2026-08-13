@@ -11,6 +11,7 @@
       ansible.builtin.set_fact:
         windows_manage_hosts_file_original_content: "{{ windows_manage_hosts_file_original_raw.stdout }}"
 
+    # -- A/B state test --
     - name: Configure hosts file (state A)
       ansible.builtin.include_role:
         name: infra.windows_ops.windows_manage_hosts_file
@@ -29,12 +30,32 @@
           - "'True' in windows_manage_hosts_file_verify_a.stdout"
         fail_msg: "Hosts file does not contain state A entry"
 
+    # -- Idempotency test --
+    - name: Capture hosts file after state A
+      ansible.windows.win_shell: |
+        Get-Content C:\Windows\System32\drivers\etc\hosts -Raw
+      register: windows_manage_hosts_file_state_a_content
+      changed_when: false
+
     - name: Run role again to verify idempotency (state A)
       ansible.builtin.include_role:
         name: infra.windows_ops.windows_manage_hosts_file
       vars:
         windows_manage_hosts_file_entries: "{{ windows_manage_hosts_file_test_entries_a }}"
 
+    - name: Capture hosts file after idempotency re-run
+      ansible.windows.win_shell: |
+        Get-Content C:\Windows\System32\drivers\etc\hosts -Raw
+      register: windows_manage_hosts_file_idempotent_content
+      changed_when: false
+
+    - name: Assert hosts file unchanged after idempotency re-run
+      ansible.builtin.assert:
+        that:
+          - windows_manage_hosts_file_state_a_content.stdout == windows_manage_hosts_file_idempotent_content.stdout
+        fail_msg: "Role is not idempotent - hosts file content changed on re-run"
+
+    # -- State B replaces state A --
     - name: Configure hosts file (state B)
       ansible.builtin.include_role:
         name: infra.windows_ops.windows_manage_hosts_file
@@ -64,6 +85,101 @@
         that:
           - "'True' not in windows_manage_hosts_file_verify_a_gone.stdout"
         fail_msg: "State A entry was not replaced by state B"
+
+    # -- self_add test --
+    - name: Gather facts for self_add test
+      ansible.windows.setup:
+        gather_subset:
+          - '!all'
+          - '!min'
+          - network
+          - platform
+      register: windows_manage_hosts_file_test_facts
+
+    - name: Configure hosts file with self_add enabled
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_hosts_file
+      vars:
+        windows_manage_hosts_file_self_add: true
+        windows_manage_hosts_file_entries: []
+
+    - name: Read hosts file after self_add
+      ansible.windows.win_shell: |
+        Get-Content C:\Windows\System32\drivers\etc\hosts -Raw
+      register: windows_manage_hosts_file_self_add_result
+      changed_when: false
+
+    - name: Assert self entry contains hostname
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.hostname in windows_manage_hosts_file_self_add_result.stdout
+        fail_msg: >-
+          Hosts file does not contain self entry for {{ ansible_facts.hostname }}
+      when: ansible_facts.domain | default('') | length > 0
+
+    # -- omit_entries test --
+    - name: Configure hosts file with mixed entries (no filter)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_hosts_file
+      vars:
+        windows_manage_hosts_file_self_add: false
+        windows_manage_hosts_file_entries: "{{ windows_manage_hosts_file_test_entries_mixed }}"
+        windows_manage_hosts_file_omit_entries: none
+
+    - name: Read hosts file with no filter
+      ansible.windows.win_shell: |
+        Get-Content C:\Windows\System32\drivers\etc\hosts -Raw
+      register: windows_manage_hosts_file_no_filter_result
+      changed_when: false
+
+    - name: Assert both IPv4 and IPv6 entries present with no filter
+      ansible.builtin.assert:
+        that:
+          - "'ipv4-only' in windows_manage_hosts_file_no_filter_result.stdout"
+          - "'ipv6-only' in windows_manage_hosts_file_no_filter_result.stdout"
+        fail_msg: "Both entries should be present when omit_entries is 'none'"
+
+    - name: Configure hosts file omitting IPv6
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_hosts_file
+      vars:
+        windows_manage_hosts_file_self_add: false
+        windows_manage_hosts_file_entries: "{{ windows_manage_hosts_file_test_entries_mixed }}"
+        windows_manage_hosts_file_omit_entries: ipv6
+
+    - name: Read hosts file after omitting IPv6
+      ansible.windows.win_shell: |
+        Get-Content C:\Windows\System32\drivers\etc\hosts -Raw
+      register: windows_manage_hosts_file_omit_ipv6_result
+      changed_when: false
+
+    - name: Assert IPv4 present and IPv6 omitted
+      ansible.builtin.assert:
+        that:
+          - "'ipv4-only' in windows_manage_hosts_file_omit_ipv6_result.stdout"
+          - "'ipv6-only' not in windows_manage_hosts_file_omit_ipv6_result.stdout"
+        fail_msg: "omit_entries 'ipv6' should keep IPv4 and remove IPv6"
+
+    - name: Configure hosts file omitting IPv4
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_hosts_file
+      vars:
+        windows_manage_hosts_file_self_add: false
+        windows_manage_hosts_file_entries: "{{ windows_manage_hosts_file_test_entries_mixed }}"
+        windows_manage_hosts_file_omit_entries: ipv4
+
+    - name: Read hosts file after omitting IPv4
+      ansible.windows.win_shell: |
+        Get-Content C:\Windows\System32\drivers\etc\hosts -Raw
+      register: windows_manage_hosts_file_omit_ipv4_result
+      changed_when: false
+
+    - name: Assert IPv6 present and IPv4 omitted
+      ansible.builtin.assert:
+        that:
+          - "'ipv6-only' in windows_manage_hosts_file_omit_ipv4_result.stdout"
+          - "'ipv4-only' not in windows_manage_hosts_file_omit_ipv4_result.stdout"
+        fail_msg: "omit_entries 'ipv4' should keep IPv6 and remove IPv4"
 
   always:
     - name: Restore original hosts file
