@@ -1,0 +1,22 @@
+---
+name: "Manage Firewall Configuration Survey"
+description: "Survey to configure Windows firewall profiles and rules"
+spec:
+  - question_name: "Firewall Profile"
+    question_description: "Select the firewall profile to manage"
+    required: true
+    variable: "firewall_profile"
+    type: "multiplechoice"
+    choices:
+      - "domain"
+      - "private"
+      - "public"
+
+  - question_name: "Profile State"
+    question_description: "Enable or disable the selected firewall profile"
+    required: true
+    variable: "firewall_profile_state"
+    type: "multiplechoice"
+    choices:
+      - "enable"
+      - "disable"

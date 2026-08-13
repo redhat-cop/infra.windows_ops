@@ -1,0 +1,105 @@
+---
+- name: Test firewall configuration
+  block:
+    # -- Enable a test rule --
+    - name: Enable a test firewall rule
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_firewall
+      vars:
+        windows_manage_firewall_rules_enable:
+          - name: "{{ windows_manage_firewall_test_rule_name }}"
+            localport: "{{ windows_manage_firewall_test_port }}"
+            action: allow
+            direction: in
+            protocol: tcp
+            profiles:
+              - domain
+
+    - name: Verify test rule exists and is enabled
+      ansible.windows.win_powershell:
+        script: |
+          $rule = Get-NetFirewallRule -DisplayName '{{ windows_manage_firewall_test_rule_name }}' -ErrorAction SilentlyContinue
+          $Ansible.Result = @{
+            exists = [bool]$rule
+            enabled = if ($rule) { $rule.Enabled.ToString() } else { 'False' }
+            action = if ($rule) { $rule.Action.ToString() } else { '' }
+          }
+      register: windows_manage_firewall_verify_enable
+      check_mode: false
+      changed_when: false
+
+    - name: Assert test rule is enabled
+      ansible.builtin.assert:
+        that:
+          - windows_manage_firewall_verify_enable.result.exists
+          - windows_manage_firewall_verify_enable.result.enabled == 'True'
+          - windows_manage_firewall_verify_enable.result.action == 'Allow'
+        fail_msg: "Test firewall rule was not enabled"
+
+    # -- Idempotency test --
+    - name: Run role again to verify idempotency
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_firewall
+      vars:
+        windows_manage_firewall_rules_enable:
+          - name: "{{ windows_manage_firewall_test_rule_name }}"
+            localport: "{{ windows_manage_firewall_test_port }}"
+            action: allow
+            direction: in
+            protocol: tcp
+            profiles:
+              - domain
+
+    - name: Verify rule still enabled after idempotent re-run
+      ansible.windows.win_powershell:
+        script: |
+          $rule = Get-NetFirewallRule -DisplayName '{{ windows_manage_firewall_test_rule_name }}' -ErrorAction SilentlyContinue
+          $Ansible.Result = @{
+            exists = [bool]$rule
+            enabled = if ($rule) { $rule.Enabled.ToString() } else { 'False' }
+          }
+      register: windows_manage_firewall_verify_idempotent
+      check_mode: false
+      changed_when: false
+
+    - name: Assert rule unchanged after idempotent re-run
+      ansible.builtin.assert:
+        that:
+          - windows_manage_firewall_verify_idempotent.result.exists
+          - windows_manage_firewall_verify_idempotent.result.enabled == 'True'
+        fail_msg: "Role is not idempotent"
+
+    # -- Disable the test rule --
+    - name: Disable the test firewall rule
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_firewall
+      vars:
+        windows_manage_firewall_rules_disable:
+          - name: "{{ windows_manage_firewall_test_rule_name }}"
+            localport: "{{ windows_manage_firewall_test_port }}"
+            action: allow
+            direction: in
+            protocol: tcp
+
+    - name: Verify test rule is disabled
+      ansible.windows.win_powershell:
+        script: |
+          $rule = Get-NetFirewallRule -DisplayName '{{ windows_manage_firewall_test_rule_name }}' -ErrorAction SilentlyContinue
+          $Ansible.Result = @{
+            enabled = if ($rule) { $rule.Enabled.ToString() } else { 'NotFound' }
+          }
+      register: windows_manage_firewall_verify_disable
+      check_mode: false
+      changed_when: false
+
+    - name: Assert test rule is disabled
+      ansible.builtin.assert:
+        that:
+          - windows_manage_firewall_verify_disable.result.enabled == 'False'
+        fail_msg: "Test firewall rule was not disabled"
+
+  always:
+    - name: Clean up test firewall rule
+      community.windows.win_firewall_rule:
+        name: "{{ windows_manage_firewall_test_rule_name }}"
+        state: absent

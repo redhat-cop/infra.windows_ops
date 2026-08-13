@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - "windows_manage_firewall - new role for managing Windows firewall profiles and rules with enable/disable support
+    and skip-on-conflict safety logic."
