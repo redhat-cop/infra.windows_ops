@@ -1,0 +1,12 @@
+---
+- name: Manage Windows Hosts File
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Configure hosts file
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_hosts_file
+      vars:
+        windows_manage_hosts_file_entries: "{{ (hosts_file_entries.split('\n') | reject('equalto', '') | list) if hosts_file_entries is string and hosts_file_entries | length > 0 else (hosts_file_entries if hosts_file_entries is not string else []) | default([]) }}"  # Set by survey
+        windows_manage_hosts_file_self_add: "{{ hosts_file_self_add | default(false) | bool }}"  # Set by survey
+...

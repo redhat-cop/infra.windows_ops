@@ -1,0 +1,30 @@
+{% if windows_manage_hosts_file_header %}
+{% for line in windows_manage_hosts_file_header.split('\n') %}
+{% if line.strip().startswith('#') or
+      windows_manage_hosts_file_omit_entries == 'none' or
+      (windows_manage_hosts_file_omit_entries == 'ipv4' and '.' not in line.split(' ')[0]) or
+      (windows_manage_hosts_file_omit_entries == 'ipv6' and ':' not in line.split(' ')[0]) %}
+{{ line }}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if windows_manage_hosts_file_self_add | bool and 'localhost' not in ansible_facts.hostname %}
+{% set _self_host = ansible_facts.hostname.split('.')[0] %}
+{% set _self_domain = windows_manage_hosts_file_self_domain | default(ansible_facts.domain, true) %}
+{% set _self_fqdn = _self_host + '.' + _self_domain %}
+{% set _default_ipv4 = ansible_facts.ip_addresses | map('regex_search', '^\d+(\.\d+){3}$') | select | first | default('') %}
+{% set _default_ipv6 = ansible_facts.ip_addresses | map('regex_search', '.*:.*') | select | first | default('') %}
+{% if _self_domain != '' and windows_manage_hosts_file_omit_entries != 'ipv4' and _default_ipv4 | length > 0 %}
+{{ '%-16s' | format(_default_ipv4) }} {{ _self_fqdn }} {{ _self_host }}
+{% endif %}
+{% if _self_domain != '' and windows_manage_hosts_file_omit_entries != 'ipv6' and _default_ipv6 | length > 0 %}
+{{ '%-40s' | format(_default_ipv6) }} {{ _self_fqdn }} {{ _self_host }}
+{% endif %}
+{% endif %}
+{% for line in windows_manage_hosts_file_entries | default([], true) %}
+{% if windows_manage_hosts_file_omit_entries == 'none' or
+      (windows_manage_hosts_file_omit_entries == 'ipv4' and '.' not in line.split(' ')[0]) or
+      (windows_manage_hosts_file_omit_entries == 'ipv6' and ':' not in line.split(' ')[0]) %}
+{{ line }}
+{% endif %}
+{% endfor %}

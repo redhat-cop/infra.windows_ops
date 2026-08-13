@@ -1,0 +1,36 @@
+---
+- name: Validate omit_entries value
+  ansible.builtin.assert:
+    that:
+      - windows_manage_hosts_file_omit_entries in ['none', 'ipv4', 'ipv6']
+    fail_msg: >-
+      windows_manage_hosts_file_omit_entries must be 'none', 'ipv4', or 'ipv6',
+      got '{{ windows_manage_hosts_file_omit_entries }}'.
+
+- name: Gather needed facts
+  ansible.windows.setup:
+    gather_subset:
+      - '!all'
+      - '!min'
+      - network
+      - platform
+  when:
+    - windows_manage_hosts_file_self_add | bool
+    - ansible_facts.ip_addresses is not defined or
+      ansible_facts.hostname is not defined or
+      ansible_facts.domain is not defined
+
+- name: Fail if domainname not set for self entry
+  ansible.builtin.fail:
+    msg: >-
+      No domain name available. Set 'windows_manage_hosts_file_self_domain'
+      or ensure the host is domain-joined.
+  when:
+    - windows_manage_hosts_file_self_add | bool
+    - not windows_manage_hosts_file_self_domain | default(ansible_facts.domain, true)
+
+- name: Create hosts file
+  ansible.windows.win_template:
+    src: hosts.j2
+    dest: C:\Windows\System32\drivers\etc\hosts
+  notify: Flush DNS resolver cache
