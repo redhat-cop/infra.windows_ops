@@ -1,0 +1,41 @@
+---
+- name: Configure system-wide audit policies
+  ansible.windows.win_audit_policy_system:
+    audit_type: "{{ item.audit_type }}"
+    category: "{{ item.category | default(omit) }}"
+    subcategory: "{{ item.subcategory | default(omit) }}"
+  loop: "{{ windows_manage_audit_system_policies | select }}"
+  loop_control:
+    label: "{{ item.category | default(item.subcategory) }}"
+
+- name: Remove audit rules
+  ansible.windows.win_audit_rule:
+    path: "{{ item.path }}"
+    user: "{{ item.user }}"
+    state: absent
+  register: windows_manage_audit_removed_rules
+  failed_when:
+    - windows_manage_audit_removed_rules.msg is defined
+    - not windows_manage_audit_ignore_missing | bool or
+      ('not found/invalid' not in windows_manage_audit_removed_rules.msg and
+       'lookup the identity' not in windows_manage_audit_removed_rules.msg)
+  loop: "{{ windows_manage_audit_rules_remove | select }}"
+  loop_control:
+    label: "{{ item.user + ' -> ' + item.path }}"
+  when: windows_manage_audit_rules_create
+        | selectattr('path', 'equalto', item.path)
+        | selectattr('user', 'equalto', item.user)
+        | length == 0
+
+- name: Create audit rules
+  ansible.windows.win_audit_rule:
+    path: "{{ item.path }}"
+    user: "{{ item.user }}"
+    rights: "{{ item.rights | default(omit) }}"
+    audit_flags: "{{ item.audit_flags | default(omit) }}"
+    inheritance_flags: "{{ item.inheritance_flags | default(omit) }}"
+    propagation_flags: "{{ item.propagation_flags | default(omit) }}"
+    state: present
+  loop: "{{ windows_manage_audit_rules_create | select }}"
+  loop_control:
+    label: "{{ item.user + ' -> ' + item.path }}"

@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - "windows_manage_audit - new role for managing Windows audit policies and audit rules with system-wide
+    policy configuration and path-specific rule management."

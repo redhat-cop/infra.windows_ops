@@ -1,0 +1,9 @@
+---
+- name: Manage Windows Audit Configuration
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Manage Windows Audit
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_audit
+...

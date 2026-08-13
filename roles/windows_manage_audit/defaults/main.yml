@@ -1,0 +1,5 @@
+---
+windows_manage_audit_system_policies: []
+windows_manage_audit_ignore_missing: false
+windows_manage_audit_rules_remove: []
+windows_manage_audit_rules_create: []

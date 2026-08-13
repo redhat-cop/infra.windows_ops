@@ -1,0 +1,138 @@
+---
+- name: Test audit configuration
+  block:
+    - name: Create test directory for audit rules
+      ansible.windows.win_file:
+        path: "{{ windows_manage_audit_test_path }}"
+        state: directory
+
+    # -- System audit policy --
+    - name: Capture current audit policy for Logon/Logoff
+      ansible.windows.win_powershell:
+        script: |
+          $output = auditpol /get /category:"Logon/Logoff" /r
+          $Ansible.Result = $output
+      register: windows_manage_audit_policy_before
+      check_mode: false
+      changed_when: false
+
+    - name: Configure system audit policy
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_audit
+      vars:
+        windows_manage_audit_system_policies:
+          - subcategory: Logon
+            audit_type:
+              - success
+              - failure
+
+    - name: Verify audit policy was applied
+      ansible.windows.win_powershell:
+        script: |
+          $output = auditpol /get /subcategory:"Logon" /r
+          $lines = $output -split "`n" | Where-Object { $_ -match 'Logon' }
+          $Ansible.Result = @{
+            raw = $output
+            has_success = $lines -match 'Success'
+            has_failure = $lines -match 'Failure'
+          }
+      register: windows_manage_audit_policy_verify
+      check_mode: false
+      changed_when: false
+
+    - name: Assert audit policy includes success and failure
+      ansible.builtin.assert:
+        that:
+          - windows_manage_audit_policy_verify.result.has_success
+          - windows_manage_audit_policy_verify.result.has_failure
+        fail_msg: "Audit policy for Logon was not configured correctly"
+
+    # -- Idempotency --
+    - name: Run audit policy again for idempotency
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_audit
+      vars:
+        windows_manage_audit_system_policies:
+          - subcategory: Logon
+            audit_type:
+              - success
+              - failure
+
+    # -- Create audit rule --
+    - name: Create audit rule on test directory
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_audit
+      vars:
+        windows_manage_audit_rules_create:
+          - path: "{{ windows_manage_audit_test_path }}"
+            user: "{{ windows_manage_audit_test_user }}"
+            rights:
+              - delete
+              - readdata
+            audit_flags:
+              - success
+              - failure
+
+    - name: Verify audit rule was created
+      ansible.windows.win_powershell:
+        script: |
+          $acl = Get-Acl -Path '{{ windows_manage_audit_test_path }}' -Audit
+          $rules = $acl.GetAuditRules($true, $false, [System.Security.Principal.NTAccount])
+          $match = $rules | Where-Object { $_.IdentityReference -eq '{{ windows_manage_audit_test_user }}' }
+          $Ansible.Result = @{
+            found = [bool]$match
+            count = @($match).Count
+          }
+      register: windows_manage_audit_rule_verify
+      check_mode: false
+      changed_when: false
+
+    - name: Assert audit rule exists
+      ansible.builtin.assert:
+        that:
+          - windows_manage_audit_rule_verify.result.found
+        fail_msg: "Audit rule was not created on test directory"
+
+    # -- Remove audit rule --
+    - name: Remove audit rule from test directory
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_audit
+      vars:
+        windows_manage_audit_rules_remove:
+          - path: "{{ windows_manage_audit_test_path }}"
+            user: "{{ windows_manage_audit_test_user }}"
+
+    - name: Verify audit rule was removed
+      ansible.windows.win_powershell:
+        script: |
+          $acl = Get-Acl -Path '{{ windows_manage_audit_test_path }}' -Audit
+          $rules = $acl.GetAuditRules($true, $false, [System.Security.Principal.NTAccount])
+          $match = $rules | Where-Object { $_.IdentityReference -eq '{{ windows_manage_audit_test_user }}' }
+          $Ansible.Result = @{
+            found = [bool]$match
+          }
+      register: windows_manage_audit_rule_removed_verify
+      check_mode: false
+      changed_when: false
+
+    - name: Assert audit rule was removed
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_audit_rule_removed_verify.result.found
+        fail_msg: "Audit rule was not removed from test directory"
+
+    # -- Ignore missing --
+    - name: Remove non-existent audit rule with ignore_missing
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_audit
+      vars:
+        windows_manage_audit_ignore_missing: true
+        windows_manage_audit_rules_remove:
+          - path: "{{ windows_manage_audit_test_path }}"
+            user: "{{ windows_manage_audit_test_user }}"
+
+  always:
+    - name: Clean up test directory
+      ansible.windows.win_file:
+        path: "{{ windows_manage_audit_test_path }}"
+        state: absent
