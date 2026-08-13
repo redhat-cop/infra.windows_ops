@@ -14,7 +14,7 @@ controller_labels:
 controller_execution_environments:
   - name: apd-ee-25-windows
     description: Allow running Windows experience demo. Based on apd-ee-25.
-    image: quay.io/p3ck/apd-ee-25-experience:latest
+    image: quay.io/redhat-cop/apd-ee-25-windows:latest
     pull: always
 
 # Projects
@@ -27,10 +27,10 @@ controller_projects:
       seamless management of DNS client settings.
     organization: Default
     scm_branch: main
-    scm_clean: 'no'
-    scm_delete_on_update: 'no'
+    scm_clean: false
+    scm_delete_on_update: false
     scm_type: git
-    scm_update_on_launch: 'yes'
+    scm_update_on_launch: true
     scm_url: https://github.com/redhat-cop/infra.windows_ops.git
     credential: "{{ credential | default(omit, true) }}"
 

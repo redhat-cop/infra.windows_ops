@@ -5,7 +5,7 @@ Configure Windows DNS client settings including DNS servers and suffix search li
 ## Requirements
 
 - Ansible >= 2.18
-- `ansible.windows` collection
+- `ansible.windows` collection (>= 3.1.0 required to set `suffix_search_list`)
 
 ## Role Variables
 
@@ -19,7 +19,7 @@ Each configuration item supports:
 |---|---|---|---|
 | `adapter_names` | str/list | yes | Adapter name(s) to configure (`'*'` for all) |
 | `dns_servers` | list(str) | yes | Ordered list of DNS server IP addresses |
-| `suffix_search_list` | list(str) | no | DNS suffix search list for name resolution |
+| `suffix_search_list` | list(str) | no | DNS suffix search list for name resolution (requires `ansible.windows` >= 3.1.0) |
 
 ## Example Playbook
 

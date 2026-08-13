@@ -32,4 +32,5 @@ argument_specs:
             elements: str
             description:
               - DNS suffix search list for name resolution.
+              - Setting this option requires C(ansible.windows) >= 3.1.0.
             required: false

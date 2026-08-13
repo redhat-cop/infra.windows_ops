@@ -39,6 +39,18 @@
           - adapter_names: "{{ windows_manage_dns_client_test_adapter }}"
             dns_servers: "{{ windows_manage_dns_client_test_dns_a }}"
 
+    - name: Verify DNS servers after idempotency run
+      ansible.windows.win_shell: |
+        (Get-DnsClientServerAddress -InterfaceAlias '{{ windows_manage_dns_client_test_adapter }}' -AddressFamily IPv4).ServerAddresses
+      register: windows_manage_dns_client_verify_idempotent
+      changed_when: false
+
+    - name: Assert DNS servers unchanged after idempotency run
+      ansible.builtin.assert:
+        that:
+          - windows_manage_dns_client_verify_idempotent.stdout_lines == windows_manage_dns_client_test_dns_a
+        fail_msg: "DNS servers changed after a repeat run; role is not idempotent"
+
     - name: Configure DNS servers (state B)
       ansible.builtin.include_role:
         name: infra.windows_ops.windows_manage_dns_client
