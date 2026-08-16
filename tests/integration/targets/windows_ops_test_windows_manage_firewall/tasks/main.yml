@@ -49,6 +49,13 @@
             protocol: tcp
             profiles:
               - domain
+      register: windows_manage_firewall_idempotency_result
+
+    - name: Assert no changes on idempotent re-run
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_firewall_idempotency_result.changed
+        fail_msg: "Role reported changes on idempotent re-run"
 
     - name: Verify rule still enabled after idempotent re-run
       ansible.windows.win_powershell:

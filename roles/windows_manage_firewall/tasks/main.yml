@@ -22,7 +22,7 @@
 
 - name: Disable firewall rules
   community.windows.win_firewall_rule:
-    state: "{{ item.state | default('present') }}"
+    state: present
     name: "{{ item.name | default(omit) }}"
     enabled: false
     description: "{{ item.description | default(omit) }}"
@@ -41,7 +41,7 @@
   loop: "{{ windows_manage_firewall_rules_disable | select }}"
   loop_control:
     label: "{{ item.name | default(item) }}"
-  when: item not in windows_manage_firewall_rules_enable
+  when: item not in windows_manage_firewall_rules_enable | select
 
 - name: Enable firewall rules
   community.windows.win_firewall_rule:

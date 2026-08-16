@@ -6,4 +6,11 @@
     - name: Manage Windows Firewall
       ansible.builtin.include_role:
         name: infra.windows_ops.windows_manage_firewall
+      vars:
+        windows_manage_firewall_profiles_enable: >-
+          {{ [{'profiles': [firewall_profile]}]
+             if firewall_profile_state | default('') == 'enable' else [] }}
+        windows_manage_firewall_profiles_disable: >-
+          {{ [{'profiles': [firewall_profile]}]
+             if firewall_profile_state | default('') == 'disable' else [] }}
 ...
