@@ -2,7 +2,7 @@
 - name: Fail if trying to disable sshd using SSH
   ansible.builtin.fail:
     msg: "Refusing to disable sshd when using SSH."
-  when: ansible_connection == 'ssh'
+  when: ansible_connection in ['ssh', 'ansible.builtin.ssh']
 
 - name: Check sshd service
   ansible.windows.win_service_info:

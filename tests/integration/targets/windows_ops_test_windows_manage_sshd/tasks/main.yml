@@ -44,6 +44,50 @@
     - name: Run enable again for idempotency
       ansible.builtin.include_role:
         name: infra.windows_ops.windows_manage_sshd
+      register: windows_manage_sshd_idempotency_result
+
+    - name: Assert no changes on re-run
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_sshd_idempotency_result.changed
+        fail_msg: "Role reported changes on idempotent re-run"
+
+    # -- Config validation --
+    - name: Enable sshd with validation (using template)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_sshd
+      vars:
+        windows_manage_sshd_config_validate: true
+        windows_manage_sshd_config_file: default_config
+        windows_manage_sshd_start_mode: auto
+
+    - name: Verify sshd_config was validated and written
+      ansible.windows.win_stat:
+        path: C:\ProgramData\ssh\sshd_config
+      register: windows_manage_sshd_test_validated_config
+      check_mode: false
+
+    - name: Assert config file exists after validation
+      ansible.builtin.assert:
+        that:
+          - windows_manage_sshd_test_validated_config.stat.exists
+        fail_msg: "Config file not written after validation"
+
+    - name: Verify temp files were cleaned up
+      ansible.windows.win_stat:
+        path: "{{ item }}"
+      register: windows_manage_sshd_test_temp_files
+      check_mode: false
+      loop:
+        - C:\ProgramData\ssh\sshd_config.tmp
+        - C:\ProgramData\ssh\.tmp
+
+    - name: Assert temp files do not exist
+      ansible.builtin.assert:
+        that:
+          - not item.stat.exists
+        fail_msg: "Temp file {{ item.item }} was not cleaned up"
+      loop: "{{ windows_manage_sshd_test_temp_files.results }}"
 
     # -- Configure options --
     - name: Enable sshd with custom options
@@ -134,7 +178,7 @@
 
     # -- Disable safety check --
     - name: Test disable safety check over SSH
-      when: ansible_connection == 'ssh'
+      when: ansible_connection in ['ssh', 'ansible.builtin.ssh']
       block:
         - name: Attempt to disable sshd over SSH
           ansible.builtin.include_role:

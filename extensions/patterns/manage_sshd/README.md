@@ -46,7 +46,7 @@ Contributions to this project are welcome. Please fork the repository, make your
 
 GNU General Public License v3.0 or later.
 
-See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.txt) to see the full text. This project is licensed under the MIT License. See the [LICENSE](https://github.com/redhat-cop/infra.windows_ops/blob/main/LICENSE) file for details.
+See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.txt) to see the full text. See the [LICENSE](https://github.com/redhat-cop/infra.windows_ops/blob/main/LICENSE) file for details.
 
 ---
 
