@@ -57,6 +57,13 @@
             audit_type:
               - success
               - failure
+      register: windows_manage_audit_idempotency_result
+
+    - name: Assert no changes on idempotent re-run
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_audit_idempotency_result.changed
+        fail_msg: "Role reported changes on idempotent re-run"
 
     # -- Create audit rule --
     - name: Create audit rule on test directory
@@ -132,6 +139,26 @@
             user: "{{ windows_manage_audit_test_user }}"
 
   always:
+    - name: Restore original audit policy
+      ansible.windows.win_powershell:
+        script: |
+          # Parse the captured CSV-formatted audit policy
+          $lines = '{{ windows_manage_audit_policy_before.result }}' -split "`n"
+          $header = $lines[0]
+          foreach ($line in $lines[1..-1]) {
+            if ($line -match ',Logon,') {
+              # Extract current setting from CSV: Category,Subcategory,GUID,Inclusion Setting
+              $fields = $line -split ','
+              $setting = $fields[-1].Trim()
+              # Restore using auditpol
+              if ($setting) {
+                auditpol /set /subcategory:"Logon" /$setting
+              }
+            }
+          }
+      when: windows_manage_audit_policy_before is defined
+      failed_when: false
+
     - name: Clean up test directory
       ansible.windows.win_file:
         path: "{{ windows_manage_audit_test_path }}"

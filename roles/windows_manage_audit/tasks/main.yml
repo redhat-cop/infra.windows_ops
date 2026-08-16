@@ -14,18 +14,20 @@
     user: "{{ item.user }}"
     state: absent
   register: windows_manage_audit_removed_rules
-  failed_when:
-    - windows_manage_audit_removed_rules.msg is defined
-    - not windows_manage_audit_ignore_missing | bool or
-      ('not found/invalid' not in windows_manage_audit_removed_rules.msg and
-       'lookup the identity' not in windows_manage_audit_removed_rules.msg)
+  failed_when: >-
+    windows_manage_audit_removed_rules is failed and
+    (not windows_manage_audit_ignore_missing | bool or
+     (windows_manage_audit_removed_rules.msg is defined and
+      'not found/invalid' not in windows_manage_audit_removed_rules.msg and
+      'lookup the identity' not in windows_manage_audit_removed_rules.msg))
   loop: "{{ windows_manage_audit_rules_remove | select }}"
   loop_control:
     label: "{{ item.user + ' -> ' + item.path }}"
-  when: windows_manage_audit_rules_create
-        | selectattr('path', 'equalto', item.path)
-        | selectattr('user', 'equalto', item.user)
-        | length == 0
+  when: >-
+    windows_manage_audit_rules_create
+    | selectattr('path', 'match', '(?i)' ~ (item.path | regex_escape) ~ '$')
+    | selectattr('user', 'match', '(?i)' ~ (item.user | regex_escape) ~ '$')
+    | length == 0
 
 - name: Create audit rules
   ansible.windows.win_audit_rule:
