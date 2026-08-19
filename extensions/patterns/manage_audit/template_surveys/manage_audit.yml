@@ -1,0 +1,29 @@
+---
+name: "Manage Audit Configuration Survey"
+description: "Survey to configure Windows audit policy settings"
+spec:
+  - question_name: "Audit Category"
+    question_description: "Select the audit policy category to configure"
+    required: true
+    variable: "audit_category"
+    type: "multiplechoice"
+    choices:
+      - "Account Logon"
+      - "Account Management"
+      - "Detailed Tracking"
+      - "DS Access"
+      - "Logon/Logoff"
+      - "Object Access"
+      - "Policy Change"
+      - "Privilege Use"
+      - "System"
+
+  - question_name: "Audit Type"
+    question_description: "Select the audit type to enable"
+    required: true
+    variable: "audit_type"
+    type: "multiplechoice"
+    choices:
+      - "success"
+      - "failure"
+      - "success,failure"

@@ -1,0 +1,3 @@
+---
+windows_manage_audit_test_path: "C:\\AnsibleAuditTest"
+windows_manage_audit_test_user: "BUILTIN\\Users"

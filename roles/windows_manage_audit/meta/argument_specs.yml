@@ -1,0 +1,38 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Manage Windows audit policies and audit rules.
+    description:
+      - Configure system-wide audit policies by category or subcategory.
+      - Create and remove audit rules on filesystem paths and registry keys.
+      - Rules scheduled for removal are skipped when a matching create rule exists.
+    options:
+      windows_manage_audit_system_policies:
+        type: list
+        elements: dict
+        description:
+          - List of system-wide audit policy settings to apply.
+          - Each item must include C(audit_type) and either C(category) or C(subcategory).
+        default: []
+      windows_manage_audit_ignore_missing:
+        type: bool
+        description:
+          - Ignore errors when removing audit rules for paths or users that do not exist.
+        default: false
+      windows_manage_audit_rules_remove:
+        type: list
+        elements: dict
+        description:
+          - List of audit rules to remove.
+          - Each item must include C(path) and C(user).
+          - Items also present in C(windows_manage_audit_rules_create) are skipped.
+        default: []
+      windows_manage_audit_rules_create:
+        type: list
+        elements: dict
+        description:
+          - List of audit rules to create.
+          - Each item must include C(path), C(user), and optionally C(rights), C(audit_flags),
+            C(inheritance_flags), and C(propagation_flags).
+        default: []
