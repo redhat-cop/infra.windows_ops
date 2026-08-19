@@ -1,0 +1,81 @@
+---
+- name: Test DNS client configuration
+  block:
+    - name: Capture current DNS servers
+      ansible.windows.win_shell: |
+        (Get-DnsClientServerAddress -InterfaceAlias '{{ windows_manage_dns_client_test_adapter }}' -AddressFamily IPv4).ServerAddresses
+      register: windows_manage_dns_client_original_raw
+      changed_when: false
+
+    - name: Record original DNS servers
+      ansible.builtin.set_fact:
+        windows_manage_dns_client_original_servers: "{{ windows_manage_dns_client_original_raw.stdout_lines }}"
+
+    - name: Configure DNS servers (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_dns_client
+      vars:
+        windows_manage_dns_client_configurations:
+          - adapter_names: "{{ windows_manage_dns_client_test_adapter }}"
+            dns_servers: "{{ windows_manage_dns_client_test_dns_a }}"
+
+    - name: Verify DNS servers after state A
+      ansible.windows.win_shell: |
+        (Get-DnsClientServerAddress -InterfaceAlias '{{ windows_manage_dns_client_test_adapter }}' -AddressFamily IPv4).ServerAddresses
+      register: windows_manage_dns_client_verify_a
+      changed_when: false
+
+    - name: Assert DNS servers match state A
+      ansible.builtin.assert:
+        that:
+          - windows_manage_dns_client_verify_a.stdout_lines == windows_manage_dns_client_test_dns_a
+        fail_msg: "DNS servers were not set to state A"
+
+    - name: Run role again to verify idempotency (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_dns_client
+      vars:
+        windows_manage_dns_client_configurations:
+          - adapter_names: "{{ windows_manage_dns_client_test_adapter }}"
+            dns_servers: "{{ windows_manage_dns_client_test_dns_a }}"
+
+    - name: Verify DNS servers after idempotency run
+      ansible.windows.win_shell: |
+        (Get-DnsClientServerAddress -InterfaceAlias '{{ windows_manage_dns_client_test_adapter }}' -AddressFamily IPv4).ServerAddresses
+      register: windows_manage_dns_client_verify_idempotent
+      changed_when: false
+
+    - name: Assert DNS servers unchanged after idempotency run
+      ansible.builtin.assert:
+        that:
+          - windows_manage_dns_client_verify_idempotent.stdout_lines == windows_manage_dns_client_test_dns_a
+        fail_msg: "DNS servers changed after a repeat run; role is not idempotent"
+
+    - name: Configure DNS servers (state B)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_dns_client
+      vars:
+        windows_manage_dns_client_configurations:
+          - adapter_names: "{{ windows_manage_dns_client_test_adapter }}"
+            dns_servers: "{{ windows_manage_dns_client_test_dns_b }}"
+
+    - name: Verify DNS servers after state B
+      ansible.windows.win_shell: |
+        (Get-DnsClientServerAddress -InterfaceAlias '{{ windows_manage_dns_client_test_adapter }}' -AddressFamily IPv4).ServerAddresses
+      register: windows_manage_dns_client_verify_b
+      changed_when: false
+
+    - name: Assert DNS servers match state B
+      ansible.builtin.assert:
+        that:
+          - windows_manage_dns_client_verify_b.stdout_lines == windows_manage_dns_client_test_dns_b
+        fail_msg: "DNS servers were not set to state B"
+
+  always:
+    - name: Restore original DNS configuration
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_dns_client
+      vars:
+        windows_manage_dns_client_configurations:
+          - adapter_names: "{{ windows_manage_dns_client_test_adapter }}"
+            dns_servers: "{{ windows_manage_dns_client_original_servers }}"

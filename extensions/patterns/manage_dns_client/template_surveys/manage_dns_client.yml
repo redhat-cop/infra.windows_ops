@@ -1,0 +1,16 @@
+---
+name: "Manage DNS Client Configuration Survey"
+description: "Survey to configure DNS client options"
+spec:
+  - question_name: "Adapter Names"
+    question_description: "Specify the network adapter name(s) to configure. Use '*' for all adapters."
+    required: true
+    variable: "dns_client_adapter_names"
+    type: "text"
+    default: "*"
+
+  - question_name: "DNS Servers"
+    question_description: "Comma-separated list of DNS server IP addresses (e.g., 10.0.0.1,10.0.0.2)"
+    required: true
+    variable: "dns_client_dns_servers"
+    type: "text"

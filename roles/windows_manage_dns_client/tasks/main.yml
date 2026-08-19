@@ -1,0 +1,10 @@
+---
+- name: Configure DNS client
+  ansible.windows.win_dns_client:
+    adapter_names: "{{ item.adapter_names }}"
+    dns_servers: "{{ item.dns_servers }}"
+    suffix_search_list: "{{ item.suffix_search_list | default(omit) }}"
+  loop: "{{ windows_manage_dns_client_configurations }}"
+  loop_control:
+    label: "{{ item.adapter_names }}"
+  notify: Flush DNS resolver cache
