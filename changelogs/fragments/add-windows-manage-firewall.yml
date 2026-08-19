@@ -1,0 +1,5 @@
+---
+minor_changes:
+  - "windows_manage_firewall - new role for managing Windows firewall profiles and rules with enable/disable support
+    and skip-on-conflict safety logic
+    (https://github.com/redhat-cop/infra.windows_ops/pull/76)."
