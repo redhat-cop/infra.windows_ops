@@ -1,0 +1,20 @@
+---
+# IPv6, LMHOSTS, and NetBIOS are enforced to these values on every run.
+
+# Enable or disable IPv6
+windows_manage_network_ipv6_enable: true
+
+# Enable or disable LMHOSTS lookup
+windows_manage_network_lmhosts_enable: true
+
+# Enable or disable NetBIOS
+windows_manage_network_netbios_enable: true
+
+# Reboot when a change requires it (IPv6/LMHOSTS changed or NetBIOS
+# reports reboot_required). When false, the DNS cache is flushed instead.
+windows_manage_network_reboot: true
+
+# Static route configuration (additive: only the listed routes are managed).
+# Each item requires: destination, state
+# gateway (defaults to 0.0.0.0) and metric (defaults to 1) are optional.
+windows_manage_network_routes: []

@@ -1,0 +1,74 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Configure Windows network settings.
+    description:
+      - Configure IPv6, NetBIOS, LMHOSTS lookup, and static routes on Windows hosts.
+      - Optionally reboots or flushes DNS cache after network changes.
+      - >-
+        IPv6, LMHOSTS, and NetBIOS are enforced to their configured value on
+        every run (full-state), so running the role only to manage routes will
+        still apply the IPv6, LMHOSTS, and NetBIOS defaults. Static routes are
+        additive; only the routes listed in I(windows_manage_network_routes)
+        are managed and any others are left untouched.
+    options:
+      windows_manage_network_ipv6_enable:
+        type: bool
+        description:
+          - Enable or disable IPv6 on all network interfaces.
+          - Enforced on every run regardless of the previous state.
+        default: true
+      windows_manage_network_lmhosts_enable:
+        type: bool
+        description:
+          - Enable or disable LMHOSTS lookup.
+          - Enforced on every run regardless of the previous state.
+        default: true
+      windows_manage_network_netbios_enable:
+        type: bool
+        description:
+          - Enable or disable NetBIOS on all network interfaces.
+          - Enforced on every run regardless of the previous state.
+        default: true
+      windows_manage_network_reboot:
+        type: bool
+        description:
+          - Reboot the system when a network change requires it.
+          - >-
+            A reboot is triggered when IPv6 or LMHOSTS changed, or when
+            C(win_netbios) reports C(reboot_required).
+          - When false, the DNS resolver cache is flushed instead.
+        default: true
+      windows_manage_network_routes:
+        type: list
+        elements: dict
+        description:
+          - List of static route configurations.
+        default: []
+        options:
+          destination:
+            type: str
+            description:
+              - Network destination in CIDR format (e.g., C(192.168.1.0/24)).
+            required: true
+          gateway:
+            type: str
+            description:
+              - Gateway IP address for the route.
+              - When omitted, C(win_route) defaults the gateway to C(0.0.0.0).
+            required: false
+          metric:
+            type: int
+            description:
+              - Route metric value.
+              - When omitted, C(win_route) defaults the metric to C(1).
+            required: false
+          state:
+            type: str
+            description:
+              - Whether the route should be present or absent.
+            required: true
+            choices:
+              - present
+              - absent

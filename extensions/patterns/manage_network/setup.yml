@@ -1,0 +1,54 @@
+---
+# Labels
+#
+controller_labels:
+  - name: infra.windows_ops
+    organization: "{{ organization | default('Default') }}"
+  - name: manage_network_pattern
+    organization: "{{ organization | default('Default') }}"
+  - name: run_manage_network
+    organization: "{{ organization | default('Default') }}"
+
+# Execution Environments
+#
+controller_execution_environments:
+  - name: apd-ee-25-windows
+    description: Allow running Windows experience demo. Based on apd-ee-25.
+    image: quay.io/redhat-cop/apd-ee-25-windows:latest
+    pull: always
+
+# Projects
+#
+controller_projects:
+  - name: Windows Operations / Project
+    description: >
+      This project provides the foundation for automating the management of network configurations.
+      It organizes all necessary resources, including playbooks, job templates, and surveys, to ensure
+      seamless management of network settings.
+    organization: Default
+    scm_branch: main
+    scm_clean: false
+    scm_delete_on_update: false
+    scm_type: git
+    scm_update_on_launch: true
+    scm_url: https://github.com/redhat-cop/infra.windows_ops.git
+    credential: "{{ credential | default(omit, true) }}"
+
+
+# Job Templates
+#
+controller_templates:
+  - name: Windows Operations / Manage Network
+    description: >
+      This job template manages network configurations, applying operational data as required.
+    ask_inventory_on_launch: true
+    labels:
+      - infra.windows_ops
+      - manage_network_pattern
+      - run_manage_network
+    playbook: "extensions/patterns/manage_network/playbooks/run_manage_network.yml"
+    project: Windows Operations / Project
+    survey_enabled: true
+    survey_spec: "{{ lookup('file', pattern.path.replace('setup.yml', '') + 'template_surveys/manage_network.yml') | from_yaml }}"
+    ask_credential_on_launch: true
+    execution_environment: apd-ee-25-windows

@@ -1,0 +1,43 @@
+---
+name: "Manage Network Configuration Survey"
+description: "Survey to configure network options"
+spec:
+  - question_name: "Enable IPv6"
+    question_description: "Enable or disable IPv6 on all network interfaces"
+    required: true
+    variable: "network_ipv6_enable"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"
+
+  - question_name: "Enable LMHOSTS Lookup"
+    question_description: "Enable or disable LMHOSTS lookup"
+    required: true
+    variable: "network_lmhosts_enable"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"
+
+  - question_name: "Enable NetBIOS"
+    question_description: "Enable or disable NetBIOS on all network interfaces"
+    required: true
+    variable: "network_netbios_enable"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"
+
+  - question_name: "Reboot After Changes"
+    question_description: "Reboot the system after network changes (false = DNS flush only)"
+    required: true
+    variable: "network_reboot"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"
