@@ -1,0 +1,206 @@
+---
+- name: Test sshd configuration
+  block:
+    # -- Enable sshd with defaults --
+    - name: Enable sshd with default configuration
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_sshd
+
+    - name: Verify sshd service is running
+      ansible.windows.win_service_info:
+        name: sshd
+      register: windows_manage_sshd_test_service
+      check_mode: false
+
+    - name: Assert sshd is started
+      ansible.builtin.assert:
+        that:
+          - windows_manage_sshd_test_service.exists
+          - windows_manage_sshd_test_service.services[0].state == 'started'
+        fail_msg: "sshd service is not running"
+
+    - name: Verify SSH firewall rule
+      ansible.windows.win_powershell:
+        script: |
+          $rule = Get-NetFirewallRule -DisplayName 'OpenSSH SSH Server (sshd)' -ErrorAction SilentlyContinue
+          $Ansible.Result = @{
+            exists = [bool]$rule
+            enabled = if ($rule) { $rule.Enabled.ToString() } else { 'False' }
+            action = if ($rule) { $rule.Action.ToString() } else { '' }
+          }
+      register: windows_manage_sshd_test_firewall
+      check_mode: false
+      changed_when: false
+
+    - name: Assert SSH firewall rule allows traffic
+      ansible.builtin.assert:
+        that:
+          - windows_manage_sshd_test_firewall.result.exists
+          - windows_manage_sshd_test_firewall.result.enabled == 'True'
+          - windows_manage_sshd_test_firewall.result.action == 'Allow'
+        fail_msg: "SSH firewall rule is not configured correctly"
+
+    # -- Idempotency --
+    - name: Run enable again for idempotency
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_sshd
+      register: windows_manage_sshd_idempotency_result
+
+    - name: Assert no changes on re-run
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_sshd_idempotency_result.changed
+        fail_msg: "Role reported changes on idempotent re-run"
+
+    # -- Config validation --
+    - name: Enable sshd with validation (using template)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_sshd
+      vars:
+        windows_manage_sshd_config_validate: true
+        windows_manage_sshd_config_file: default_config
+        windows_manage_sshd_start_mode: auto
+
+    - name: Verify sshd_config was validated and written
+      ansible.windows.win_stat:
+        path: C:\ProgramData\ssh\sshd_config
+      register: windows_manage_sshd_test_validated_config
+      check_mode: false
+
+    - name: Assert config file exists after validation
+      ansible.builtin.assert:
+        that:
+          - windows_manage_sshd_test_validated_config.stat.exists
+        fail_msg: "Config file not written after validation"
+
+    - name: Verify temp files were cleaned up
+      ansible.windows.win_stat:
+        path: "{{ item }}"
+      register: windows_manage_sshd_test_temp_files
+      check_mode: false
+      loop:
+        - C:\ProgramData\ssh\sshd_config.tmp
+        - C:\ProgramData\ssh\.tmp
+
+    - name: Assert temp files do not exist
+      ansible.builtin.assert:
+        that:
+          - not item.stat.exists
+        fail_msg: "Temp file {{ item.item }} was not cleaned up"
+      loop: "{{ windows_manage_sshd_test_temp_files.results }}"
+
+    # -- Configure options --
+    - name: Enable sshd with custom options
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_sshd
+      vars:
+        windows_manage_sshd_config_validate: false
+        windows_manage_sshd_options:
+          AuthorizedKeysFile: .ssh/authorized_keys
+          Subsystem: sftp sftp-server.exe
+          AllowGroups: administrators "openssh users"
+          Match Group administrators:
+            - AuthorizedKeysFile __PROGRAMDATA__/ssh/administrators_authorized_keys
+
+    - name: Verify sshd_config was written
+      ansible.windows.win_powershell:
+        script: |
+          $content = Get-Content -Path C:\ProgramData\ssh\sshd_config -Raw
+          $Ansible.Result = @{
+            exists = $true
+            has_subsystem = $content -match 'Subsystem'
+            has_match = $content -match 'Match Group administrators'
+          }
+      register: windows_manage_sshd_test_config
+      check_mode: false
+      changed_when: false
+
+    - name: Assert sshd_config contains expected directives
+      ansible.builtin.assert:
+        that:
+          - windows_manage_sshd_test_config.result.exists
+          - windows_manage_sshd_test_config.result.has_subsystem
+          - windows_manage_sshd_test_config.result.has_match
+        fail_msg: "sshd_config does not contain expected directives"
+
+    # -- Admin keys --
+    - name: Add administrator SSH key
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_sshd
+      vars:
+        windows_manage_sshd_config_validate: false
+        windows_manage_sshd_admins_keys:
+          present:
+            - "{{ windows_manage_sshd_test_key }}"
+
+    - name: Verify admin key was added
+      ansible.windows.win_powershell:
+        script: |
+          $content = Get-Content -Path C:\ProgramData\ssh\administrators_authorized_keys -Raw
+          $Ansible.Result = @{
+            has_key = $content -match 'ansible-test@integration'
+          }
+      register: windows_manage_sshd_test_admin_key
+      check_mode: false
+      changed_when: false
+
+    - name: Assert admin key is present
+      ansible.builtin.assert:
+        that:
+          - windows_manage_sshd_test_admin_key.result.has_key
+        fail_msg: "Administrator SSH key was not added"
+
+    - name: Remove administrator SSH key
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_sshd
+      vars:
+        windows_manage_sshd_config_validate: false
+        windows_manage_sshd_admins_keys:
+          absent:
+            - "{{ windows_manage_sshd_test_key }}"
+
+    - name: Verify admin key was removed
+      ansible.windows.win_powershell:
+        script: |
+          $content = Get-Content -Path C:\ProgramData\ssh\administrators_authorized_keys -Raw -ErrorAction SilentlyContinue
+          $Ansible.Result = @{
+            has_key = if ($content) { $content -match 'ansible-test@integration' } else { $false }
+          }
+      register: windows_manage_sshd_test_admin_key_removed
+      check_mode: false
+      changed_when: false
+
+    - name: Assert admin key was removed
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_sshd_test_admin_key_removed.result.has_key
+        fail_msg: "Administrator SSH key was not removed"
+
+    # -- Disable safety check --
+    - name: Test disable safety check over SSH
+      when: ansible_connection in ['ssh', 'ansible.builtin.ssh']
+      block:
+        - name: Attempt to disable sshd over SSH
+          ansible.builtin.include_role:
+            name: infra.windows_ops.windows_manage_sshd
+          vars:
+            windows_manage_sshd_enable: false
+
+        - name: Fail if disable over SSH did not error
+          ansible.builtin.fail:
+            msg: "Disable over SSH should have been refused"
+      rescue:
+        - name: Verify disable was refused
+          ansible.builtin.assert:
+            that:
+              - ansible_failed_result.msg is search('Refusing to disable sshd')
+            fail_msg: "Expected 'Refusing to disable sshd' error"
+
+  always:
+    - name: Ensure sshd is re-enabled with defaults
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_sshd
+      vars:
+        windows_manage_sshd_enable: true
+        windows_manage_sshd_config_validate: false
+        windows_manage_sshd_start_mode: auto

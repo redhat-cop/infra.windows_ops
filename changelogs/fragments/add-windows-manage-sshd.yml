@@ -1,0 +1,5 @@
+---
+minor_changes:
+  - "windows_manage_sshd - new role for managing OpenSSH Server on Windows with config validation,
+    admin key management, and disable safety check
+    (https://github.com/redhat-cop/infra.windows_ops/pull/78)."

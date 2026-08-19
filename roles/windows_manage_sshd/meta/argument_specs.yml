@@ -1,0 +1,71 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Manage OpenSSH Server on Windows.
+    description:
+      - Install, configure, enable, or disable the OpenSSH Server on Windows.
+      - Supports configuration via template file or options dictionary.
+      - Manages administrators SSH key file with proper ACLs.
+      - Validates sshd configuration before applying changes.
+      - Includes safety check to prevent disabling sshd over an SSH connection.
+    options:
+      windows_manage_sshd_enable:
+        type: bool
+        description:
+          - Whether to enable or disable the OpenSSH Server.
+          - When set to C(false), the service is stopped and disabled, and the firewall rule blocks SSH.
+        default: true
+      windows_manage_sshd_start_mode:
+        type: str
+        description:
+          - Service start mode for sshd.
+        choices:
+          - auto
+          - delayed
+        default: auto
+      windows_manage_sshd_shell:
+        type: str
+        description:
+          - Default shell for SSH sessions.
+          - Must be an absolute path under C(C:\Windows\System32\) ending in C(.exe).
+          - Must be kept in sync with C(ansible_shell_type).
+          - "For cmd.exe: C(C:\\Windows\\System32\\cmd.exe)"
+          - "For PowerShell: C(C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe)"
+      windows_manage_sshd_admins_keys:
+        type: dict
+        description:
+          - Dictionary with C(present) and/or C(absent) keys, each containing a list of SSH public keys.
+          - Keys in C(present) are added to the administrators authorized_keys file.
+          - Keys in C(absent) are removed from the administrators authorized_keys file.
+        default: {}
+      windows_manage_sshd_firewall_profiles:
+        type: list
+        elements: str
+        description:
+          - Firewall profiles for the SSH allow/block rule.
+        default:
+          - domain
+          - private
+          - public
+      windows_manage_sshd_config_validate:
+        type: bool
+        description:
+          - Whether to validate the sshd configuration using C(sshd.exe -tf) before applying.
+          - Only works after sshd has been started at least once.
+        default: true
+      windows_manage_sshd_config_file:
+        type: str
+        description:
+          - Path to a Jinja2 template file for sshd_config.
+          - Mutually exclusive with C(windows_manage_sshd_options).
+          - The role provides a C(default_config) template matching OpenSSH.Server 0.0.1.0 defaults.
+      windows_manage_sshd_options:
+        type: dict
+        description:
+          - Dictionary of sshd_config directives to set.
+          - Simple key-value pairs become C(Key Value) lines.
+          - List values generate multiple lines for the same key.
+          - Keys starting with C(Match) create Match blocks with indented sub-options.
+          - Mutually exclusive with C(windows_manage_sshd_config_file).
+        default: {}
