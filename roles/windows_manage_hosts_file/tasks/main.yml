@@ -20,14 +20,14 @@
       ansible_facts.hostname is not defined or
       ansible_facts.domain is not defined
 
-- name: Fail if domainname not set for self entry
-  ansible.builtin.fail:
-    msg: >-
+- name: Ensure a domain name is available for the self entry
+  ansible.builtin.assert:
+    that:
+      - windows_manage_hosts_file_self_domain | default(ansible_facts.domain, true)
+    fail_msg: >-
       No domain name available. Set 'windows_manage_hosts_file_self_domain'
       or ensure the host is domain-joined.
-  when:
-    - windows_manage_hosts_file_self_add | bool
-    - not windows_manage_hosts_file_self_domain | default(ansible_facts.domain, true)
+  when: windows_manage_hosts_file_self_add | bool
 
 - name: Create hosts file
   ansible.windows.win_template:

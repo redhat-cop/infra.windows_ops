@@ -5,4 +5,4 @@
     post_reboot_delay: "{{ windows_manage_reboot_delay_post | float }}"
     reboot_timeout: "{{ windows_manage_reboot_timeout | float }}"
     msg: "{{ windows_manage_reboot_message }}"
-  register: windows_manage_reboot_result
+  register: windows_manage_reboot__result

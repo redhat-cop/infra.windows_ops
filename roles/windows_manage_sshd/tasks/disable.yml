@@ -1,20 +1,21 @@
 ---
-- name: Fail if trying to disable sshd using SSH
-  ansible.builtin.fail:
-    msg: "Refusing to disable sshd when using SSH."
-  when: ansible_connection in ['ssh', 'ansible.builtin.ssh']
+- name: Ensure sshd is not being disabled over SSH
+  ansible.builtin.assert:
+    that:
+      - ansible_connection not in ['ssh', 'ansible.builtin.ssh']
+    fail_msg: "Refusing to disable sshd when using SSH."
 
 - name: Check sshd service
   ansible.windows.win_service_info:
     name: sshd
-  register: windows_manage_sshd_service
+  register: windows_manage_sshd__service
 
 - name: Disable sshd service
   ansible.windows.win_service:
     name: sshd
     start_mode: disabled
     state: stopped
-  when: windows_manage_sshd_service.exists
+  when: windows_manage_sshd__service.exists
 
 - name: Block firewall SSH port
   community.windows.win_firewall_rule:
@@ -25,4 +26,4 @@
     direction: in
     localport: 22
     protocol: tcp
-    profiles: "{{ windows_manage_sshd_firewall_profiles | default(omit, true) }}"
+    profiles: "{{ windows_manage_sshd_firewall_profiles | default(omit) }}"
