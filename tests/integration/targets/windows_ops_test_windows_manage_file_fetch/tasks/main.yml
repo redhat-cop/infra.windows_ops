@@ -1,0 +1,63 @@
+---
+- name: Test windows_manage_file_fetch
+  block:
+    - name: Create a throwaway file on the remote host
+      ansible.windows.win_copy:
+        content: "{{ windows_ops_test_file_fetch_content }}"
+        dest: "{{ windows_ops_test_file_fetch_remote_path }}"
+
+    - name: Fetch the file to the controller (first run)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_fetch
+      vars:
+        windows_manage_file_fetch_files:
+          - src: "{{ windows_ops_test_file_fetch_remote_path }}"
+            dest: "{{ windows_ops_test_file_fetch_local_dir }}/fetched.txt"
+            flat: true
+
+    - name: Stat the fetched file on the controller
+      ansible.builtin.stat:
+        path: "{{ windows_ops_test_file_fetch_local_dir }}/fetched.txt"
+      delegate_to: localhost
+      register: windows_ops_test_file_fetch__stat
+
+    - name: Assert the file was fetched with the expected content
+      ansible.builtin.assert:
+        that:
+          - windows_ops_test_file_fetch__stat.stat.exists
+        quiet: true
+        fail_msg: "Fetched file was not found on the controller."
+
+    - name: Read the fetched file content on the controller
+      ansible.builtin.slurp:
+        src: "{{ windows_ops_test_file_fetch_local_dir }}/fetched.txt"
+      delegate_to: localhost
+      register: windows_ops_test_file_fetch__content
+
+    - name: Assert the fetched content matches
+      ansible.builtin.assert:
+        that:
+          - (windows_ops_test_file_fetch__content.content | b64decode) == windows_ops_test_file_fetch_content
+        quiet: true
+        fail_msg: "Fetched file content did not match the source."
+
+    - name: Fetch the file again (idempotency check)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_fetch
+      vars:
+        windows_manage_file_fetch_files:
+          - src: "{{ windows_ops_test_file_fetch_remote_path }}"
+            dest: "{{ windows_ops_test_file_fetch_local_dir }}/fetched.txt"
+            flat: true
+
+  always:
+    - name: Remove the throwaway file from the remote host
+      ansible.windows.win_file:
+        path: "{{ windows_ops_test_file_fetch_remote_path }}"
+        state: absent
+
+    - name: Remove the fetched file directory from the controller
+      ansible.builtin.file:
+        path: "{{ windows_ops_test_file_fetch_local_dir }}"
+        state: absent
+      delegate_to: localhost

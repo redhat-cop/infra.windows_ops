@@ -1,0 +1,5 @@
+---
+# Test verifies fetching a file from a Windows host to the controller.
+windows_ops_test_file_fetch_remote_path: C:\Windows\Temp\windows_manage_file_fetch_test.txt
+windows_ops_test_file_fetch_local_dir: /tmp/windows_manage_file_fetch_test
+windows_ops_test_file_fetch_content: "windows_manage_file_fetch integration test content"
