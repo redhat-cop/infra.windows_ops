@@ -1,0 +1,33 @@
+---
+name: "Manage User Experience Survey"
+description: "Survey to configure Windows user experience options"
+spec:
+  - question_name: "Open Server Manager at Logon"
+    question_description: "Open Server Manager automatically at logon"
+    required: true
+    variable: "server_manager_at_logon"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"
+
+  - question_name: "Network Location Wizard"
+    question_description: "Enable or disable the new network location wizard"
+    required: true
+    variable: "network_location_wizard"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"
+
+  - question_name: "Show Last User Name"
+    question_description: "Show or hide the last user name on the Welcome Screen"
+    required: true
+    variable: "show_last_user_name"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"

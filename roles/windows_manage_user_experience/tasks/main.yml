@@ -1,0 +1,19 @@
+---
+- name: Configure Server Manager at logon
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\ServerManager
+    name: DoNotOpenServerManagerAtLogon
+    type: dword
+    data: "{{ 0 if windows_manage_user_experience_server_manager_at_logon | bool else 1 }}"
+
+- name: Configure new network location wizard
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Network\NewNetworkWindowOff
+    state: "{{ 'absent' if windows_manage_user_experience_network_location_wizard | bool else 'present' }}"
+
+- name: Configure showing last user name on Welcome Screen
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+    name: DontDisplayLastUserName
+    type: dword
+    data: "{{ 0 if windows_manage_user_experience_show_last_user_name | bool else 1 }}"
