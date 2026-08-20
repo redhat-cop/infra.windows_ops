@@ -1,0 +1,12 @@
+---
+- name: Manage Windows file and directory ACLs
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Manage file ACLs
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_acl
+      vars:
+        # Survey values arrive as YAML strings; parse them into lists.
+        windows_manage_file_acl_acls: "{{ (file_acl_acls | default('[]')) | from_yaml }}"
+        windows_manage_file_acl_inheritance: "{{ (file_acl_inheritance | default('[]')) | from_yaml }}"

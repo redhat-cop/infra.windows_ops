@@ -1,0 +1,123 @@
+---
+- name: Test windows_manage_file_acl
+  block:
+    - name: Create test directory
+      ansible.windows.win_file:
+        path: "{{ windows_ops_test_file_acl_dir }}"
+        state: directory
+
+    - name: Create test target file
+      ansible.windows.win_copy:
+        dest: "{{ windows_ops_test_file_acl_file }}"
+        content: "windows_manage_file_acl integration test"
+
+    # -- State A: apply a deny ACL for the Guests account --
+    - name: Apply ACL (state A - deny present)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_acl
+      vars:
+        windows_manage_file_acl_acls:
+          - path: "{{ windows_ops_test_file_acl_file }}"
+            user: "{{ windows_ops_test_file_acl_user }}"
+            type: deny
+            rights: Write,Modify
+            state: present
+        windows_manage_file_acl_inheritance:
+          - path: "{{ windows_ops_test_file_acl_file }}"
+            state: absent
+            reorganize: true
+
+    - name: Verify ACL is present (check mode reports no change)
+      ansible.windows.win_acl:
+        path: "{{ windows_ops_test_file_acl_file }}"
+        user: "{{ windows_ops_test_file_acl_user }}"
+        type: deny
+        rights: Write,Modify
+        state: present
+      check_mode: true
+      register: windows_ops_test_file_acl_verify_a
+
+    - name: Assert ACL was applied in state A
+      ansible.builtin.assert:
+        that:
+          - not windows_ops_test_file_acl_verify_a.changed
+        fail_msg: "Deny ACL for {{ windows_ops_test_file_acl_user }} was not applied"
+
+    - name: Verify inheritance is disabled (check mode reports no change)
+      ansible.windows.win_acl_inheritance:
+        path: "{{ windows_ops_test_file_acl_file }}"
+        state: absent
+      check_mode: true
+      register: windows_ops_test_file_acl_verify_inherit_a
+
+    - name: Assert inheritance was disabled in state A
+      ansible.builtin.assert:
+        that:
+          - not windows_ops_test_file_acl_verify_inherit_a.changed
+        fail_msg: "ACL inheritance was not disabled"
+
+    # -- Idempotency: re-run the role with the same state --
+    - name: Apply ACL again (idempotency check)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_acl
+      vars:
+        windows_manage_file_acl_acls:
+          - path: "{{ windows_ops_test_file_acl_file }}"
+            user: "{{ windows_ops_test_file_acl_user }}"
+            type: deny
+            rights: Write,Modify
+            state: present
+        windows_manage_file_acl_inheritance:
+          - path: "{{ windows_ops_test_file_acl_file }}"
+            state: absent
+            reorganize: true
+
+    - name: Verify ACL still present after idempotent re-run
+      ansible.windows.win_acl:
+        path: "{{ windows_ops_test_file_acl_file }}"
+        user: "{{ windows_ops_test_file_acl_user }}"
+        type: deny
+        rights: Write,Modify
+        state: present
+      check_mode: true
+      register: windows_ops_test_file_acl_verify_idempotent
+
+    - name: Assert role is idempotent
+      ansible.builtin.assert:
+        that:
+          - not windows_ops_test_file_acl_verify_idempotent.changed
+        fail_msg: "Role is not idempotent - ACL changed on re-run"
+
+    # -- State B: remove the deny ACL --
+    - name: Remove ACL (state B - deny absent)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_acl
+      vars:
+        windows_manage_file_acl_acls:
+          - path: "{{ windows_ops_test_file_acl_file }}"
+            user: "{{ windows_ops_test_file_acl_user }}"
+            type: deny
+            rights: Write,Modify
+            state: absent
+
+    - name: Verify ACL is absent (check mode reports no change)
+      ansible.windows.win_acl:
+        path: "{{ windows_ops_test_file_acl_file }}"
+        user: "{{ windows_ops_test_file_acl_user }}"
+        type: deny
+        rights: Write,Modify
+        state: absent
+      check_mode: true
+      register: windows_ops_test_file_acl_verify_b
+
+    - name: Assert ACL was removed in state B
+      ansible.builtin.assert:
+        that:
+          - not windows_ops_test_file_acl_verify_b.changed
+        fail_msg: "Deny ACL for {{ windows_ops_test_file_acl_user }} was not removed"
+
+  always:
+    - name: Remove test directory
+      ansible.windows.win_file:
+        path: "{{ windows_ops_test_file_acl_dir }}"
+        state: absent
