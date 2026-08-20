@@ -1,0 +1,28 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Copy files and render templates to Windows hosts.
+    description:
+      - Copy files and directories to Windows hosts with M(ansible.windows.win_copy).
+      - Render Jinja2 templates with M(ansible.windows.win_template).
+      - Optionally set the owner of each destination path with M(ansible.windows.win_owner).
+    options:
+      windows_manage_file_copy_files:
+        type: list
+        elements: dict
+        description:
+          - List of files and directories to copy.
+          - Each item must include C(dest) and either C(src) or C(content).
+          - "Optional keys per item: C(force), C(backup), C(remote_src), C(local_follow), and C(owner)."
+        default: []
+      windows_manage_file_copy_templates:
+        type: list
+        elements: dict
+        description:
+          - List of templates to render to the destination host.
+          - Each item must include C(src) and C(dest).
+          - "Optional keys per item: C(force), C(backup), C(output_encoding), C(newline_sequence),
+            the Jinja2 C(comment_*)/C(variable_*)/C(block_*) delimiter overrides, C(lstrip_blocks),
+            C(trim_blocks), and C(owner)."
+        default: []

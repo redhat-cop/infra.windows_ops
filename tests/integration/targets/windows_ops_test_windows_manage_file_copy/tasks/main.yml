@@ -1,0 +1,67 @@
+---
+- name: Test windows_manage_file_copy
+  block:
+    # -- State A: create the file from inline content --
+    - name: Copy file (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_copy
+      vars:
+        windows_manage_file_copy_files:
+          - dest: "{{ windows_manage_file_copy__test_dest }}"
+            content: "{{ windows_manage_file_copy__test_content_a }}"
+
+    - name: Stat destination after state A
+      ansible.windows.win_stat:
+        path: "{{ windows_manage_file_copy__test_dest }}"
+      register: windows_manage_file_copy__stat_a
+
+    - name: Read destination content after state A
+      ansible.windows.slurp:
+        src: "{{ windows_manage_file_copy__test_dest }}"
+      register: windows_manage_file_copy__slurp_a
+
+    - name: Assert file created with expected content (state A)
+      ansible.builtin.assert:
+        that:
+          - windows_manage_file_copy__stat_a.stat.exists
+          - (windows_manage_file_copy__slurp_a.content | b64decode) == windows_manage_file_copy__test_content_a
+        fail_msg: "File was not created with the expected content in state A"
+
+    # -- Idempotency: re-run state A, expect no change --
+    - name: Copy file again (state A idempotency)
+      ansible.windows.win_copy:
+        dest: "{{ windows_manage_file_copy__test_dest }}"
+        content: "{{ windows_manage_file_copy__test_content_a }}"
+      register: windows_manage_file_copy__idempotent
+
+    - name: Assert re-run reported no change
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_file_copy__idempotent.changed
+        fail_msg: "Copying identical content was not idempotent"
+
+    # -- State B: overwrite with different content --
+    - name: Copy file (state B)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_copy
+      vars:
+        windows_manage_file_copy_files:
+          - dest: "{{ windows_manage_file_copy__test_dest }}"
+            content: "{{ windows_manage_file_copy__test_content_b }}"
+
+    - name: Read destination content after state B
+      ansible.windows.slurp:
+        src: "{{ windows_manage_file_copy__test_dest }}"
+      register: windows_manage_file_copy__slurp_b
+
+    - name: Assert file content updated (state B)
+      ansible.builtin.assert:
+        that:
+          - (windows_manage_file_copy__slurp_b.content | b64decode) == windows_manage_file_copy__test_content_b
+        fail_msg: "File content was not updated in state B"
+
+  always:
+    - name: Remove test file
+      ansible.windows.win_file:
+        path: "{{ windows_manage_file_copy__test_dest }}"
+        state: absent
