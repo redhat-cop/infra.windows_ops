@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  role_name: windows_manage_user_experience
+  author: Hen Yaish
+  company: Red Hat, Inc.
+  description: Configure Windows user experience settings such as Server Manager auto-launch, network location wizard, and Welcome Screen behavior.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.18"
+  platforms:
+    - name: Windows
+      versions:
+        - "2019"
+        - "2022"
+        - "2025"
+  galaxy_tags:
+    - windows
+    - configuration
+dependencies: []

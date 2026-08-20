@@ -1,0 +1,147 @@
+---
+- name: Test user experience configuration
+  block:
+    - name: Capture original Server Manager at logon setting
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SOFTWARE\Microsoft\ServerManager
+        name: DoNotOpenServerManagerAtLogon
+      register: windows_manage_user_experience__original_srvmgr
+
+    - name: Capture original network location wizard key
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Network\NewNetworkWindowOff
+      register: windows_manage_user_experience__original_netwiz
+
+    - name: Capture original last user name setting
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: DontDisplayLastUserName
+      register: windows_manage_user_experience__original_lastuser
+
+    # -- State A: all settings disabled --
+    - name: Configure user experience (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_user_experience
+      vars:
+        windows_manage_user_experience_server_manager_at_logon: false
+        windows_manage_user_experience_network_location_wizard: false
+        windows_manage_user_experience_show_last_user_name: false
+
+    - name: Verify Server Manager setting after state A
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SOFTWARE\Microsoft\ServerManager
+        name: DoNotOpenServerManagerAtLogon
+      register: windows_manage_user_experience__verify_srvmgr_a
+
+    - name: Verify network location wizard key after state A
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Network\NewNetworkWindowOff
+      register: windows_manage_user_experience__verify_netwiz_a
+
+    - name: Verify last user name setting after state A
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: DontDisplayLastUserName
+      register: windows_manage_user_experience__verify_lastuser_a
+
+    - name: Assert state A applied
+      ansible.builtin.assert:
+        that:
+          - windows_manage_user_experience__verify_srvmgr_a.value == 1
+          - windows_manage_user_experience__verify_netwiz_a.exists
+          - windows_manage_user_experience__verify_lastuser_a.value == 1
+        fail_msg: "State A settings were not applied correctly"
+
+    # -- Idempotency --
+    - name: Run role again to verify idempotency (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_user_experience
+      vars:
+        windows_manage_user_experience_server_manager_at_logon: false
+        windows_manage_user_experience_network_location_wizard: false
+        windows_manage_user_experience_show_last_user_name: false
+      register: windows_manage_user_experience__idempotent
+
+    - name: Verify settings unchanged after idempotent re-run
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SOFTWARE\Microsoft\ServerManager
+        name: DoNotOpenServerManagerAtLogon
+      register: windows_manage_user_experience__verify_idempotent
+
+    - name: Assert state unchanged after idempotent re-run
+      ansible.builtin.assert:
+        that:
+          - windows_manage_user_experience__verify_idempotent.value == 1
+        fail_msg: "Role is not idempotent - registry values changed on re-run"
+
+    # -- State B: all settings enabled --
+    - name: Configure user experience (state B)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_user_experience
+      vars:
+        windows_manage_user_experience_server_manager_at_logon: true
+        windows_manage_user_experience_network_location_wizard: true
+        windows_manage_user_experience_show_last_user_name: true
+
+    - name: Verify Server Manager setting after state B
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SOFTWARE\Microsoft\ServerManager
+        name: DoNotOpenServerManagerAtLogon
+      register: windows_manage_user_experience__verify_srvmgr_b
+
+    - name: Verify network location wizard key after state B
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Network\NewNetworkWindowOff
+      register: windows_manage_user_experience__verify_netwiz_b
+
+    - name: Verify last user name setting after state B
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: DontDisplayLastUserName
+      register: windows_manage_user_experience__verify_lastuser_b
+
+    - name: Assert state B applied
+      ansible.builtin.assert:
+        that:
+          - windows_manage_user_experience__verify_srvmgr_b.value == 0
+          - not windows_manage_user_experience__verify_netwiz_b.exists
+          - windows_manage_user_experience__verify_lastuser_b.value == 0
+        fail_msg: "State B settings were not applied correctly"
+
+  always:
+    - name: Restore original Server Manager setting
+      ansible.windows.win_regedit:
+        path: HKLM:\SOFTWARE\Microsoft\ServerManager
+        name: DoNotOpenServerManagerAtLogon
+        type: dword
+        data: "{{ windows_manage_user_experience__original_srvmgr.value }}"
+        state: present
+      when: windows_manage_user_experience__original_srvmgr.exists
+
+    - name: Remove Server Manager setting if it did not exist originally
+      ansible.windows.win_regedit:
+        path: HKLM:\SOFTWARE\Microsoft\ServerManager
+        name: DoNotOpenServerManagerAtLogon
+        state: absent
+      when: not windows_manage_user_experience__original_srvmgr.exists
+
+    - name: Restore original network location wizard key
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Network\NewNetworkWindowOff
+        state: "{{ 'present' if windows_manage_user_experience__original_netwiz.exists else 'absent' }}"
+
+    - name: Restore original last user name setting
+      ansible.windows.win_regedit:
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: DontDisplayLastUserName
+        type: dword
+        data: "{{ windows_manage_user_experience__original_lastuser.value }}"
+        state: present
+      when: windows_manage_user_experience__original_lastuser.exists
+
+    - name: Remove last user name setting if it did not exist originally
+      ansible.windows.win_regedit:
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+        name: DontDisplayLastUserName
+        state: absent
+      when: not windows_manage_user_experience__original_lastuser.exists

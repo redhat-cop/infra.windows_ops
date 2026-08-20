@@ -1,0 +1,13 @@
+---
+- name: Manage Windows User Experience Settings
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Configure user experience
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_user_experience
+      vars:
+        windows_manage_user_experience_server_manager_at_logon: "{{ server_manager_at_logon | default(true) | bool }}"  # Set by survey
+        windows_manage_user_experience_network_location_wizard: "{{ network_location_wizard | default(false) | bool }}"  # Set by survey
+        windows_manage_user_experience_show_last_user_name: "{{ show_last_user_name | default(true) | bool }}"  # Set by survey
+...
