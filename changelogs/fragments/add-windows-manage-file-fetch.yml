@@ -1,3 +1,3 @@
 ---
 minor_changes:
-  - windows_manage_file_fetch - new role to fetch files from remote Windows hosts to the Ansible controller (https://github.com/redhat-cop/infra.windows_ops/pull/XXXX).
+  - windows_manage_file_fetch - new role to fetch files from remote Windows hosts to the Ansible controller (https://github.com/redhat-cop/infra.windows_ops/pull/87).
