@@ -1,0 +1,35 @@
+---
+# Registry settings to apply with ansible.windows.win_regedit.
+# For user-specific settings see windows_manage_user_settings.
+#
+# Each item is a dictionary describing one registry value or key:
+#   setting: Human-readable label for the setting (required)
+#   path:    Full registry path, e.g. HKLM:\SOFTWARE\... (required)
+#   name:    Value name (omit to act on the key itself)
+#   type:    none, binary, dword, expandstring, multistring, string, qword
+#   data:    Value data
+#   state:   present (default) or absent
+#   reboot:  Whether this setting requires a reboot (default false)
+#
+# Example:
+#  - setting: Allow full admin privileges for local admins over WinRM
+#    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+#    name: LocalAccountTokenFilterPolicy
+#    type: DWord
+#    data: 1
+#
+#  - setting: Enable User Account Control (UAC)
+#    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+#    name: EnableLUA
+#    type: DWord
+#    data: 1
+#    reboot: true
+#
+#  - setting: Enable new network location wizard
+#    path: HKLM:\SYSTEM\CurrentControlSet\Control\Network\NewNetworkWindowOff
+#    state: absent
+windows_manage_registry_settings: []
+
+# Reboot after registry changes.
+# A reboot only occurs when a changed setting has "reboot: true".
+windows_manage_registry_reboot: true

@@ -1,0 +1,19 @@
+---
+galaxy_info:
+  role_name: windows_manage_registry
+  author: Hen Yaish
+  company: Red Hat, Inc.
+  description: Apply system-wide Windows registry settings with ansible.windows.win_regedit.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.18"
+  platforms:
+    - name: Windows
+      versions:
+        - "2019"
+        - "2022"
+        - "2025"
+  galaxy_tags:
+    - windows
+    - registry
+    - configuration
+dependencies: []
