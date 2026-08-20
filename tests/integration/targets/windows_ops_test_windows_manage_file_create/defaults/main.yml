@@ -1,0 +1,5 @@
+---
+# Directory and file created under the Windows temp directory so the test
+# is self-contained and cleaned up in the always block.
+windows_manage_file_create__test_dir: C:\Windows\Temp\windows_ops_test_file_create
+windows_manage_file_create__test_file: C:\Windows\Temp\windows_ops_test_file_create\example.txt

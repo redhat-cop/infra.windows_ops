@@ -1,0 +1,66 @@
+---
+- name: Test file and directory creation
+  block:
+    # -- State A: create a directory --
+    - name: Create directory (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_create
+      vars:
+        windows_manage_file_create_items:
+          - state: directory
+            path: "{{ windows_manage_file_create__test_dir }}"
+
+    - name: Stat the created directory
+      ansible.windows.win_stat:
+        path: "{{ windows_manage_file_create__test_dir }}"
+      register: windows_manage_file_create__stat_dir
+
+    - name: Assert directory was created
+      ansible.builtin.assert:
+        that:
+          - windows_manage_file_create__stat_dir.stat.exists
+          - windows_manage_file_create__stat_dir.stat.isdir
+        fail_msg: "Directory was not created"
+
+    # -- Idempotency test (directory creation is idempotent) --
+    - name: Create directory again to verify idempotency
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_create
+      vars:
+        windows_manage_file_create_items:
+          - state: directory
+            path: "{{ windows_manage_file_create__test_dir }}"
+      register: windows_manage_file_create__idempotent
+
+    - name: Assert directory creation is idempotent
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_file_create__idempotent.changed
+        fail_msg: "Directory creation is not idempotent - reported changed on re-run"
+
+    # -- State B: create a file inside the directory --
+    - name: Create file (state B)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_create
+      vars:
+        windows_manage_file_create_items:
+          - state: file
+            path: "{{ windows_manage_file_create__test_file }}"
+
+    - name: Stat the created file
+      ansible.windows.win_stat:
+        path: "{{ windows_manage_file_create__test_file }}"
+      register: windows_manage_file_create__stat_file
+
+    - name: Assert file was created
+      ansible.builtin.assert:
+        that:
+          - windows_manage_file_create__stat_file.stat.exists
+          - not windows_manage_file_create__stat_file.stat.isdir
+        fail_msg: "File was not created"
+
+  always:
+    - name: Remove test directory and contents
+      ansible.windows.win_file:
+        path: "{{ windows_manage_file_create__test_dir }}"
+        state: absent
