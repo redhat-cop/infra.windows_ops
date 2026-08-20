@@ -1,0 +1,5 @@
+---
+# Throwaway destination used by the integration test.
+windows_manage_file_copy__test_dest: C:\Windows\Temp\windows_ops_file_copy_test.txt
+windows_manage_file_copy__test_content_a: "infra.windows_ops file_copy state A"
+windows_manage_file_copy__test_content_b: "infra.windows_ops file_copy state B"

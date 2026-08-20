@@ -1,0 +1,14 @@
+---
+# List of files and directories to copy with ansible.windows.win_copy.
+# Owner is set with win_owner when 'owner' is defined on an item.
+windows_manage_file_copy_files: []
+#  - src: /local/src/test.file
+#    dest: C:\Temp\test.file
+#    #owner: BUILTIN\Administrators
+
+# List of templates to render with ansible.windows.win_template.
+# Owner is set with win_owner when 'owner' is defined on an item.
+windows_manage_file_copy_templates: []
+#  - src: settings.conf.j2
+#    dest: C:\Tools\settings.conf
+#    #owner: S-1-5-21-...-1000
