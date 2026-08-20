@@ -1,0 +1,16 @@
+---
+# List of files to download over the network with ansible.windows.win_get_url.
+# Each item requires url and dest; owner is set with win_owner when defined.
+windows_manage_file_get_files: []
+#  - url: https://server.example.com/data.zip
+#    url_username: admin
+#    url_password: admin123
+#    timeout: 5
+#    validate_certs: false
+#    use_proxy: false
+#    dest: C:\Temp\data.zip
+#    #owner: S-1-5-21-...-1000
+
+# Value for the no_log parameter when downloading files with passwords.
+# Has no effect when no item defines url_password.
+windows_manage_file_get_no_log: true
