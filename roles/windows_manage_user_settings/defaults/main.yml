@@ -1,0 +1,20 @@
+---
+# Apply settings to users who are currently logged in (their hive is locked).
+# Some settings may only take effect after the user logs in again.
+windows_manage_user_settings_apply_to_logged_in_users: true
+
+# User registry settings to apply with ansible.windows.win_regedit.
+# Each item: setting (label), path, and optionally name, type, data, state.
+# Paths are typically under HKCU: as they are applied per user profile.
+windows_manage_user_settings_registry: []
+#  - setting: Minimize Visual Effects for Performance
+#    path: HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects
+#    name: VisualFXSetting
+#    type: DWord
+#    data: 2
+#
+#  - setting: Disable Taskbar Animations
+#    path: HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+#    name: TaskbarAnimations
+#    type: DWord
+#    data: 0
