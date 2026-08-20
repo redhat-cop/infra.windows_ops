@@ -1,0 +1,20 @@
+---
+name: "Manage File Copy Survey"
+description: "Survey to copy a file to a Windows host"
+spec:
+  - question_name: "Destination Path"
+    question_description: >
+      Full path of the file to create on the Windows host
+      (for example C:\Temp\example.txt). Leave blank to provide
+      the full file/template lists via extra variables instead.
+    required: false
+    variable: "file_copy_dest"
+    type: "text"
+    default: ""
+
+  - question_name: "File Content"
+    question_description: "Inline text content to write to the destination path"
+    required: false
+    variable: "file_copy_content"
+    type: "textarea"
+    default: ""
