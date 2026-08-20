@@ -1,0 +1,23 @@
+---
+name: "Manage File Removal Survey"
+description: "Survey to configure file and directory removal options"
+spec:
+  - question_name: "Recursive Wildcard Search"
+    question_description: "Use a recursive find when expanding wildcard patterns"
+    required: true
+    variable: "file_remove_recursive"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"
+
+  - question_name: "Case-Sensitive Matching"
+    question_description: "Enable case-sensitive matching when expanding wildcard patterns"
+    required: true
+    variable: "file_remove_case_sensitive"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"

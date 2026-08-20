@@ -1,0 +1,14 @@
+---
+- name: Manage Windows File Removal
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Remove files and directories
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_remove
+      vars:
+        # The list of paths to remove is provided via extra_vars as
+        # windows_manage_file_remove_paths (a survey cannot collect a list).
+        windows_manage_file_remove_recursive: "{{ file_remove_recursive | default(false) | bool }}"  # Set by survey
+        windows_manage_file_remove_case_sensitive: "{{ file_remove_case_sensitive | default(false) | bool }}"  # Set by survey
+...

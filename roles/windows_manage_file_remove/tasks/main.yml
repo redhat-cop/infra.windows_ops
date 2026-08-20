@@ -1,0 +1,67 @@
+---
+- name: Ensure no unsafe wildcard is used
+  ansible.builtin.assert:
+    that:
+      - "'*' not in windows_manage_file_remove_paths"
+      - "'C:\\*' not in windows_manage_file_remove_paths"
+    fail_msg: "Refusing to expand unsafe wildcard '*'."
+    quiet: true
+
+- name: Ensure removal and exclude paths use backslash separators
+  ansible.builtin.assert:
+    that:
+      - "'\\\\' in item"
+    fail_msg: "Path '{{ item }}' must contain '\\'."
+    quiet: true
+  loop: "{{ windows_manage_file_remove_paths + windows_manage_file_remove_exclude }}"
+
+- name: Ensure exclude entries contain no wildcards
+  ansible.builtin.assert:
+    that:
+      - "'*' not in item"
+      - "'?' not in item"
+      - "'[' not in item"
+    fail_msg: "Wildcards not supported for exclusion."
+    quiet: true
+  loop: "{{ windows_manage_file_remove_exclude }}"
+
+- name: Ensure wildcards only appear in the last path element
+  ansible.builtin.assert:
+    that:
+      - windows_manage_file_remove_paths | map('win_dirname') | select('search', '\\?|\\*|\\[') | length == 0
+    fail_msg: "Wildcards only supported for the last element."
+    quiet: true
+
+- name: Locate wildcard files and directories to be removed
+  ansible.windows.win_find:
+    paths: "{{ item | win_dirname }}"
+    patterns: "{{ item | win_basename }}"
+    file_type: any
+    hidden: true
+    recurse: "{{ windows_manage_file_remove_recursive | bool }}"
+    case_sensitive: "{{ windows_manage_file_remove_case_sensitive | bool }}"
+  register: windows_manage_file_remove__found
+  loop: "{{ windows_manage_file_remove_paths | select('search', '\\?|\\*|\\[') }}"
+
+# Reset the list on each execution in case the role runs more than once per play.
+- name: Initialize list of wildcard files and directories
+  ansible.builtin.set_fact:
+    windows_manage_file_remove__wildcard_paths: []
+
+- name: Set wildcard files and directories to remove
+  ansible.builtin.set_fact:
+    windows_manage_file_remove__wildcard_paths: "{{ windows_manage_file_remove__wildcard_paths + item.files | map(attribute='path') }}"
+  loop: "{{ windows_manage_file_remove__found.results }}"
+  loop_control:
+    label: "{{ item.files | map(attribute='path') }}"
+  when: item.files | length > 0
+
+- name: Remove files and directories
+  vars:
+    windows_manage_file_remove__plain_paths: "{{ windows_manage_file_remove_paths | reject('search', '\\?|\\*|\\[') }}"
+  ansible.windows.win_file:
+    path: "{{ item }}"
+    state: absent
+  register: windows_manage_file_remove__removed
+  loop: "{{ windows_manage_file_remove__plain_paths + windows_manage_file_remove__wildcard_paths }}"
+  when: item not in windows_manage_file_remove_exclude
