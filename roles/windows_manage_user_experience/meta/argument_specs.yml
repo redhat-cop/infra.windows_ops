@@ -1,0 +1,28 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Configure Windows user experience settings.
+    description:
+      - Configure interactive logon and desktop experience settings on Windows hosts.
+      - Manages Server Manager auto-launch, the new network location wizard, and
+        whether the last user name is shown on the Welcome Screen.
+    options:
+      windows_manage_user_experience_server_manager_at_logon:
+        type: bool
+        description:
+          - Open Server Manager automatically at logon.
+          - Set to C(false) to prevent Server Manager from launching at logon.
+        default: true
+      windows_manage_user_experience_network_location_wizard:
+        type: bool
+        description:
+          - Enable or disable the new network location wizard.
+          - When C(false), the wizard is suppressed for new networks.
+        default: false
+      windows_manage_user_experience_show_last_user_name:
+        type: bool
+        description:
+          - Show or hide the last user name on the Welcome Screen.
+          - Set to C(false) to hide the last signed-in user name.
+        default: true

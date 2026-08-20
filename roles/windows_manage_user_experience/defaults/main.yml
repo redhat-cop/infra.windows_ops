@@ -1,0 +1,9 @@
+---
+# Open Server Manager automatically at logon
+windows_manage_user_experience_server_manager_at_logon: true
+
+# Enable or disable the new network location wizard
+windows_manage_user_experience_network_location_wizard: false
+
+# Show or hide the last user name on the Welcome Screen
+windows_manage_user_experience_show_last_user_name: true
