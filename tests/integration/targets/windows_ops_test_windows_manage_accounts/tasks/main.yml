@@ -1,0 +1,134 @@
+---
+- name: Test local account management
+  block:
+    # -- State A: create group, user, and membership --
+    - name: Create group, user, and membership (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_accounts
+      vars:
+        windows_manage_accounts_administrator_enable: true
+        windows_manage_accounts_groups_create:
+          - name: "{{ windows_manage_accounts_test_group }}"
+            description: Ansible integration test group
+        windows_manage_accounts_users_create:
+          - name: "{{ windows_manage_accounts_test_user }}"
+            fullname: Ansible Test User
+            description: Ansible integration test user
+            password: "{{ windows_manage_accounts_test_password }}"
+            groups:
+              - Users
+        windows_manage_accounts_group_members:
+          - name: "{{ windows_manage_accounts_test_group }}"
+            members:
+              - "{{ windows_manage_accounts_test_user }}"
+            state: pure
+
+    - name: Verify test user exists (check mode reports no change)
+      ansible.windows.win_user:
+        name: "{{ windows_manage_accounts_test_user }}"
+        state: present
+      check_mode: true
+      register: windows_manage_accounts__verify_user_a
+
+    - name: Assert test user exists after state A
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_accounts__verify_user_a.changed
+        fail_msg: "Test user was not created"
+
+    - name: Verify test group membership (check mode reports no change)
+      ansible.windows.win_group_membership:
+        name: "{{ windows_manage_accounts_test_group }}"
+        members:
+          - "{{ windows_manage_accounts_test_user }}"
+        state: pure
+      check_mode: true
+      register: windows_manage_accounts__verify_membership_a
+
+    - name: Assert group membership is configured after state A
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_accounts__verify_membership_a.changed
+        fail_msg: "Test group membership was not configured"
+
+    # -- Idempotency: re-run state A --
+    - name: Re-run state A to verify idempotency
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_accounts
+      vars:
+        windows_manage_accounts_administrator_enable: true
+        windows_manage_accounts_groups_create:
+          - name: "{{ windows_manage_accounts_test_group }}"
+            description: Ansible integration test group
+        windows_manage_accounts_users_create:
+          - name: "{{ windows_manage_accounts_test_user }}"
+            fullname: Ansible Test User
+            description: Ansible integration test user
+            groups:
+              - Users
+        windows_manage_accounts_group_members:
+          - name: "{{ windows_manage_accounts_test_group }}"
+            members:
+              - "{{ windows_manage_accounts_test_user }}"
+            state: pure
+
+    - name: Verify test user still exists after idempotent re-run
+      ansible.windows.win_user:
+        name: "{{ windows_manage_accounts_test_user }}"
+        state: present
+      check_mode: true
+      register: windows_manage_accounts__verify_user_idempotent
+
+    - name: Assert user unchanged after idempotent re-run
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_accounts__verify_user_idempotent.changed
+        fail_msg: "Role is not idempotent - user changed on re-run"
+
+    # -- State B: delete user and group --
+    - name: Delete test user and group (state B)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_accounts
+      vars:
+        windows_manage_accounts_administrator_enable: true
+        windows_manage_accounts_users_delete:
+          - "{{ windows_manage_accounts_test_user }}"
+        windows_manage_accounts_groups_delete:
+          - "{{ windows_manage_accounts_test_group }}"
+
+    - name: Verify test user is absent (check mode reports no change)
+      ansible.windows.win_user:
+        name: "{{ windows_manage_accounts_test_user }}"
+        state: absent
+      check_mode: true
+      register: windows_manage_accounts__verify_user_b
+
+    - name: Assert test user is absent after state B
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_accounts__verify_user_b.changed
+        fail_msg: "Test user was not deleted"
+
+    - name: Verify test group is absent (check mode reports no change)
+      ansible.windows.win_group:
+        name: "{{ windows_manage_accounts_test_group }}"
+        state: absent
+      check_mode: true
+      register: windows_manage_accounts__verify_group_b
+
+    - name: Assert test group is absent after state B
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_accounts__verify_group_b.changed
+        fail_msg: "Test group was not deleted"
+
+  always:
+    - name: Clean up test user
+      ansible.windows.win_user:
+        name: "{{ windows_manage_accounts_test_user }}"
+        state: absent
+
+    - name: Clean up test group
+      ansible.windows.win_group:
+        name: "{{ windows_manage_accounts_test_group }}"
+        state: absent

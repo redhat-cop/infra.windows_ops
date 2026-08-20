@@ -1,0 +1,33 @@
+---
+name: "Manage Accounts Survey"
+description: "Survey to configure local account options"
+spec:
+  - question_name: "Enable Administrator Account"
+    question_description: "Enable or disable the built-in Administrator account"
+    required: true
+    variable: "administrator_enable"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"
+
+  - question_name: "Ansible User Password Expires"
+    question_description: "Allow the Ansible connection user's password to expire"
+    required: true
+    variable: "ansible_user_password_expires"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"
+
+  - question_name: "Show Ansible User on Welcome Screen"
+    question_description: "Show or hide the Ansible connection user on the Welcome Screen"
+    required: true
+    variable: "ansible_user_show_on_welcome"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"

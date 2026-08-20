@@ -1,0 +1,178 @@
+---
+- name: Check connecting user
+  vars:
+    windows_manage_accounts__conn_user: "{{ 'ansible_' + ansible_connection + '_user' }}"
+    windows_manage_accounts__remote_user: "{{ lookup('vars', windows_manage_accounts__conn_user, default='') | default(ansible_user, true) }}"
+  ansible.builtin.set_fact:
+    windows_manage_accounts__ansible_user: "{{ windows_manage_accounts__remote_user | default(lookup('env', 'USER'), true) }}"
+
+- name: Ensure the Administrator account is not disabling itself
+  ansible.builtin.assert:
+    that:
+      - windows_manage_accounts_administrator_enable | bool or
+        windows_manage_accounts__ansible_user | lower != 'administrator'
+    fail_msg: "Refusing to disable Administrator own account."
+    quiet: true
+
+- name: Disable built-in Administrator account
+  ansible.windows.win_user:
+    name: Administrator
+    account_disabled: true
+  when: not windows_manage_accounts_administrator_enable | bool
+
+- name: Enable built-in Administrator account
+  ansible.windows.win_user:
+    name: Administrator
+    account_disabled: false
+  when: windows_manage_accounts_administrator_enable | bool
+
+- name: Configure password expiration for Ansible user
+  ansible.windows.win_user:
+    name: "{{ windows_manage_accounts__ansible_user }}"
+    password_never_expires: "{{ not windows_manage_accounts_ansible_user_password_expires | bool }}"
+  when: windows_manage_accounts__ansible_user | lower != 'administrator'
+
+- name: Configure showing Ansible user on Welcome Screen
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\SpecialAccounts\UserList
+    name: "{{ windows_manage_accounts__ansible_user }}"
+    type: dword
+    data: "{{ 1 if windows_manage_accounts_ansible_user_show_on_welcome | bool else 0 }}"
+  when: windows_manage_accounts__ansible_user | lower != 'administrator'
+
+- name: Delete local profile
+  vars:
+    windows_manage_accounts__name_param: "{{ item if not item.startswith('S-') else omit }}"
+    windows_manage_accounts__username_param: "{{ item if item.startswith('S-') else omit }}"
+  ansible.windows.win_user_profile:
+    name: "{{ windows_manage_accounts__name_param }}"
+    username: "{{ windows_manage_accounts__username_param }}"
+    state: absent
+    remove_multiple: true
+  loop: "{{ windows_manage_accounts_profiles_delete }}"
+  when:
+    - item | lower not in windows_manage_accounts__reserved_names
+    - item not in windows_manage_accounts_users_create | map(attribute='name')
+
+- name: Delete local user
+  ansible.windows.win_user:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ windows_manage_accounts_users_delete }}"
+  when:
+    - item | lower not in windows_manage_accounts__reserved_names
+    - item not in windows_manage_accounts_users_create | map(attribute='name')
+
+- name: Delete local group
+  ansible.windows.win_group:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ windows_manage_accounts_groups_delete }}"
+  when:
+    - item | lower not in windows_manage_accounts__reserved_names
+    - item not in windows_manage_accounts_groups_create | map(attribute='name')
+
+# https://learn.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/microsoft-windows-shell-setup-useraccounts-localaccounts-localaccount-name
+- name: Verify local group names
+  ansible.builtin.assert:
+    that:
+      - item.name | length >= 1
+      - item.name | length <= 256
+      - item.name not in ['.', '..']
+      - item.name | lower not in windows_manage_accounts__reserved_names
+      - item.name is not search('[/\\\[\]:|<>+=;,?*%@]')
+    quiet: true
+    fail_msg: "{{ item.name }} is not acceptable group name."
+  loop: "{{ windows_manage_accounts_groups_create }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Create local group
+  ansible.windows.win_group:
+    name: "{{ item.name }}"
+    state: present
+    description: "{{ item.description | default(omit) }}"
+    members: "{{ item.members | default(omit) }}"
+  loop: "{{ windows_manage_accounts_groups_create }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Create passwordless list of local users to create
+  no_log: "{{ windows_manage_accounts_no_log }}"
+  ansible.builtin.set_fact:
+    windows_manage_accounts__create_users: "{{ windows_manage_accounts__create_users | default([]) + [item | dict2items | rejectattr('key', 'equalto', 'password') | items2dict] }}"
+  loop: "{{ windows_manage_accounts_users_create }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+# https://learn.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/microsoft-windows-shell-setup-useraccounts-localaccounts-localaccount-name
+- name: Verify local user names
+  ansible.builtin.assert:
+    that:
+      - item.name | length >= 1
+      - item.name | length <= 256
+      - item.name not in ['.', '..']
+      - item.name | lower not in windows_manage_accounts__reserved_names
+      - item.name is not search('[/\\\[\]:|<>+=;,?*%@]')
+    quiet: true
+    fail_msg: "{{ item.name }} is not acceptable user name."
+  loop: "{{ windows_manage_accounts__create_users | default([]) }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Create local user
+  # noqa: no-log-password
+  ansible.windows.win_user:
+    name: "{{ item.name }}"
+    state: present
+    fullname: "{{ item.fullname | default(omit) }}"
+    description: "{{ item.description | default(omit) }}"
+    password_expired: "{{ item.password_expired | default(omit) }}"
+    password_never_expires: "{{ item.password_never_expires | default(omit) }}"
+    user_cannot_change_password: "{{ item.user_cannot_change_password | default(omit) }}"
+    groups_action: "{{ item.groups_action | default(omit) }}"
+    groups: "{{ item.groups | default(omit) }}"
+    account_disabled: "{{ item.account_disabled | default(omit) }}"
+    account_expires: "{{ item.account_expires | default(omit) }}"
+    account_locked: "{{ item.account_locked | default(omit) }}"
+    login_script: "{{ item.login_script | default(omit) }}"
+    home_directory: "{{ item.home_directory | default(omit) }}"
+  loop: "{{ windows_manage_accounts__create_users | default([]) }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Update local user password
+  no_log: "{{ windows_manage_accounts_no_log }}"
+  ansible.windows.win_user:
+    name: "{{ item.name }}"
+    password: "{{ item.password }}"
+  loop: "{{ windows_manage_accounts_users_create | selectattr('password', 'defined') }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Configure local group membership
+  ansible.windows.win_group_membership:
+    name: "{{ item.name }}"
+    members: "{{ item.members }}"
+    state: "{{ item.state }}"
+  loop: "{{ windows_manage_accounts_group_members }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Configure local rights
+  ansible.windows.win_user_right:
+    name: "{{ item.name }}"
+    users: "{{ item.users }}"
+    action: "{{ item.action }}"
+  loop: "{{ windows_manage_accounts_users_rights }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Create local profile
+  ansible.windows.win_user_profile:
+    name: "{{ item.name | default(omit) }}"
+    username: "{{ item.username }}"
+    state: present
+  loop: "{{ windows_manage_accounts_profiles_create }}"
+  loop_control:
+    label: "{{ item.username }}"
