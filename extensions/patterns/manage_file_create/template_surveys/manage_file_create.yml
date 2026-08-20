@@ -1,0 +1,19 @@
+---
+name: "Manage File Create Survey"
+description: "Survey to create a directory or file on Windows hosts"
+spec:
+  - question_name: "Path"
+    question_description: "Full path of the directory or file to create (e.g. C:\\Tools or C:\\Tools\\log.txt)"
+    required: true
+    variable: "file_path"
+    type: "text"
+
+  - question_name: "State"
+    question_description: "Whether the path is a directory or a file"
+    required: true
+    variable: "file_state"
+    type: "multiplechoice"
+    choices:
+      - "directory"
+      - "file"
+    default: "directory"

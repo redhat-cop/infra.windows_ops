@@ -1,0 +1,29 @@
+---
+- name: Create directories
+  ansible.windows.win_file:
+    state: directory
+    path: "{{ item.path }}"
+  loop: "{{ windows_manage_file_create_items | selectattr('state', 'equalto', 'directory') }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Create files
+  ansible.windows.win_file:
+    state: touch
+    path: "{{ item.path }}"
+    access_time: "{{ item.access_time | default(omit) }}"
+    access_time_format: "{{ item.access_time_format | default(omit) }}"
+    modification_time: "{{ item.modification_time | default(omit) }}"
+    modification_time_format: "{{ item.modification_time_format | default(omit) }}"
+  loop: "{{ windows_manage_file_create_items | selectattr('state', 'equalto', 'file') }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Update path owner
+  ansible.windows.win_owner:
+    path: "{{ item.path }}"
+    user: "{{ item.owner }}"
+    recurse: "{{ item.recurse | default(omit) }}"
+  loop: "{{ windows_manage_file_create_items | selectattr('owner', 'defined') }}"
+  loop_control:
+    label: "{{ item.path }}"

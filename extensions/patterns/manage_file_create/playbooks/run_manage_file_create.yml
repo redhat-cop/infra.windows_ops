@@ -1,0 +1,14 @@
+---
+- name: Manage Windows File and Directory Creation
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Create files and directories
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_create
+      vars:
+        # A single path can be created via the survey (file_path/file_state).
+        # For multiple items, provide the file_create_items extra variable
+        # (a list of dicts) which overrides the survey values.
+        windows_manage_file_create_items: "{{ file_create_items | default([{'state': file_state | default('directory'), 'path': file_path}]) }}"
+...

@@ -1,0 +1,20 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Create directories and files on Windows.
+    description:
+      - Create directories and files on Windows hosts.
+      - Directories and files are managed with M(ansible.windows.win_file).
+      - The path owner is set with M(ansible.windows.win_owner) when C(owner) is provided.
+    options:
+      windows_manage_file_create_items:
+        type: list
+        elements: dict
+        description:
+          - List of directories and files to create.
+          - Each item must include C(state) (C(directory) or C(file)) and C(path).
+          - "Optional keys per item: C(owner) and C(recurse) (used with M(ansible.windows.win_owner)),
+            and for files C(access_time), C(access_time_format), C(modification_time), and
+            C(modification_time_format)."
+        default: []
