@@ -5,14 +5,14 @@
     src: "{{ windows_manage_sshd_config_file }}"
     dest: C:\ProgramData\ssh\sshd_config.tmp
     newline_sequence: '\r\n'
-  register: windows_manage_sshd_config_template
+  register: windows_manage_sshd__config_template
   when: windows_manage_sshd_config_file is string
 
 - name: Create temp sshd configuration file using options
   vars:
-    windows_manage_sshd_opts: "{{ windows_manage_sshd_options | default({}, true) }}"
-    windows_manage_sshd_file_content: |
-      {% for item in windows_manage_sshd_opts | dict2items | select %}
+    windows_manage_sshd__opts: "{{ windows_manage_sshd_options | default({}) }}"
+    windows_manage_sshd__file_content: |
+      {% for item in windows_manage_sshd__opts | dict2items %}
       {% if item.value is sameas true or item.value is sameas false %}
       {{ item.key }} {{ item.value | ternary('yes', 'no') }}
       {% elif item.value is not string and item.value is not number %}
@@ -32,9 +32,9 @@
       {% endfor %}
   check_mode: false
   ansible.windows.win_copy:
-    content: "{{ windows_manage_sshd_file_content | regex_replace('\\n', '\\r\\n') }}"
+    content: "{{ windows_manage_sshd__file_content | regex_replace('\\n', '\\r\\n') }}"
     dest: C:\ProgramData\ssh\sshd_config.tmp
-  register: windows_manage_sshd_config_options
+  register: windows_manage_sshd__config_options
   when:
     - windows_manage_sshd_config_file is not string
     - windows_manage_sshd_options is not none

@@ -2,11 +2,11 @@
 - name: Check WinRM service details
   ansible.windows.win_service_info:
     name: WinRM
-  register: windows_manage_winrm_service_info
+  register: windows_manage_winrm__service_info
 
 - name: Display WinRM service details
   ansible.builtin.debug:
-    var: windows_manage_winrm_service_info.services[0]
+    var: windows_manage_winrm__service_info.services[0]
 
 - name: Check WinRM service configuration
   ansible.windows.win_powershell:
@@ -24,12 +24,12 @@
         }
       }
       $Ansible.Result = $config
-  register: windows_manage_winrm_config_info
+  register: windows_manage_winrm__config_info
   changed_when: false
 
 - name: Display WinRM service configuration
   ansible.builtin.debug:
-    var: windows_manage_winrm_config_info.result
+    var: windows_manage_winrm__config_info.result
 
 - name: Check WinRM listener configuration
   ansible.windows.win_powershell:
@@ -44,9 +44,9 @@
         }
       }
       $Ansible.Result = $listeners
-  register: windows_manage_winrm_listener_info
+  register: windows_manage_winrm__listener_info
   changed_when: false
 
 - name: Display WinRM listener configuration
   ansible.builtin.debug:
-    var: windows_manage_winrm_listener_info.result
+    var: windows_manage_winrm__listener_info.result

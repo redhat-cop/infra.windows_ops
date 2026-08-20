@@ -7,7 +7,7 @@ argument_specs:
       - Enable or disable the WinRM service with listener and firewall configuration.
       - Supports HTTPS listener with self-signed certificates.
       - Includes safety check to prevent disabling WinRM over a WinRM connection.
-      - "B(NOTE): The safety check uses C(ansible.builtin.fail) which can be
+      - "B(NOTE): The safety check uses C(ansible.builtin.assert) which can be
         bypassed by wrapping the role call in a C(rescue) block."
     options:
       windows_manage_winrm_enable:

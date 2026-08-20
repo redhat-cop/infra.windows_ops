@@ -25,7 +25,7 @@
     direction: in
     localport: 3389
     protocol: tcp
-    profiles: "{{ windows_manage_rdp_firewall_profiles | default(omit, true) }}"
+    profiles: "{{ windows_manage_rdp_firewall_profiles | default(omit) }}"
   when: not windows_manage_rdp_enable | bool
 
 - name: Block firewall RDP UDP port
@@ -37,7 +37,7 @@
     direction: in
     localport: 3389
     protocol: udp
-    profiles: "{{ windows_manage_rdp_firewall_profiles | default(omit, true) }}"
+    profiles: "{{ windows_manage_rdp_firewall_profiles | default(omit) }}"
   when: not windows_manage_rdp_enable | bool
 
 - name: Configure RDP user authentication
@@ -65,7 +65,7 @@
     direction: in
     localport: 3389
     protocol: tcp
-    profiles: "{{ windows_manage_rdp_firewall_profiles | default(omit, true) }}"
+    profiles: "{{ windows_manage_rdp_firewall_profiles | default(omit) }}"
   when: windows_manage_rdp_enable | bool
 
 - name: Allow firewall RDP UDP port
@@ -77,5 +77,5 @@
     direction: in
     localport: 3389
     protocol: udp
-    profiles: "{{ windows_manage_rdp_firewall_profiles | default(omit, true) }}"
+    profiles: "{{ windows_manage_rdp_firewall_profiles | default(omit) }}"
   when: windows_manage_rdp_enable | bool

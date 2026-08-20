@@ -8,21 +8,21 @@
   check_mode: false
   ansible.windows.win_command: ReAgentc.exe /info
   changed_when: false
-  register: windows_manage_recovery_status
+  register: windows_manage_recovery__status
 
 - name: Enable Windows Recovery Environment
   ansible.windows.win_command: ReAgentc.exe /enable
   when:
     - windows_manage_recovery_enable | bool
-    - "'Disabled' in windows_manage_recovery_status.stdout"
-  register: windows_manage_recovery_enable_result
+    - "'Disabled' in windows_manage_recovery__status.stdout"
+  register: windows_manage_recovery__enable_result
 
 - name: Disable Windows Recovery Environment
   ansible.windows.win_command: ReAgentc.exe /disable
   when:
     - not windows_manage_recovery_enable | bool
-    - "'Enabled' in windows_manage_recovery_status.stdout"
-  register: windows_manage_recovery_disable_result
+    - "'Enabled' in windows_manage_recovery__status.stdout"
+  register: windows_manage_recovery__disable_result
 
 - name: Remove Recovery partition data
   ansible.windows.win_file:
@@ -30,4 +30,4 @@
     state: absent
   when:
     - not windows_manage_recovery_enable | bool
-    - windows_manage_recovery_disable_result is changed
+    - windows_manage_recovery__disable_result is changed

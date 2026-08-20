@@ -8,7 +8,7 @@
     direction: in
     localport: 5985
     protocol: tcp
-    profiles: "{{ windows_manage_winrm_firewall_profiles | default(omit, true) }}"
+    profiles: "{{ windows_manage_winrm_firewall_profiles | default(omit) }}"
   when:
     - ansible_winrm_port | default(0) | int != 5985
     - ansible_psrp_port | default(0) | int != 5985
@@ -23,7 +23,7 @@
     direction: in
     localport: 5986
     protocol: tcp
-    profiles: "{{ windows_manage_winrm_firewall_profiles | default(omit, true) }}"
+    profiles: "{{ windows_manage_winrm_firewall_profiles | default(omit) }}"
   when:
     - ansible_winrm_port | default(0) | int != 5986
     - ansible_psrp_port | default(0) | int != 5986
@@ -126,7 +126,7 @@
     direction: in
     localport: 5985
     protocol: tcp
-    profiles: "{{ windows_manage_winrm_firewall_profiles | default(omit, true) }}"
+    profiles: "{{ windows_manage_winrm_firewall_profiles | default(omit) }}"
   when: not windows_manage_winrm_http_block | bool
 
 - name: Allow firewall WinRM HTTPS port
@@ -138,7 +138,7 @@
     direction: in
     localport: 5986
     protocol: tcp
-    profiles: "{{ windows_manage_winrm_firewall_profiles | default(omit, true) }}"
+    profiles: "{{ windows_manage_winrm_firewall_profiles | default(omit) }}"
   when: windows_manage_winrm_https_enable | bool
 
 - name: Display WinRM configuration

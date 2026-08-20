@@ -16,7 +16,7 @@
     location: "{{ windows_manage_locale_location }}"
     unicode_language: "{{ windows_manage_locale_system }}"
     format: "{{ windows_manage_locale_user }}"
-  register: windows_manage_locale_region
+  register: windows_manage_locale__region
 
 - name: Configure UI language and keyboard layouts
   check_mode: false
@@ -262,7 +262,7 @@
         if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
         Set-WinCultureFromLanguageListOptOut -OptOut $false
       }
-  register: windows_manage_locale_config
+  register: windows_manage_locale__config
 
 - name: Check for Copy-UserInternationalSettingsToSystem cmdlet
   check_mode: false
@@ -275,22 +275,22 @@
       } else {
         $Ansible.Result = 'Copy-UserInternationalSettingsToSystem cmdlet not found.'
       }
-  register: windows_manage_locale_copy_cmdlet
+  register: windows_manage_locale__copy_cmdlet
   when: windows_manage_locale_welcome_screen_update_always | bool or
-        windows_manage_locale_region is changed or
-        windows_manage_locale_config is changed
+        windows_manage_locale__region is changed or
+        windows_manage_locale__config is changed
 
 - name: Copy locale settings to Welcome Screen and new users
   ansible.windows.win_powershell:
     error_action: stop
     script: |
       Copy-UserInternationalSettingsToSystem -WelcomeScreen $true -NewUser $true
-  register: windows_manage_locale_welcome
+  register: windows_manage_locale__welcome
   when:
     - windows_manage_locale_welcome_screen_update_always | bool or
-      windows_manage_locale_region is changed or
-      windows_manage_locale_config is changed
-    - "'is available' in windows_manage_locale_copy_cmdlet.result"
+      windows_manage_locale__region is changed or
+      windows_manage_locale__config is changed
+    - "'is available' in windows_manage_locale__copy_cmdlet.result"
 
 - name: Copy locale settings to Welcome Screen and new users (legacy method)
   ansible.windows.win_powershell:
@@ -324,12 +324,12 @@
       }
 
       Remove-PSDrive HKU
-  register: windows_manage_locale_legacy
+  register: windows_manage_locale__legacy
   when:
     - windows_manage_locale_welcome_screen_update_always | bool or
-      windows_manage_locale_region is changed or
-      windows_manage_locale_config is changed
-    - "'is available' not in windows_manage_locale_copy_cmdlet.result"
+      windows_manage_locale__region is changed or
+      windows_manage_locale__config is changed
+    - "'is available' not in windows_manage_locale__copy_cmdlet.result"
 
 - name: Reboot system
   ansible.windows.win_reboot:
@@ -337,7 +337,7 @@
     msg: "Ansible reboot after locale configuration"
   when:
     - windows_manage_locale_reboot | bool
-    - windows_manage_locale_region is changed or
-      windows_manage_locale_config is changed or
-      windows_manage_locale_welcome is changed or
-      windows_manage_locale_legacy is changed
+    - windows_manage_locale__region is changed or
+      windows_manage_locale__config is changed or
+      windows_manage_locale__welcome is changed or
+      windows_manage_locale__legacy is changed
