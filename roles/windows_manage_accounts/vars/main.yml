@@ -1,0 +1,8 @@
+---
+# Reserved account names that must never be created or deleted by this role.
+windows_manage_accounts__reserved_names:
+  - administrator
+  - guest
+  - krbtgt
+  - local
+  - none

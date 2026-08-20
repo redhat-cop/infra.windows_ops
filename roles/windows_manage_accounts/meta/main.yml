@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  role_name: windows_manage_accounts
+  author: Hen Yaish
+  company: Red Hat, Inc.
+  description: Manage local Windows user accounts, groups, group memberships, rights, and profiles.
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.18"
+  platforms:
+    - name: Windows
+      versions:
+        - "2019"
+        - "2022"
+        - "2025"
+  galaxy_tags:
+    - windows
+    - accounts
+    - users
+    - groups
+    - configuration
+dependencies: []
