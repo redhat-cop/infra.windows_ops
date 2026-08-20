@@ -1,0 +1,31 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Apply system-wide Windows registry settings.
+    description:
+      - Create, update, and remove Windows registry keys and values with
+        M(ansible.windows.win_regedit).
+      - Optionally reboots the host when a changed setting requires it.
+      - For user-specific settings see the C(windows_manage_user_settings) role.
+    options:
+      windows_manage_registry_settings:
+        type: list
+        elements: dict
+        description:
+          - List of registry settings to apply.
+          - Each item must include C(setting) (a human-readable label) and C(path)
+            (the full registry path, for example C(HKLM:\SOFTWARE\...)).
+          - Include C(name), C(type), and C(data) to manage a value; omit them
+            (with C(state=absent)) to act on the key itself.
+          - "C(type) accepts one of: C(none), C(binary), C(dword), C(expandstring),
+            C(multistring), C(string), C(qword)."
+          - C(state) is C(present) (default) or C(absent).
+          - Set C(reboot) to C(true) on an item to trigger a reboot when that item changes.
+        default: []
+      windows_manage_registry_reboot:
+        type: bool
+        description:
+          - Allow the role to reboot the host after registry changes.
+          - "A reboot only occurs when a changed setting is marked with C(reboot: true)."
+        default: true

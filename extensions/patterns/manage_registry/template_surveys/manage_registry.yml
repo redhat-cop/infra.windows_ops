@@ -1,0 +1,15 @@
+---
+name: "Manage Registry Settings Survey"
+description: "Survey to configure registry management options"
+spec:
+  - question_name: "Reboot After Changes"
+    question_description: >
+      Allow a reboot after registry changes. A reboot only occurs when a
+      changed setting is marked with 'reboot: true'.
+    required: true
+    variable: "registry_reboot"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"

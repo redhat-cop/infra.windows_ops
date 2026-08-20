@@ -1,0 +1,51 @@
+---
+- name: Verify registry settings format
+  ansible.builtin.assert:
+    that:
+      - item.keys() | difference(['setting', 'path', 'name', 'type', 'data', 'state', 'reboot']) | length == 0
+      - item.setting is defined and item.setting is string
+      - item.path is defined and item.path is string
+      - "':' in item.path"
+      - item.state | default('present') in ['absent', 'present']
+      - (item.state | default('present') == 'absent' if item.name is not defined or
+                                                        item.type is not defined or
+                                                        item.data is not defined else true)
+      - (item.type | default('string') | lower in ['none', 'binary', 'dword',
+                                                   'expandstring', 'multistring',
+                                                   'string', 'qword'] if item.type is defined else true)
+    fail_msg: |
+      Invalid or incomplete registry setting:
+
+      {{ item | to_nice_yaml }}
+    quiet: true
+  loop: "{{ windows_manage_registry_settings }}"
+  loop_control:
+    label: "{{ item.setting | default('') }}"
+
+- name: Apply registry settings
+  ansible.windows.win_regedit:
+    hive: "{{ item.hive | default(omit) }}"
+    path: "{{ item.path }}"
+    state: "{{ item.state | default('present') }}"
+    name: "{{ item.name | default(omit) }}"
+    type: "{{ item.type | default(omit) }}"
+    data: "{{ item.data | default(omit) }}"
+    delete_key: "{{ item.delete_key | default(true) }}"
+  register: windows_manage_registry__config
+  loop: "{{ windows_manage_registry_settings }}"
+  loop_control:
+    label: "{{ item.setting }}"
+
+- name: Reboot system
+  vars:
+    windows_manage_registry__reboot_needed: "{{ windows_manage_registry__config.results
+                                                 | selectattr('item.reboot', 'defined')
+                                                 | selectattr('item.reboot', 'equalto', true)
+                                                 | selectattr('changed', 'equalto', true) | length > 0 }}"
+  ansible.windows.win_reboot:
+    reboot_timeout: 600
+    msg: "Ansible reboot after registry changes"
+  when:
+    - windows_manage_registry_reboot | bool
+    - windows_manage_registry__config is changed
+    - windows_manage_registry__reboot_needed
