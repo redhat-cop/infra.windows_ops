@@ -1,0 +1,16 @@
+---
+name: Manage File Fetch Survey
+description: Survey for fetching a file from a Windows host to the controller.
+spec:
+  - question_name: Source file path
+    question_description: Full path of the file on the remote Windows host to fetch.
+    required: true
+    type: text
+    variable: fetch_src
+    default: ""
+  - question_name: Destination path
+    question_description: Path on the controller where the fetched file is stored.
+    required: true
+    type: text
+    variable: fetch_dest
+    default: ""
