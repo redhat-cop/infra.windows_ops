@@ -1,0 +1,3 @@
+---
+minor_changes:
+  - windows_manage_file_get - new role to download files to Windows hosts over HTTP/HTTPS with optional ownership (https://github.com/redhat-cop/infra.windows_ops/pull/XXXX).
