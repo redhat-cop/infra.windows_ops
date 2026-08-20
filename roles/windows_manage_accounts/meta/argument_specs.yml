@@ -1,0 +1,94 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Manage local Windows user accounts.
+    description:
+      - Manage local user accounts, groups, group memberships, user rights, and user profiles.
+      - Enable or disable the built-in Administrator account and configure the Ansible connection user.
+      - "B(NOTE): The role refuses to disable the Administrator account when it is the connecting user.
+        The check uses C(ansible.builtin.assert) which can be bypassed by wrapping the role call in a
+        C(rescue) block."
+    options:
+      windows_manage_accounts_administrator_enable:
+        type: bool
+        description:
+          - Enable or disable the built-in Administrator account.
+        default: false
+      windows_manage_accounts_ansible_user_password_expires:
+        type: bool
+        description:
+          - Allow the Ansible connection user's password to expire.
+          - When C(false), the connecting user is set to never expire.
+        default: false
+      windows_manage_accounts_ansible_user_show_on_welcome:
+        type: bool
+        description:
+          - Show or hide the Ansible connection user on the Welcome Screen.
+        default: false
+      windows_manage_accounts_no_log:
+        type: bool
+        description:
+          - Value for the C(no_log) parameter on tasks that set user passwords.
+          - Set to C(false) only for debugging; leaving it C(true) prevents passwords appearing in logs.
+        default: true
+      windows_manage_accounts_profiles_delete:
+        type: list
+        elements: str
+        description:
+          - List of user profiles to delete, identified by user name or SID.
+          - Reserved accounts and users present in C(windows_manage_accounts_users_create) are skipped.
+        default: []
+      windows_manage_accounts_users_delete:
+        type: list
+        elements: str
+        description:
+          - List of local users to delete.
+          - Reserved accounts and users present in C(windows_manage_accounts_users_create) are skipped.
+        default: []
+      windows_manage_accounts_groups_delete:
+        type: list
+        elements: str
+        description:
+          - List of local groups to delete.
+          - Reserved accounts and groups present in C(windows_manage_accounts_groups_create) are skipped.
+        default: []
+      windows_manage_accounts_groups_create:
+        type: list
+        elements: dict
+        description:
+          - List of local groups to create.
+          - Each item must include C(name) and may include C(description) and C(members).
+        default: []
+      windows_manage_accounts_users_create:
+        type: list
+        elements: dict
+        description:
+          - List of local users to create.
+          - Each item must include C(name) and may include C(fullname), C(description), C(password),
+            C(password_expired), C(password_never_expires), C(user_cannot_change_password),
+            C(groups_action), C(groups), C(account_disabled), C(account_expires), C(account_locked),
+            C(login_script), and C(home_directory).
+        default: []
+      windows_manage_accounts_group_members:
+        type: list
+        elements: dict
+        description:
+          - List of local group memberships to configure.
+          - Each item must include C(name), C(members), and C(state).
+          - Set C(state) to C(pure) to make membership explicit.
+        default: []
+      windows_manage_accounts_users_rights:
+        type: list
+        elements: dict
+        description:
+          - List of local user rights settings to configure.
+          - Each item must include C(name), C(users), and C(action).
+        default: []
+      windows_manage_accounts_profiles_create:
+        type: list
+        elements: dict
+        description:
+          - List of user profiles to create.
+          - Each item must include C(username) and may include C(name).
+        default: []

@@ -1,0 +1,22 @@
+---
+- name: Manage Windows Local Accounts
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Manage local accounts
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_accounts
+      vars:
+        windows_manage_accounts_administrator_enable: "{{ administrator_enable | default(false) | bool }}"  # Set by survey
+        windows_manage_accounts_ansible_user_password_expires: "{{ ansible_user_password_expires | default(false) | bool }}"  # Set by survey
+        windows_manage_accounts_ansible_user_show_on_welcome: "{{ ansible_user_show_on_welcome | default(false) | bool }}"  # Set by survey
+        # List parameters (groups/users/memberships/rights/profiles) are provided via extra_vars.
+        windows_manage_accounts_groups_create: "{{ accounts_groups_create | default([]) }}"
+        windows_manage_accounts_users_create: "{{ accounts_users_create | default([]) }}"
+        windows_manage_accounts_groups_delete: "{{ accounts_groups_delete | default([]) }}"
+        windows_manage_accounts_users_delete: "{{ accounts_users_delete | default([]) }}"
+        windows_manage_accounts_group_members: "{{ accounts_group_members | default([]) }}"
+        windows_manage_accounts_users_rights: "{{ accounts_users_rights | default([]) }}"
+        windows_manage_accounts_profiles_create: "{{ accounts_profiles_create | default([]) }}"
+        windows_manage_accounts_profiles_delete: "{{ accounts_profiles_delete | default([]) }}"
+...

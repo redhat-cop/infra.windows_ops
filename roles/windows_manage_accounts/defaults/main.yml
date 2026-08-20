@@ -1,0 +1,75 @@
+---
+# Enable or disable the built-in Administrator account
+windows_manage_accounts_administrator_enable: false
+
+# Allow the Ansible connection user's password to expire
+windows_manage_accounts_ansible_user_password_expires: false
+
+# Show or hide the Ansible connection user on the Welcome Screen
+windows_manage_accounts_ansible_user_show_on_welcome: false
+
+# List of user profiles to delete (user name or SID)
+# NB. Removes all matching profiles
+windows_manage_accounts_profiles_delete: []
+#  - testuser
+#  - S-1-5-21-...-1000
+
+# List of local users to delete
+windows_manage_accounts_users_delete: []
+#  - testuser
+
+# List of local groups to delete
+windows_manage_accounts_groups_delete: []
+#  - testgroup
+
+# List of local groups to create
+# Mandatory parameters: name
+windows_manage_accounts_groups_create: []
+#  - name: testgroup
+#    description: Test Group
+
+# List of local users to create
+# Mandatory parameters: name
+# All users should be added to Users
+windows_manage_accounts_users_create: []
+#  - name: testuser
+#    fullname: Test User
+#    description: User for testing
+#    password: Foobar_12
+#    password_expired: false
+#    password_never_expires: true
+#    user_cannot_change_password: false
+#    groups_action: add
+#    groups:
+#      - Users
+#    account_disabled: false
+#    account_expires: never
+#    account_locked: false
+#    login_script: C:\Users\login.ps1
+#    home_directory: C:\Users\testuser
+
+# Value for the no_log parameter when setting passwords
+windows_manage_accounts_no_log: true
+
+# List of local group memberships to configure
+# Mandatory parameters: name, members, state
+# Set state to pure to make membership explicit
+windows_manage_accounts_group_members: []
+#  - name: testgroup
+#    members:
+#      - testuser
+#    state: pure
+
+# List of local rights settings to configure
+# Mandatory parameters: name, users, action
+windows_manage_accounts_users_rights: []
+#  - name: SeCreateSymbolicLinkPrivilege
+#    users:
+#      - testuser
+#    action: remove
+
+# List of user profiles to create
+# Mandatory parameters: username
+windows_manage_accounts_profiles_create: []
+#  - username: testuser
+#    name: test-testuser
