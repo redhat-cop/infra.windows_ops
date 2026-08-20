@@ -1,0 +1,136 @@
+---
+- name: Test user settings configuration
+  vars:
+    windows_manage_user_settings__test_hive_key: 'HKLM\AnsibleUserSettingsTest'
+    windows_manage_user_settings__default_hive: 'C:\Users\Default\NTUSER.DAT'
+    windows_manage_user_settings__verify_path: 'HKLM:\AnsibleUserSettingsTest\SOFTWARE\_ansible_windows_ops_test'
+  block:
+    # -- State A: apply DWord = 1 to the Default profile --
+    - name: Apply user setting (state A - data 1)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_user_settings
+      vars:
+        windows_manage_user_settings_apply_to_logged_in_users: false
+        windows_manage_user_settings_registry:
+          - setting: Ansible test marker
+            path: 'HKCU:\SOFTWARE\_ansible_windows_ops_test'
+            name: UserSettingsTest
+            type: DWord
+            data: 1
+
+    - name: Load Default profile hive for verification (state A)
+      ansible.windows.win_command: >-
+        reg load {{ windows_manage_user_settings__test_hive_key }}
+        {{ windows_manage_user_settings__default_hive }}
+      changed_when: true
+
+    - name: Read applied value (state A)
+      ansible.windows.win_reg_stat:
+        path: "{{ windows_manage_user_settings__verify_path }}"
+        name: UserSettingsTest
+      register: windows_manage_user_settings__verify_a
+
+    - name: Unload Default profile hive (state A)
+      ansible.windows.win_command: >-
+        reg unload {{ windows_manage_user_settings__test_hive_key }}
+      changed_when: true
+
+    - name: Assert setting applied to Default profile (state A)
+      ansible.builtin.assert:
+        that:
+          - windows_manage_user_settings__verify_a.exists
+          - windows_manage_user_settings__verify_a.value == 1
+        fail_msg: "User setting was not applied to the Default profile"
+
+    # -- Idempotency: re-run state A --
+    - name: Apply user setting again (idempotency)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_user_settings
+      vars:
+        windows_manage_user_settings_apply_to_logged_in_users: false
+        windows_manage_user_settings_registry:
+          - setting: Ansible test marker
+            path: 'HKCU:\SOFTWARE\_ansible_windows_ops_test'
+            name: UserSettingsTest
+            type: DWord
+            data: 1
+
+    - name: Load Default profile hive for verification (idempotency)
+      ansible.windows.win_command: >-
+        reg load {{ windows_manage_user_settings__test_hive_key }}
+        {{ windows_manage_user_settings__default_hive }}
+      changed_when: true
+
+    - name: Read value after idempotent re-run
+      ansible.windows.win_reg_stat:
+        path: "{{ windows_manage_user_settings__verify_path }}"
+        name: UserSettingsTest
+      register: windows_manage_user_settings__verify_idem
+
+    - name: Unload Default profile hive (idempotency)
+      ansible.windows.win_command: >-
+        reg unload {{ windows_manage_user_settings__test_hive_key }}
+      changed_when: true
+
+    - name: Assert value unchanged after idempotent re-run
+      ansible.builtin.assert:
+        that:
+          - windows_manage_user_settings__verify_idem.value == 1
+        fail_msg: "User setting changed on idempotent re-run"
+
+    # -- State B: apply DWord = 0 --
+    - name: Apply user setting (state B - data 0)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_user_settings
+      vars:
+        windows_manage_user_settings_apply_to_logged_in_users: false
+        windows_manage_user_settings_registry:
+          - setting: Ansible test marker
+            path: 'HKCU:\SOFTWARE\_ansible_windows_ops_test'
+            name: UserSettingsTest
+            type: DWord
+            data: 0
+
+    - name: Load Default profile hive for verification (state B)
+      ansible.windows.win_command: >-
+        reg load {{ windows_manage_user_settings__test_hive_key }}
+        {{ windows_manage_user_settings__default_hive }}
+      changed_when: true
+
+    - name: Read applied value (state B)
+      ansible.windows.win_reg_stat:
+        path: "{{ windows_manage_user_settings__verify_path }}"
+        name: UserSettingsTest
+      register: windows_manage_user_settings__verify_b
+
+    - name: Unload Default profile hive (state B)
+      ansible.windows.win_command: >-
+        reg unload {{ windows_manage_user_settings__test_hive_key }}
+      changed_when: true
+
+    - name: Assert setting updated in Default profile (state B)
+      ansible.builtin.assert:
+        that:
+          - windows_manage_user_settings__verify_b.value == 0
+        fail_msg: "User setting was not updated to 0 in the Default profile"
+
+  always:
+    # Remove the throwaway test key from the Default profile hive.
+    - name: Load Default profile hive for cleanup
+      ansible.windows.win_command: >-
+        reg load {{ windows_manage_user_settings__test_hive_key }}
+        {{ windows_manage_user_settings__default_hive }}
+      changed_when: true
+      failed_when: false
+
+    - name: Remove test key from Default profile
+      ansible.windows.win_command: >-
+        reg delete {{ windows_manage_user_settings__test_hive_key }}\SOFTWARE\_ansible_windows_ops_test /f
+      changed_when: true
+      failed_when: false
+
+    - name: Unload Default profile hive after cleanup
+      ansible.windows.win_command: >-
+        reg unload {{ windows_manage_user_settings__test_hive_key }}
+      changed_when: true
+      failed_when: false

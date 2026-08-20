@@ -1,0 +1,15 @@
+---
+name: "Manage User Settings Survey"
+description: "Survey to configure how per-user registry settings are applied"
+spec:
+  - question_name: "Apply to Logged In Users"
+    question_description: "Apply settings to users who are currently logged in (via become)"
+    required: true
+    variable: "user_settings_apply_to_logged_in_users"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"
+  # NOTE: windows_manage_user_settings_registry is a list of dicts and is not
+  # survey-friendly. Provide it via extra variables on the job template.
