@@ -1,0 +1,14 @@
+---
+- name: Manage Windows User Settings
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Apply user settings
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_user_settings
+      vars:
+        windows_manage_user_settings_apply_to_logged_in_users: "{{ user_settings_apply_to_logged_in_users | default(true) | bool }}"  # Set by survey
+        # windows_manage_user_settings_registry is a list of dicts and is not
+        # survey-friendly; provide it via extra variables on the job template.
+        windows_manage_user_settings_registry: "{{ user_settings_registry | default([]) }}"
+...

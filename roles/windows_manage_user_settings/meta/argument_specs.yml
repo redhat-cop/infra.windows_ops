@@ -1,0 +1,28 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Apply per-user Windows registry settings.
+    description:
+      - Apply registry settings to existing user profiles by loading each
+        profile's C(NTUSER.DAT) hive.
+      - For users who are currently logged in (whose hive is locked), settings
+        are applied in the user's own context via C(become).
+      - The connecting Ansible user's own profile is intentionally excluded.
+    options:
+      windows_manage_user_settings_apply_to_logged_in_users:
+        type: bool
+        description:
+          - Apply settings to users who are currently logged in by using C(become).
+          - When C(false), profiles whose hive is locked are skipped instead of
+            failing.
+        default: true
+      windows_manage_user_settings_registry:
+        type: list
+        elements: dict
+        description:
+          - List of registry settings to apply to each user profile.
+          - Each item must include C(setting) (a human-readable label) and C(path).
+          - "Optional keys per item: C(name), C(type), C(data), and C(state)."
+          - Paths are typically under C(HKCU:) as they are applied per user profile.
+        default: []
