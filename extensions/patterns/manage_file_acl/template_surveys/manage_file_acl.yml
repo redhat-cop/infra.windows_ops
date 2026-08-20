@@ -1,0 +1,25 @@
+---
+name: "Manage File ACL Survey"
+description: "Survey to configure Windows file and directory ACLs."
+spec:
+  - question_name: "ACL Entries (YAML)"
+    question_description: >-
+      YAML list of ACL entries. Each item requires path, user, type and rights;
+      optional keys: state, follow, inherit, propagation, owner, recurse.
+    required: false
+    variable: "file_acl_acls"
+    type: "textarea"
+    default: |-
+      - path: C:\Temp\log.txt
+        user: Guests
+        type: deny
+        rights: Write,Modify
+        state: present
+  - question_name: "ACL Inheritance Rules (YAML)"
+    question_description: >-
+      YAML list of ACL inheritance rules. Each item requires path;
+      optional keys: state, reorganize.
+    required: false
+    variable: "file_acl_inheritance"
+    type: "textarea"
+    default: "[]"

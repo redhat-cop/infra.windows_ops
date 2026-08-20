@@ -1,0 +1,19 @@
+---
+# List of ACLs to apply to files and directories.
+# Uses ansible.windows.win_acl (and ansible.windows.win_owner when owner is set).
+# Mandatory keys per item: path, user, type, rights
+windows_manage_file_acl_acls: []
+#  - path: C:\Temp\log.txt
+#    #owner: BUILTIN\Administrator
+#    user: testuser
+#    type: deny
+#    rights: Read,Write,Modify,FullControl,Delete
+#    state: present
+
+# List of ACL inheritance rules to apply to paths.
+# Uses ansible.windows.win_acl_inheritance.
+# Mandatory keys per item: path
+windows_manage_file_acl_inheritance: []
+#  - path: C:\apache
+#    state: present
+#    reorganize: true
