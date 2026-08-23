@@ -1,0 +1,84 @@
+---
+- name: Test Windows feature management
+  block:
+    - name: Capture original feature state
+      ansible.windows.win_feature:
+        name: "{{ windows_manage_features_test_feature }}"
+        state: present
+      check_mode: true
+      register: windows_manage_features__orig
+
+    # -- State A: install the feature via the role --
+    - name: Install feature (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_features
+      vars:
+        windows_manage_features_install:
+          - "{{ windows_manage_features_test_feature }}"
+        windows_manage_features_reboot: false
+
+    - name: Verify feature is present after state A
+      ansible.windows.win_feature:
+        name: "{{ windows_manage_features_test_feature }}"
+        state: present
+      check_mode: true
+      register: windows_manage_features__verify_a
+
+    - name: Assert feature is present
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_features__verify_a.changed
+        fail_msg: "Feature {{ windows_manage_features_test_feature }} was not installed"
+        quiet: true
+
+    # -- Idempotency: re-run install, feature stays present with no change --
+    - name: Install feature again (idempotency)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_features
+      vars:
+        windows_manage_features_install:
+          - "{{ windows_manage_features_test_feature }}"
+        windows_manage_features_reboot: false
+
+    - name: Verify feature still present after idempotent re-run
+      ansible.windows.win_feature:
+        name: "{{ windows_manage_features_test_feature }}"
+        state: present
+      check_mode: true
+      register: windows_manage_features__verify_idempotent
+
+    - name: Assert role is idempotent
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_features__verify_idempotent.changed
+        fail_msg: "Feature {{ windows_manage_features_test_feature }} is not idempotent on re-run"
+        quiet: true
+
+    # -- State B: remove the feature via the role --
+    - name: Remove feature (state B)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_features
+      vars:
+        windows_manage_features_remove:
+          - "{{ windows_manage_features_test_feature }}"
+        windows_manage_features_reboot: false
+
+    - name: Verify feature is absent after state B
+      ansible.windows.win_feature:
+        name: "{{ windows_manage_features_test_feature }}"
+        state: present
+      check_mode: true
+      register: windows_manage_features__verify_b
+
+    - name: Assert feature is absent
+      ansible.builtin.assert:
+        that:
+          - windows_manage_features__verify_b.changed
+        fail_msg: "Feature {{ windows_manage_features_test_feature }} was not removed"
+        quiet: true
+
+  always:
+    - name: Restore feature to its original state
+      ansible.windows.win_feature:
+        name: "{{ windows_manage_features_test_feature }}"
+        state: "{{ 'absent' if windows_manage_features__orig.changed else 'present' }}"

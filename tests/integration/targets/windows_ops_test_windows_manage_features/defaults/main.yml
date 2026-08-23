@@ -1,0 +1,4 @@
+---
+# Telnet-Client is a safe, source-free feature that installs and removes
+# quickly without requiring a reboot, making it ideal for idempotency testing.
+windows_manage_features_test_feature: Telnet-Client
