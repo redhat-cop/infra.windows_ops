@@ -1,0 +1,54 @@
+---
+# Labels
+#
+controller_labels:
+  - name: infra.windows_ops
+    organization: "{{ organization | default('Default') }}"
+  - name: manage_scheduled_tasks_pattern
+    organization: "{{ organization | default('Default') }}"
+  - name: run_manage_scheduled_tasks
+    organization: "{{ organization | default('Default') }}"
+
+# Execution Environments
+#
+controller_execution_environments:
+  - name: apd-ee-25-windows
+    description: Allow running Windows experience demo. Based on apd-ee-25.
+    image: quay.io/redhat-cop/apd-ee-25-windows:latest
+    pull: always
+
+# Projects
+#
+controller_projects:
+  - name: Windows Operations / Project
+    description: >
+      This project provides the foundation for automating the management of scheduled tasks.
+      It organizes all necessary resources, including playbooks, job templates, and surveys, to ensure
+      seamless management of Windows scheduled tasks.
+    organization: Default
+    scm_branch: main
+    scm_clean: false
+    scm_delete_on_update: false
+    scm_type: git
+    scm_update_on_launch: true
+    scm_url: https://github.com/redhat-cop/infra.windows_ops.git
+    credential: "{{ credential | default(omit, true) }}"
+
+
+# Job Templates
+#
+controller_templates:
+  - name: Windows Operations / Manage Scheduled Tasks
+    description: >
+      This job template manages Windows scheduled tasks, applying operational data as required.
+    ask_inventory_on_launch: true
+    labels:
+      - infra.windows_ops
+      - manage_scheduled_tasks_pattern
+      - run_manage_scheduled_tasks
+    playbook: "extensions/patterns/manage_scheduled_tasks/playbooks/run_manage_scheduled_tasks.yml"
+    project: Windows Operations / Project
+    survey_enabled: true
+    survey_spec: "{{ lookup('file', pattern.path.replace('setup.yml', '') + 'template_surveys/manage_scheduled_tasks.yml') | from_yaml }}"
+    ask_credential_on_launch: true
+    execution_environment: apd-ee-25-windows

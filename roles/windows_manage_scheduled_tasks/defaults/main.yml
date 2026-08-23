@@ -1,0 +1,11 @@
+---
+# List of scheduled task names to remove.
+# Uses community.windows.win_scheduled_task. A name present in
+# windows_manage_scheduled_tasks_create is skipped (create wins).
+windows_manage_scheduled_tasks_remove: []
+
+# List of scheduled tasks to create, enable, or disable.
+# Each item is a mapping passed to community.windows.win_scheduled_task;
+# 'name' is required. Set 'enabled: false' to create a disabled task.
+# See the role README for the full list of supported keys.
+windows_manage_scheduled_tasks_create: []
