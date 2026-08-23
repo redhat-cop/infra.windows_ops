@@ -1,0 +1,47 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Apply Windows PowerShell DSC resource configurations.
+    description:
+      - Apply one or more PowerShell Desired State Configuration (DSC) resources on
+        Windows hosts using M(ansible.windows.win_dsc).
+      - Optionally reboots the host when a changed setting requests it.
+    options:
+      windows_manage_dsc_settings:
+        type: list
+        elements: dict
+        description:
+          - List of DSC resource configurations to apply.
+        default: []
+        options:
+          setting:
+            type: str
+            required: true
+            description:
+              - A human-readable label for the DSC setting, shown in task output.
+          resource_name:
+            type: str
+            required: true
+            description:
+              - The name of the DSC resource to invoke (for example C(Registry),
+                C(File), or C(Environment)).
+          parameters:
+            type: dict
+            required: true
+            description:
+              - Mapping of DSC resource properties passed to M(ansible.windows.win_dsc).
+              - The exact keys depend on the DSC resource named in
+                O(windows_manage_dsc_settings[].resource_name).
+          reboot:
+            type: bool
+            default: false
+            description:
+              - Whether a reboot is required after this setting changes.
+              - Only honored when O(windows_manage_dsc_reboot) is C(true).
+      windows_manage_dsc_reboot:
+        type: bool
+        description:
+          - Reboot the host after DSC changes when a changed setting sets
+            O(windows_manage_dsc_settings[].reboot=true).
+        default: true
