@@ -1,0 +1,32 @@
+---
+# ansible.windows / community.windows provide no native module for selectively
+# compiling only the PowerShell .NET assemblies loaded for Ansible connections
+# (community.windows.win_dotnet_ngen compiles queued/all assemblies, not a
+# targeted subset). win_powershell is used here for that confirmed gap; it
+# reports its own changed state and honours check mode via $Ansible.CheckMode.
+- name: Compile PowerShell assemblies
+  ansible.windows.win_powershell:
+    error_action: stop
+    script: |
+      $Ansible.Changed = $false
+      # From https://docs.ansible.com/ansible/latest/os_guide/windows_performance.html
+      $ngenPath = [System.IO.Path]::Combine(
+        [Runtime.InteropServices.RuntimeEnvironment]::GetRuntimeDirectory(), 'ngen.exe')
+      [AppDomain]::CurrentDomain.GetAssemblies() | ForEach-Object {
+        if (-not $_.Location) { return }
+        $name = Split-Path -Path $_.Location -Leaf
+        if ($name.StartsWith('Microsoft.PowerShell')) {
+          $images = & $ngenPath display $_.Location /nologo
+          if ($images -match 'pending' -or $images -match 'not installed') {
+            $Ansible.Changed = $true
+            if (-not $Ansible.CheckMode) {
+              & $ngenPath install $_.Location /nologo
+            }
+          }
+        }
+      }
+  when: windows_manage_dotnet_powershell | bool
+
+- name: Compile all installed assemblies
+  community.windows.win_dotnet_ngen:
+  when: windows_manage_dotnet_all_assemblies | bool

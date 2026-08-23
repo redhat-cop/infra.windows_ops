@@ -1,0 +1,8 @@
+---
+# Compile the PowerShell .NET assemblies used by Ansible connections.
+# Improves the responsiveness of subsequent PowerShell/WinRM operations.
+windows_manage_dotnet_powershell: true
+
+# Compile all installed .NET assemblies (runs ngen for the whole machine).
+# This is thorough but can take a long time; disabled by default.
+windows_manage_dotnet_all_assemblies: false

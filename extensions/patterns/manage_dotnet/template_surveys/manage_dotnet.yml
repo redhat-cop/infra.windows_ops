@@ -1,0 +1,23 @@
+---
+name: "Manage Dotnet Optimization Survey"
+description: "Survey to configure .NET native image optimization"
+spec:
+  - question_name: "Compile PowerShell Assemblies"
+    question_description: "Compile the PowerShell assemblies used by Ansible connections"
+    required: true
+    variable: "dotnet_powershell"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"
+
+  - question_name: "Compile All Assemblies"
+    question_description: "Compile all installed .NET assemblies (can take a long time)"
+    required: true
+    variable: "dotnet_all_assemblies"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"

@@ -1,0 +1,23 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Optimize .NET native images on Windows hosts.
+    description:
+      - Compile .NET native images using ngen to improve runtime performance.
+      - Optionally compiles only the PowerShell assemblies used by Ansible
+        connections, all installed assemblies, or both.
+    options:
+      windows_manage_dotnet_powershell:
+        type: bool
+        description:
+          - Compile the PowerShell .NET assemblies used by Ansible connections.
+          - Improves the responsiveness of subsequent PowerShell/WinRM operations.
+        default: true
+      windows_manage_dotnet_all_assemblies:
+        type: bool
+        description:
+          - Compile all installed .NET assemblies by running ngen for the whole
+            machine.
+          - Thorough but can take a long time to complete.
+        default: false
