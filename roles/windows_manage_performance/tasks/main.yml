@@ -1,0 +1,115 @@
+---
+- name: Configure NTFS Last Access Time updates
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem
+    name: NtfsDisableLastAccessUpdate
+    type: DWord
+    data: "{{ 0x80000000 if windows_manage_performance_ntfs_last_access_time_update else 0x80000001 }}"
+
+- name: Configure automatic page file setting
+  community.windows.win_pagefile:
+    automatic: "{{ windows_manage_performance_page_file_size == 'auto' }}"
+  register: windows_manage_performance__page_file_automatic
+
+- name: Reboot system after automatic page file change
+  ansible.windows.win_reboot:
+    reboot_timeout: 600
+    msg: "Ansible reboot after configuring page file"
+  when:
+    - windows_manage_performance_page_file_reboot
+    - windows_manage_performance__page_file_automatic is changed
+    - windows_manage_performance_page_file_size in ['auto', 'disabled', 'system']
+
+- name: Check page file configuration
+  community.windows.win_pagefile:
+  register: windows_manage_performance__page_file_status
+
+- name: Configure page file
+  vars:
+    windows_manage_performance__disable_page_file: "{{ windows_manage_performance_page_file_size == 'disabled' }}"
+    windows_manage_performance__static_page_file: "{{ windows_manage_performance_page_file_size
+      not in ['auto', 'disabled', 'system'] }}"
+    windows_manage_performance__page_file_state: "{{ 'query'
+      if windows_manage_performance_page_file_size == 'auto' else 'present' }}"
+    windows_manage_performance__override_needed: "{{ windows_manage_performance_page_file_size
+      not in ['auto', 'system'] and
+      (windows_manage_performance_page_file_size == 'disabled' or
+       (windows_manage_performance__page_file_status.pagefiles | length and
+        (windows_manage_performance_page_file_size
+         != windows_manage_performance__page_file_status.pagefiles[0].initial_size or
+         windows_manage_performance_page_file_size
+         != windows_manage_performance__page_file_status.pagefiles[0].maximum_size))) }}"
+    windows_manage_performance__static_to_system: "{{ windows_manage_performance_page_file_size == 'system' and
+      windows_manage_performance__page_file_status.pagefiles | length and
+      (windows_manage_performance__page_file_status.pagefiles[0].initial_size != 0 or
+       windows_manage_performance__page_file_status.pagefiles[0].maximum_size != 0) }}"
+  community.windows.win_pagefile:
+    state: "{{ 'absent' if windows_manage_performance__disable_page_file
+      else windows_manage_performance__page_file_state }}"
+    drive: "{{ windows_manage_performance_page_file_disk
+      if windows_manage_performance__static_page_file or
+      windows_manage_performance_page_file_size == 'system' else omit }}"
+    automatic: "{{ windows_manage_performance_page_file_size == 'auto' }}"
+    remove_all: "{{ windows_manage_performance__disable_page_file }}"
+    override: "{{ windows_manage_performance__override_needed or windows_manage_performance__static_to_system }}"
+    initial_size: "{{ windows_manage_performance_page_file_size | int
+      if windows_manage_performance__static_page_file else omit }}"
+    maximum_size: "{{ windows_manage_performance_page_file_size | int
+      if windows_manage_performance__static_page_file else omit }}"
+    system_managed: "{{ windows_manage_performance_page_file_size == 'system' }}"
+  register: windows_manage_performance__page_file_config
+
+- name: Reboot system after page file change
+  ansible.windows.win_reboot:
+    reboot_timeout: 600
+    msg: "Ansible reboot after configuring page file"
+  when:
+    - windows_manage_performance_page_file_reboot
+    - windows_manage_performance__page_file_config is changed
+
+# Windows power schemes are managed with powercfg.exe; there is no native
+# ansible.windows/community.windows module for querying or activating them,
+# so win_command (read-only) and win_powershell (activation) are used here.
+- name: Check current power scheme
+  check_mode: false
+  ansible.windows.win_command: powercfg.exe /list
+  register: windows_manage_performance__power_scheme_info
+  changed_when: false
+
+- name: Configure power scheme
+  vars:
+    windows_manage_performance__current_guid: "{{ ((windows_manage_performance__power_scheme_info.stdout_lines
+      | select('search', '\\*$'))[0] | split(' '))[3] }}"
+    windows_manage_performance__wanted_name: "{{ windows_manage_performance_power_scheme | replace('_', ' ') }}"
+    windows_manage_performance__wanted_guid: "{{ ((windows_manage_performance__power_scheme_info.stdout_lines
+      | select('search', windows_manage_performance__wanted_name, ignorecase=true))[0] | split(' '))[3] }}"
+  ansible.windows.win_powershell:
+    error_action: stop
+    script: |
+      $Ansible.Changed = $true
+      if ($Ansible.CheckMode) { return }
+      powercfg.exe /setactive {{ windows_manage_performance__wanted_guid }}
+  when: windows_manage_performance__current_guid != windows_manage_performance__wanted_guid
+
+# Hibernation is toggled with powercfg.exe /H, which likewise has no native
+# module; the script is idempotent by comparing the current HibernateEnabled
+# registry value before making a change.
+- name: Configure hibernation
+  ansible.windows.win_powershell:
+    error_action: stop
+    script: |
+      $Ansible.Changed = $false
+      $setting = {{ windows_manage_performance_hibernation | int }}
+      $current = (Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\Power).HibernateEnabled
+      if ($setting -ne $current) {
+        $Ansible.Changed = $true
+        if ($Ansible.CheckMode) { return }
+        try {
+          $result = powercfg.exe /H {{ 'ON' if windows_manage_performance_hibernation else 'OFF' }} 2>&1
+        }
+        catch {
+          $Ansible.Result = $_.Exception.Message
+          $Ansible.Failed = $true
+          return
+        }
+      }

@@ -1,0 +1,98 @@
+---
+- name: Test performance tuning configuration
+  block:
+    - name: Capture original NTFS last access time setting
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem
+        name: NtfsDisableLastAccessUpdate
+      register: windows_manage_performance__original_ntfs
+
+    - name: Capture original hibernation state
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Power
+        name: HibernateEnabled
+      register: windows_manage_performance__original_hibernate
+
+    - name: Record original values
+      ansible.builtin.set_fact:
+        windows_manage_performance__original_ntfs_data: "{{ windows_manage_performance__original_ntfs.value
+          | default(2147483649) }}"
+        windows_manage_performance__hibernation_current: "{{ (windows_manage_performance__original_hibernate.value
+          | default(0)) | int == 1 }}"
+
+    # -- State A: enable NTFS last access time updates (0x80000000) --
+    - name: Apply performance settings (state A - NTFS last access enabled)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_performance
+      vars:
+        windows_manage_performance_ntfs_last_access_time_update: true
+        windows_manage_performance_page_file_size: auto
+        windows_manage_performance_page_file_reboot: false
+        windows_manage_performance_power_scheme: balanced
+        windows_manage_performance_hibernation: "{{ windows_manage_performance__hibernation_current }}"
+
+    - name: Verify NTFS last access value after state A
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem
+        name: NtfsDisableLastAccessUpdate
+      register: windows_manage_performance__verify_a
+
+    - name: Assert NTFS last access updates enabled
+      ansible.builtin.assert:
+        that:
+          - windows_manage_performance__verify_a.value | int == 2147483648
+        fail_msg: "NTFS last access time updates were not enabled (expected 0x80000000)"
+
+    # -- Idempotency test --
+    - name: Re-run role to verify idempotency (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_performance
+      vars:
+        windows_manage_performance_ntfs_last_access_time_update: true
+        windows_manage_performance_page_file_size: auto
+        windows_manage_performance_page_file_reboot: false
+        windows_manage_performance_power_scheme: balanced
+        windows_manage_performance_hibernation: "{{ windows_manage_performance__hibernation_current }}"
+
+    - name: Verify NTFS last access value after idempotent re-run
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem
+        name: NtfsDisableLastAccessUpdate
+      register: windows_manage_performance__verify_idempotent
+
+    - name: Assert value unchanged after idempotent re-run
+      ansible.builtin.assert:
+        that:
+          - windows_manage_performance__verify_idempotent.value | int == 2147483648
+        fail_msg: "Role is not idempotent - NTFS last access value changed on re-run"
+
+    # -- State B: disable NTFS last access time updates (0x80000001) --
+    - name: Apply performance settings (state B - NTFS last access disabled)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_performance
+      vars:
+        windows_manage_performance_ntfs_last_access_time_update: false
+        windows_manage_performance_page_file_size: auto
+        windows_manage_performance_page_file_reboot: false
+        windows_manage_performance_power_scheme: balanced
+        windows_manage_performance_hibernation: "{{ windows_manage_performance__hibernation_current }}"
+
+    - name: Verify NTFS last access value after state B
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem
+        name: NtfsDisableLastAccessUpdate
+      register: windows_manage_performance__verify_b
+
+    - name: Assert NTFS last access updates disabled
+      ansible.builtin.assert:
+        that:
+          - windows_manage_performance__verify_b.value | int == 2147483649
+        fail_msg: "NTFS last access time updates were not disabled (expected 0x80000001)"
+
+  always:
+    - name: Restore original NTFS last access setting
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem
+        name: NtfsDisableLastAccessUpdate
+        type: DWord
+        data: "{{ windows_manage_performance__original_ntfs_data }}"

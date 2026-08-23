@@ -1,0 +1,49 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Apply Windows performance tuning settings.
+    description:
+      - Apply common Windows performance tuning settings.
+      - Manages NTFS last access time updates, the page file, the active power
+        scheme, and hibernation.
+    options:
+      windows_manage_performance_ntfs_last_access_time_update:
+        type: bool
+        description:
+          - Enable or disable NTFS Last Access Time updates.
+          - When C(false), last access time updates are disabled to reduce disk I/O.
+        default: false
+      windows_manage_performance_page_file_size:
+        type: str
+        description:
+          - Page file configuration.
+          - C(auto) lets Windows manage the page file automatically.
+          - C(disabled) fully disables the page file.
+          - C(system) uses a system managed page file size.
+          - Any other value is treated as a static page file size in MB (for example C("4096")).
+        default: auto
+      windows_manage_performance_page_file_disk:
+        type: str
+        description:
+          - Drive letter used to host the page file for static or system managed page files.
+        default: C
+      windows_manage_performance_page_file_reboot:
+        type: bool
+        description:
+          - Reboot the host when a page file change requires it to take effect.
+        default: true
+      windows_manage_performance_power_scheme:
+        type: str
+        description:
+          - Active power scheme to configure.
+        choices:
+          - balanced
+          - power_saver
+          - high_performance
+        default: balanced
+      windows_manage_performance_hibernation:
+        type: bool
+        description:
+          - Enable or disable hibernation.
+        default: false

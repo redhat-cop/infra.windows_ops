@@ -1,0 +1,5 @@
+---
+# The test asserts on the NTFS last access time registry value, which is
+# deterministic and safe to capture/restore. Page file, power scheme, and
+# hibernation are held at no-op values (auto / balanced / current hibernation
+# state) with reboot disabled so the test never disrupts the host or reboots.
