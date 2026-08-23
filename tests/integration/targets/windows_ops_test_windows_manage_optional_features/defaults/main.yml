@@ -1,0 +1,5 @@
+---
+# Candidate optional feature used by the test.
+# The test captures its original state and restores it in the always block.
+# If the feature is not available on the host image, the test skips gracefully.
+windows_manage_optional_features__test_candidate: TelnetClient
