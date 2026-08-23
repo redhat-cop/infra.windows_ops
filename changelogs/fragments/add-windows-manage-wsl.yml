@@ -1,0 +1,3 @@
+---
+minor_changes:
+  - "windows_manage_wsl - new role for installing, configuring, and removing the Windows Subsystem for Linux (WSL) and its distributions (https://github.com/redhat-cop/infra.windows_ops/pull/XXXX)."

@@ -1,0 +1,19 @@
+---
+- name: Manage Windows Subsystem for Linux (WSL)
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Configure WSL
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_wsl
+      vars:
+        windows_manage_wsl_enable: "{{ wsl_enable | default(true) | bool }}"  # Set by survey
+        windows_manage_wsl_update: "{{ wsl_update | default(false) | bool }}"  # Set by survey
+        windows_manage_wsl_reboot: "{{ wsl_reboot | default(true) | bool }}"  # Set by survey
+        windows_manage_wsl_distributions_exclusive: "{{ wsl_distributions_exclusive | default(false) | bool }}"  # Set by survey
+        windows_manage_wsl_config_file: "{{ wsl_config_file | default('') }}"  # Set by survey
+        windows_manage_wsl_distribution_default: "{{ wsl_distribution_default | default('') }}"  # Set by survey
+        # windows_manage_wsl_distributions and windows_manage_wsl_distributions_update
+        # are lists and windows_manage_wsl_distribution_update_commands is a dict;
+        # supply them via job-template extra_vars (surveys cannot collect lists/dicts).
+...

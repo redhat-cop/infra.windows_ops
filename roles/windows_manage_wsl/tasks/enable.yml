@@ -1,0 +1,193 @@
+---
+# WSL is managed through the wsl.exe CLI, for which there is no native
+# ansible.windows/community.windows module. ansible.windows.win_powershell is
+# therefore used for the wsl.exe operations below (a confirmed native-module
+# gap). Each task reads current state first and only reports/makes changes when
+# needed, so the role stays idempotent. The read tasks set check_mode: false so
+# they always execute, and consult the ansible_check_mode play variable to
+# decide whether to make actual changes under --check.
+- name: Install WSL (Windows Subsystem for Linux)
+  environment:
+    WSL_UTF8: "1"
+  check_mode: false
+  ansible.windows.win_powershell:
+    error_action: silently_continue
+    script: |
+      $Ansible.Changed = $false
+      $status = (wsl.exe --status) -replace '\x00', '' | ? { $_ -ne '' } | Out-String
+      if ($LASTEXITCODE -ne 0) {
+        $Ansible.Changed = $true
+        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+        $opts = if ($status -match 'not found') { '--update' } else { '--install', '--no-distribution' }
+        # Start-Process here is required at least with Windows Server 2025
+        $result = Start-Process -FilePath wsl.exe -ArgumentList "$opts" -PassThru -Verb RunAs -Wait
+        if ($result.ExitCode -ne 0) {
+          $Ansible.Result = "Failed to install WSL: $result"
+          $Ansible.Failed = $true
+          Exit 1
+        }
+      }
+  register: windows_manage_wsl__install
+
+- name: Update WSL (Windows Subsystem for Linux)
+  environment:
+    WSL_UTF8: "1"
+  check_mode: false
+  ansible.windows.win_powershell:
+    error_action: silently_continue
+    script: |
+      $Ansible.Changed = $false
+      $result = (wsl.exe --update) -replace '\x00', '' | ? { $_ -ne '' } | Out-String
+      $rc = $LASTEXITCODE
+      if ($result -notmatch 'already installed') {
+        $Ansible.Changed = $true
+      }
+      if ($rc -ne 0) {
+        $Ansible.Result = "Failed to update WSL: $result"
+        $Ansible.Failed = $true
+        Exit 1
+      }
+  when:
+    - windows_manage_wsl_update | bool
+    - windows_manage_wsl__install is not changed
+
+- name: Create WSL configuration file
+  ansible.windows.win_template:
+    src: "{{ windows_manage_wsl_config_file }}"
+    dest: '%USERPROFILE%\.wslconfig'
+    newline_sequence: '\r\n'
+  when: windows_manage_wsl_config_file is truthy
+
+- name: Reboot system
+  ansible.windows.win_reboot:
+    reboot_timeout: 600
+    msg: "Ansible reboot after WSL changes"
+  when:
+    - windows_manage_wsl_reboot | bool
+    - windows_manage_wsl__install is changed
+
+- name: Check installed WSL distributions
+  environment:
+    WSL_UTF8: "1"
+  check_mode: false
+  ansible.windows.win_powershell:
+    error_action: stop
+    script: |
+      $Ansible.Changed = $false
+      $Ansible.Result = @((wsl.exe --list --quiet) -replace '\x00', '' | ? { $_ -ne '' })
+  register: windows_manage_wsl__distros
+  retries: 10
+  delay: 3
+  until: windows_manage_wsl__distros is not failed
+  when:
+    - windows_manage_wsl_distributions is truthy or
+      windows_manage_wsl_distributions_exclusive | bool
+
+- name: Uninstall WSL distributions
+  environment:
+    WSL_UTF8: "1"
+  check_mode: false
+  ansible.windows.win_powershell:
+    error_action: silently_continue
+    script: |
+      $Ansible.Changed = $false
+      $current = @((wsl.exe --list --quiet) -replace '\x00', '' | ? { $_ -ne '' })
+      if ($current -contains '{{ item }}') {
+        $Ansible.Changed = $true
+        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+        (wsl.exe --terminate '{{ item }}') -replace '\x00', '' | ? { $_ -ne '' } | Out-String
+        $result = (wsl.exe --unregister '{{ item }}') -replace '\x00', '' | ? { $_ -ne '' } | Out-String
+        if ($LASTEXITCODE -ne 0) {
+          $Ansible.Result = "Failed to uninstall '{{ item }}': $result"
+          $Ansible.Failed = $true
+          Exit 1
+        }
+      }
+  loop: "{{ windows_manage_wsl__distros.result }}"
+  when:
+    - windows_manage_wsl_distributions_exclusive | bool
+    - item not in windows_manage_wsl_distributions
+
+- name: Install WSL distributions
+  environment:
+    WSL_UTF8: "1"
+  check_mode: false
+  ansible.windows.win_powershell:
+    error_action: silently_continue
+    script: |
+      $Ansible.Changed = $false
+      $current = @((wsl.exe --list --quiet) -replace '\x00', '' | ? { $_ -ne '' })
+      if ($current -notcontains '{{ item }}') {
+        $Ansible.Changed = $true
+        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+        $result = (wsl.exe --install '{{ item }}' --no-launch) -replace '\x00', '' | ? { $_ -ne '' } | Out-String
+        if ($LASTEXITCODE -ne 0) {
+          $Ansible.Result = "Failed to install '{{ item }}': $result"
+          $Ansible.Failed = $true
+          Exit 1
+        }
+      }
+  loop: "{{ windows_manage_wsl_distributions }}"
+  when: item not in windows_manage_wsl__distros.result
+
+- name: Configure WSL default distribution
+  environment:
+    WSL_UTF8: "1"
+  check_mode: false
+  ansible.windows.win_powershell:
+    error_action: silently_continue
+    script: |
+      $Ansible.Changed = $false
+      $current = @((wsl.exe --status) -replace '\x00', '' | ? { $_ -ne '' })
+      if ($current -notcontains 'Default Distribution: {{ windows_manage_wsl_distribution_default }}') {
+        $Ansible.Changed = $true
+        if ('{{ ansible_check_mode }}' -eq 'true') { Exit 0 }
+        $default = "{{ windows_manage_wsl_distribution_default }}"
+        $result = (wsl.exe --set-default $default) -replace '\x00', '' | ? { $_ -ne '' } | Out-String
+        if ($LASTEXITCODE -ne 0) {
+          $Ansible.Result = "Failed to set default distribution: $result"
+          $Ansible.Failed = $true
+          Exit 1
+        }
+      }
+  when:
+    - windows_manage_wsl_distribution_default is truthy
+    - windows_manage_wsl__install is not changed or
+      windows_manage_wsl_reboot | bool
+
+- name: Update installed WSL distributions
+  environment:
+    WSL_UTF8: "1"
+  check_mode: false
+  ansible.windows.win_powershell:
+    error_action: silently_continue
+    script: |
+      $Ansible.Changed = $false
+      $distro = '{{ item }}'
+      $mappings = '{{ windows_manage_wsl_distribution_update_commands | to_json }}' | ConvertFrom-Json
+      $commands = @()
+      foreach ($mapping in $mappings.PSObject.Properties) {
+        foreach ($pattern in $mapping.Value.patterns) {
+          if ($distro -like $pattern) {
+            $commands = $mapping.Value.commands
+            break
+          }
+        }
+        if ($commands) { break }
+      }
+      foreach ($cmd in $commands) {
+        $result = (wsl.exe --distribution "$distro" --user root --exec ($cmd -split ' ')) -replace '\x00', '' | ? { $_ -ne '' }
+        $rc = $LASTEXITCODE
+        if ($cmd -ne 'apt-get update' -and $cmd -ne '/bin/true' -and $result -join ',' -notmatch ',0 upgraded|nothing to do') {
+          $Ansible.Changed = $true
+        }
+        if ($rc -ne 0) {
+          $Ansible.Result = "Failed to update $distro`: $result"
+          $Ansible.Failed = $true
+          Exit 1
+        }
+      }
+  loop: "{{ windows_manage_wsl_distributions_update }}"
+  when:
+    - windows_manage_wsl__install is not changed or
+      windows_manage_wsl_reboot | bool
