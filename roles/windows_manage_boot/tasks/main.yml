@@ -1,0 +1,40 @@
+---
+- name: Validate boot timeout value
+  ansible.builtin.assert:
+    that:
+      - windows_manage_boot_timeout >= 0
+      - windows_manage_boot_timeout <= 999
+    quiet: true
+    fail_msg: >-
+      windows_manage_boot_timeout must be between 0 and 999 seconds,
+      got {{ windows_manage_boot_timeout }}.
+
+- name: Query current boot configuration
+  # bcdedit has no native module; win_command reads the current settings so the
+  # timeout is only changed when it actually differs (idempotency).
+  ansible.windows.win_command: bcdedit.exe /enum "{bootmgr}"
+  register: windows_manage_boot__bcdedit
+  changed_when: false
+  check_mode: false
+
+- name: Determine current boot timeout
+  # stdout_lines are trimmed and matched on a backslash-free pattern; a regex
+  # containing '\s' is unreliable inside a folded scalar (the escape is kept
+  # literal), so anchor on '^timeout' after trimming instead.
+  ansible.builtin.set_fact:
+    windows_manage_boot__current_timeout: >-
+      {{ (windows_manage_boot__bcdedit.stdout_lines
+          | map('trim')
+          | select('search', '^timeout')
+          | list | first | default('timeout -1'))
+         | split | last }}
+
+- name: Configure boot timeout
+  # argv/list form avoids any shell interpolation of the timeout value.
+  ansible.windows.win_command:
+    argv:
+      - bcdedit.exe
+      - /timeout
+      - "{{ windows_manage_boot_timeout | int }}"
+  when: windows_manage_boot__current_timeout | int != windows_manage_boot_timeout | int
+  changed_when: true

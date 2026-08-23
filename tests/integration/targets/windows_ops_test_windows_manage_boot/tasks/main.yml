@@ -1,0 +1,97 @@
+---
+- name: Test Boot Manager configuration
+  block:
+    - name: Capture original boot configuration
+      ansible.windows.win_command: bcdedit.exe /enum "{bootmgr}"
+      register: windows_manage_boot__orig
+      changed_when: false
+
+    - name: Record original timeout and choose a distinct test value
+      ansible.builtin.set_fact:
+        windows_manage_boot__orig_timeout: >-
+          {{ (windows_manage_boot__orig.stdout_lines
+              | map('trim')
+              | select('search', '^timeout')
+              | list | first | default('timeout 30'))
+             | split | last }}
+
+    - name: Select a test timeout that differs from the original
+      ansible.builtin.set_fact:
+        windows_manage_boot__test_timeout: "{{ 20 if (windows_manage_boot__orig_timeout | int) == 15 else 15 }}"
+
+    # -- Apply the test value --
+    - name: Configure boot timeout (test value)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_boot
+      vars:
+        windows_manage_boot_timeout: "{{ windows_manage_boot__test_timeout | int }}"
+
+    - name: Read back boot configuration after change
+      ansible.windows.win_command: bcdedit.exe /enum "{bootmgr}"
+      register: windows_manage_boot__after
+      changed_when: false
+
+    - name: Extract timeout after change
+      ansible.builtin.set_fact:
+        windows_manage_boot__after_timeout: >-
+          {{ (windows_manage_boot__after.stdout_lines
+              | map('trim')
+              | select('search', '^timeout')
+              | list | first | default('timeout -1'))
+             | split | last }}
+
+    - name: Assert timeout was applied
+      ansible.builtin.assert:
+        that:
+          - windows_manage_boot__after_timeout | int == windows_manage_boot__test_timeout | int
+        fail_msg: >-
+          Expected timeout {{ windows_manage_boot__test_timeout }},
+          got {{ windows_manage_boot__after_timeout }}.
+
+    # -- Idempotency: re-run leaves the timeout at the test value --
+    - name: Configure boot timeout again (idempotency)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_boot
+      vars:
+        windows_manage_boot_timeout: "{{ windows_manage_boot__test_timeout | int }}"
+
+    - name: Read back boot configuration after idempotent re-run
+      ansible.windows.win_command: bcdedit.exe /enum "{bootmgr}"
+      register: windows_manage_boot__idempotent
+      changed_when: false
+
+    - name: Extract timeout after idempotent re-run
+      ansible.builtin.set_fact:
+        windows_manage_boot__idempotent_timeout: >-
+          {{ (windows_manage_boot__idempotent.stdout_lines
+              | map('trim')
+              | select('search', '^timeout')
+              | list | first | default('timeout -1'))
+             | split | last }}
+
+    - name: Assert role detected no change was needed on re-run
+      # The role exposes the timeout it read; if that equals the desired value
+      # the role's guard skipped the reconfigure - proving idempotency. With the
+      # broken extraction this fact was always -1, so this would have failed.
+      ansible.builtin.assert:
+        that:
+          - windows_manage_boot__current_timeout | int == windows_manage_boot__test_timeout | int
+        fail_msg: >-
+          Role is not idempotent - it read timeout
+          {{ windows_manage_boot__current_timeout }} instead of the applied
+          {{ windows_manage_boot__test_timeout }}, so it would reconfigure.
+
+    - name: Assert timeout unchanged after idempotent re-run
+      ansible.builtin.assert:
+        that:
+          - windows_manage_boot__idempotent_timeout | int == windows_manage_boot__test_timeout | int
+        fail_msg: "Role is not idempotent - boot timeout drifted on re-run."
+
+  always:
+    - name: Restore original boot timeout
+      ansible.windows.win_command:
+        argv:
+          - bcdedit.exe
+          - /timeout
+          - "{{ windows_manage_boot__orig_timeout | int }}"
+      changed_when: false

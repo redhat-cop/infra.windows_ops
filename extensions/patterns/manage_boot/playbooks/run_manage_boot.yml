@@ -1,0 +1,11 @@
+---
+- name: Manage Windows Boot Configuration
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Configure Boot Manager
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_boot
+      vars:
+        windows_manage_boot_timeout: "{{ boot_timeout | default(30) | int }}"  # Set by survey
+...

@@ -1,0 +1,3 @@
+---
+# Boot manager menu timeout in seconds
+windows_manage_boot_timeout: 30

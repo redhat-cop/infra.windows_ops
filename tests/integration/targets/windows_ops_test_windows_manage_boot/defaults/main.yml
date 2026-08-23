@@ -1,0 +1,4 @@
+---
+# Test toggles the Boot Manager timeout to a safe, reversible value and
+# restores the original value afterwards. Changing the timeout cannot make
+# the host unbootable, and the test never reboots.
