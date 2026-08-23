@@ -1,0 +1,13 @@
+---
+- name: Perform Windows Disk Cleanup
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Clean up disk space
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_disk_cleanup
+      vars:
+        windows_manage_disk_cleanup_windows_update_files: "{{ disk_cleanup_windows_update_files | default(false) | bool }}"  # Set by survey
+        windows_manage_disk_cleanup_windows_update_reset: "{{ disk_cleanup_windows_update_reset | default(false) | bool }}"  # Set by survey
+        windows_manage_disk_cleanup_event_logs: "{{ disk_cleanup_event_logs | default(false) | bool }}"  # Set by survey
+...
