@@ -1,0 +1,127 @@
+---
+- name: Test environment settings management
+  block:
+    # Ensure a clean slate: remove any leftover throwaway vars from a prior
+    # interrupted run so win_path builds the PATH-like value from empty.
+    - name: Pre-clean throwaway environment variables
+      ansible.windows.win_environment:
+        level: machine
+        variables:
+          _ANSIBLE_WINDOWS_OPS_TEST: ''
+          _ANSIBLE_WINDOWS_OPS_TESTPATH: ''
+
+    # -- State A: set a machine variable and a PATH-like variable --
+    - name: Apply environment settings (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_environment
+      vars:
+        windows_manage_environment_reboot: false
+        windows_manage_environment_variables:
+          - level: machine
+            variables:
+              _ANSIBLE_WINDOWS_OPS_TEST: value_a
+        windows_manage_environment_paths:
+          - scope: machine
+            name: _ANSIBLE_WINDOWS_OPS_TESTPATH
+            elements: 'C:\awotest'
+            state: present
+
+    - name: Verify variable set to value_a
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        name: _ANSIBLE_WINDOWS_OPS_TEST
+      register: windows_manage_environment__verify_a
+
+    - name: Assert variable equals value_a
+      ansible.builtin.assert:
+        that:
+          - windows_manage_environment__verify_a.value == 'value_a'
+        fail_msg: "Environment variable was not set to value_a"
+
+    - name: Verify PATH-like variable applied
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        name: _ANSIBLE_WINDOWS_OPS_TESTPATH
+      register: windows_manage_environment__verify_path_a
+
+    - name: Assert PATH-like variable equals the test element
+      ansible.builtin.assert:
+        that:
+          - windows_manage_environment__verify_path_a.value == 'C:\\awotest'
+        fail_msg: "Path environment element was not applied"
+
+    # -- Idempotency: re-apply state A, then confirm no change at module level --
+    - name: Re-apply environment settings (idempotency)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_environment
+      vars:
+        windows_manage_environment_reboot: false
+        windows_manage_environment_variables:
+          - level: machine
+            variables:
+              _ANSIBLE_WINDOWS_OPS_TEST: value_a
+        windows_manage_environment_paths:
+          - scope: machine
+            name: _ANSIBLE_WINDOWS_OPS_TESTPATH
+            elements: 'C:\awotest'
+            state: present
+
+    - name: Check variable idempotency at module level
+      ansible.windows.win_environment:
+        level: machine
+        variables:
+          _ANSIBLE_WINDOWS_OPS_TEST: value_a
+      check_mode: true
+      register: windows_manage_environment__idem_var
+
+    - name: Check PATH idempotency at module level
+      ansible.windows.win_path:
+        scope: machine
+        name: _ANSIBLE_WINDOWS_OPS_TESTPATH
+        elements: 'C:\awotest'
+        state: present
+      check_mode: true
+      register: windows_manage_environment__idem_path
+
+    - name: Assert role is idempotent
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_environment__idem_var.changed
+          - not windows_manage_environment__idem_path.changed
+        fail_msg: "Role is not idempotent - environment settings changed on re-run"
+
+    # -- State B: update the variable to a new value --
+    - name: Apply environment settings (state B)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_environment
+      vars:
+        windows_manage_environment_reboot: false
+        windows_manage_environment_variables:
+          - level: machine
+            variables:
+              _ANSIBLE_WINDOWS_OPS_TEST: value_b
+
+    - name: Verify variable updated to value_b
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+        name: _ANSIBLE_WINDOWS_OPS_TEST
+      register: windows_manage_environment__verify_b
+
+    - name: Assert variable equals value_b
+      ansible.builtin.assert:
+        that:
+          - windows_manage_environment__verify_b.value == 'value_b'
+        fail_msg: "Environment variable was not updated to value_b"
+
+  always:
+    - name: Remove test environment variable
+      ansible.windows.win_environment:
+        level: machine
+        variables:
+          _ANSIBLE_WINDOWS_OPS_TEST: ''
+
+    - name: Remove test PATH-like variable
+      ansible.windows.win_environment:
+        level: machine
+        variables:
+          _ANSIBLE_WINDOWS_OPS_TESTPATH: ''

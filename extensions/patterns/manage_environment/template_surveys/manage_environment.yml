@@ -1,0 +1,15 @@
+---
+name: "Manage Environment Settings Survey"
+description: "Survey to configure environment settings options"
+spec:
+  - question_name: "Reboot After Changes"
+    question_description: >
+      Reboot the host after environment changes when a changed setting requested it via "reboot: true".
+      The environment settings themselves are supplied via extra_vars.
+    required: true
+    variable: "environment_reboot"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"

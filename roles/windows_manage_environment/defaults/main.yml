@@ -1,0 +1,13 @@
+---
+# Path environment settings to configure.
+# Each item requires: scope (machine/user), name, elements, state (present/absent).
+# Optional: reboot (bool, default false) to request a reboot when this item changes.
+windows_manage_environment_paths: []
+
+# Environment variable settings to configure.
+# Each item requires: level (machine/user) and variables (a mapping of name/value).
+# Optional: reboot (bool, default false) to request a reboot when this item changes.
+windows_manage_environment_variables: []
+
+# Reboot after environment changes when a changed item requested it via "reboot: true".
+windows_manage_environment_reboot: true

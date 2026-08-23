@@ -1,0 +1,3 @@
+---
+# Test uses throwaway machine-scoped environment settings that are removed in the
+# always block. The names are prefixed to avoid clashing with real variables.
