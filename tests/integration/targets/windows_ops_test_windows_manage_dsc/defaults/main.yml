@@ -1,0 +1,3 @@
+---
+# Test applies the built-in Registry DSC resource to a throwaway key so no extra
+# DSC modules are required. The key is removed in the always block.

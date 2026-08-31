@@ -1,0 +1,36 @@
+---
+- name: Validate DSC settings
+  ansible.builtin.assert:
+    that:
+      - item.parameters | length > 0
+    fail_msg: >-
+      DSC setting '{{ item.setting }}' must define a non-empty parameters mapping.
+    quiet: true
+  loop: "{{ windows_manage_dsc_settings }}"
+  loop_control:
+    label: "{{ item.setting }}"
+
+# The DSC resource properties are dynamic, so the parameters mapping is passed
+# through with the task-level "args" keyword (win_dsc has no fixed argument spec
+# for resource properties - see the module's free_form option).
+- name: Apply DSC settings
+  ansible.windows.win_dsc:
+    resource_name: "{{ item.resource_name }}"
+  args: "{{ item.parameters }}"
+  register: windows_manage_dsc__config
+  loop: "{{ windows_manage_dsc_settings }}"
+  loop_control:
+    label: "{{ item.setting }}"
+
+- name: Reboot system after DSC changes
+  ansible.windows.win_reboot:
+    reboot_timeout: 600
+    msg: Ansible reboot after DSC changes
+  when:
+    - windows_manage_dsc_reboot | bool
+    - windows_manage_dsc__config is changed
+    - windows_manage_dsc__config.results
+      | selectattr('item.reboot', 'defined')
+      | selectattr('item.reboot', 'equalto', true)
+      | selectattr('changed', 'equalto', true)
+      | length > 0

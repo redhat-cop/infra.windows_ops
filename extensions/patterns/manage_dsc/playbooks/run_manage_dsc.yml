@@ -1,0 +1,20 @@
+---
+- name: Manage Windows DSC configuration
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Apply DSC settings
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_dsc
+      vars:
+        windows_manage_dsc_reboot: "{{ dsc_reboot | default(true) | bool }}"  # Set by survey
+        # windows_manage_dsc_settings is a list of mappings and cannot be represented
+        # by a survey question; supply it via job template extra variables, e.g.:
+        #   windows_manage_dsc_settings:
+        #     - setting: Create C:\Temp
+        #       resource_name: File
+        #       parameters:
+        #         DestinationPath: C:\Temp
+        #         Type: Directory
+        #         Ensure: Present
+...

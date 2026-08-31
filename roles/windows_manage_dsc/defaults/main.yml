@@ -1,0 +1,13 @@
+---
+# List of PowerShell DSC resource configurations to apply via
+# ansible.windows.win_dsc. Each item requires:
+#   setting:       a human-readable label (shown in task output)
+#   resource_name: the DSC resource to invoke (e.g. Registry, File, Environment)
+#   parameters:    a mapping of DSC resource properties
+# Optional per item:
+#   reboot:        whether a reboot is required after this setting changes
+#                  (only honored when windows_manage_dsc_reboot is true)
+windows_manage_dsc_settings: []
+
+# Reboot the host after DSC changes when a changed setting requests it.
+windows_manage_dsc_reboot: true

@@ -1,0 +1,91 @@
+---
+- name: Test windows_manage_dsc
+  vars:
+    windows_manage_dsc__test_key: HKLM:\SOFTWARE\_ansible_windows_ops_dsc_test
+    windows_manage_dsc__test_name: DscTestValue
+  block:
+    # -- State A: apply a throwaway registry value via the built-in Registry DSC resource --
+    - name: Apply DSC registry setting (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_dsc
+      vars:
+        windows_manage_dsc_reboot: false
+        windows_manage_dsc_settings:
+          - setting: Create throwaway DSC test value
+            resource_name: Registry
+            parameters:
+              Key: "{{ windows_manage_dsc__test_key }}"
+              ValueName: "{{ windows_manage_dsc__test_name }}"
+              ValueType: DWord
+              ValueData: 1
+              Ensure: Present
+
+    - name: Read back the DSC-applied value
+      ansible.windows.win_reg_stat:
+        path: "{{ windows_manage_dsc__test_key }}"
+        name: "{{ windows_manage_dsc__test_name }}"
+      register: windows_manage_dsc__verify_a
+
+    - name: Assert the value was applied
+      ansible.builtin.assert:
+        that:
+          - windows_manage_dsc__verify_a.exists
+          - windows_manage_dsc__verify_a.value == 1
+        fail_msg: "DSC did not apply the registry value"
+
+    # -- Idempotency: re-apply the identical setting --
+    - name: Apply DSC registry setting again (idempotency)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_dsc
+      vars:
+        windows_manage_dsc_reboot: false
+        windows_manage_dsc_settings:
+          - setting: Create throwaway DSC test value
+            resource_name: Registry
+            parameters:
+              Key: "{{ windows_manage_dsc__test_key }}"
+              ValueName: "{{ windows_manage_dsc__test_name }}"
+              ValueType: DWord
+              ValueData: 1
+              Ensure: Present
+
+    - name: Assert idempotent re-run made no change
+      ansible.builtin.assert:
+        that:
+          - windows_manage_dsc__config is not changed
+        fail_msg: "windows_manage_dsc was not idempotent on re-run"
+
+    # -- State B: change the value to verify a second state applies --
+    - name: Apply DSC registry setting (state B - new value)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_dsc
+      vars:
+        windows_manage_dsc_reboot: false
+        windows_manage_dsc_settings:
+          - setting: Update throwaway DSC test value
+            resource_name: Registry
+            parameters:
+              Key: "{{ windows_manage_dsc__test_key }}"
+              ValueName: "{{ windows_manage_dsc__test_name }}"
+              ValueType: DWord
+              ValueData: 2
+              Ensure: Present
+
+    - name: Read back the updated value
+      ansible.windows.win_reg_stat:
+        path: "{{ windows_manage_dsc__test_key }}"
+        name: "{{ windows_manage_dsc__test_name }}"
+      register: windows_manage_dsc__verify_b
+
+    - name: Assert the updated value was applied
+      ansible.builtin.assert:
+        that:
+          - windows_manage_dsc__verify_b.value == 2
+        fail_msg: "DSC did not update the registry value"
+
+  always:
+    - name: Remove throwaway DSC test registry key
+      ansible.windows.win_regedit:
+        path: "{{ windows_manage_dsc__test_key }}"
+        state: absent
+        delete_key: true
