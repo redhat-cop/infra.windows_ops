@@ -1,0 +1,117 @@
+---
+- name: Test registry settings management
+  block:
+    - name: Ensure test key is absent before starting
+      ansible.windows.win_regedit:
+        path: "{{ windows_manage_registry_test_path }}"
+        state: absent
+        delete_key: true
+
+    # -- State A: create a DWord value --
+    - name: Apply registry settings (state A - DWord data 1)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_registry
+      vars:
+        windows_manage_registry_reboot: false
+        windows_manage_registry_settings:
+          - setting: Test value A
+            path: "{{ windows_manage_registry_test_path }}"
+            name: "{{ windows_manage_registry_test_name }}"
+            type: dword
+            data: 1
+
+    - name: Verify value after state A
+      ansible.windows.win_reg_stat:
+        path: "{{ windows_manage_registry_test_path }}"
+        name: "{{ windows_manage_registry_test_name }}"
+      register: windows_manage_registry_verify_a
+
+    - name: Assert value is set to 1
+      ansible.builtin.assert:
+        that:
+          - windows_manage_registry_verify_a.exists
+          - windows_manage_registry_verify_a.value == 1
+        fail_msg: "Registry value was not set to 1 after state A"
+
+    # -- Idempotency test --
+    - name: Apply registry settings again (idempotency)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_registry
+      vars:
+        windows_manage_registry_reboot: false
+        windows_manage_registry_settings:
+          - setting: Test value A
+            path: "{{ windows_manage_registry_test_path }}"
+            name: "{{ windows_manage_registry_test_name }}"
+            type: dword
+            data: 1
+      register: windows_manage_registry_idempotent
+
+    - name: Verify value unchanged after idempotent re-run
+      ansible.windows.win_reg_stat:
+        path: "{{ windows_manage_registry_test_path }}"
+        name: "{{ windows_manage_registry_test_name }}"
+      register: windows_manage_registry_verify_idempotent
+
+    - name: Assert role is idempotent
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_registry_idempotent.changed
+          - windows_manage_registry_verify_idempotent.value == 1
+        fail_msg: "Role is not idempotent - registry changed on re-run"
+
+    # -- State B: update the value --
+    - name: Apply registry settings (state B - DWord data 2)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_registry
+      vars:
+        windows_manage_registry_reboot: false
+        windows_manage_registry_settings:
+          - setting: Test value B
+            path: "{{ windows_manage_registry_test_path }}"
+            name: "{{ windows_manage_registry_test_name }}"
+            type: dword
+            data: 2
+
+    - name: Verify value after state B
+      ansible.windows.win_reg_stat:
+        path: "{{ windows_manage_registry_test_path }}"
+        name: "{{ windows_manage_registry_test_name }}"
+      register: windows_manage_registry_verify_b
+
+    - name: Assert value is updated to 2
+      ansible.builtin.assert:
+        that:
+          - windows_manage_registry_verify_b.value == 2
+        fail_msg: "Registry value was not updated to 2 after state B"
+
+    # -- State C: remove the value --
+    - name: Remove registry value (state C - absent)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_registry
+      vars:
+        windows_manage_registry_reboot: false
+        windows_manage_registry_settings:
+          - setting: Remove test value
+            path: "{{ windows_manage_registry_test_path }}"
+            name: "{{ windows_manage_registry_test_name }}"
+            state: absent
+
+    - name: Verify value removed after state C
+      ansible.windows.win_reg_stat:
+        path: "{{ windows_manage_registry_test_path }}"
+        name: "{{ windows_manage_registry_test_name }}"
+      register: windows_manage_registry_verify_c
+
+    - name: Assert value is removed
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_registry_verify_c.exists
+        fail_msg: "Registry value was not removed after state C"
+
+  always:
+    - name: Remove test key
+      ansible.windows.win_regedit:
+        path: "{{ windows_manage_registry_test_path }}"
+        state: absent
+        delete_key: true

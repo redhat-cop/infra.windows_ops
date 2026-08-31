@@ -1,0 +1,14 @@
+---
+- name: Manage Windows Registry Settings
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Apply registry settings
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_registry
+      vars:
+        # The registry settings list is not survey-friendly; provide it as
+        # extra variables (for example via a job template extra_vars or a
+        # variable set) using the windows_manage_registry_settings structure.
+        windows_manage_registry_reboot: "{{ registry_reboot | default(true) | bool }}"  # Set by survey
+...

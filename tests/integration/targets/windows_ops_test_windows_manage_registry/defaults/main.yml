@@ -1,0 +1,5 @@
+---
+# Test applies throwaway registry values under a dedicated test key so the
+# host's real configuration is never touched. The key is removed in "always".
+windows_manage_registry_test_path: HKLM:\SOFTWARE\_ansible_windows_ops_test
+windows_manage_registry_test_name: TestValue
