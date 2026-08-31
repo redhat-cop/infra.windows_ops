@@ -1,0 +1,70 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Configure the Windows Subsystem for Linux (WSL).
+    description:
+      - Install or uninstall the Windows Subsystem for Linux (WSL) on Windows hosts.
+      - Manages the C(.wslconfig) configuration file, installed distributions, the
+        default distribution, and in-distribution package updates.
+      - Requires Windows Server 2022 or later.
+    options:
+      windows_manage_wsl_enable:
+        type: bool
+        description:
+          - Enable (install) or disable (uninstall) WSL.
+          - Disabling WSL uninstalls all installed distributions and the WSL feature.
+        default: true
+      windows_manage_wsl_update:
+        type: bool
+        description:
+          - Update WSL during configuration.
+          - This step does not support check mode; when enabled an update is always attempted.
+        default: false
+      windows_manage_wsl_config_file:
+        type: str
+        description:
+          - Template to install as C(%USERPROFILE%\.wslconfig).
+          - Leave empty to skip managing the configuration file.
+          - The role provides the C(disable_cgroup_v1) alternative.
+        default: ""
+      windows_manage_wsl_reboot:
+        type: bool
+        description:
+          - Reboot the host after a WSL install or uninstall.
+          - A reboot is mandatory to complete un/install; later steps fail before rebooting.
+        default: true
+      windows_manage_wsl_distributions:
+        type: list
+        elements: str
+        description:
+          - Distributions to install. See C(wsl.exe --list --online) for alternatives.
+        default: []
+      windows_manage_wsl_distributions_exclusive:
+        type: bool
+        description:
+          - Remove any installed distribution not listed in
+            O(windows_manage_wsl_distributions).
+        default: false
+      windows_manage_wsl_distribution_default:
+        type: str
+        description:
+          - Distribution to set as the default. Leave empty to keep the current default.
+        default: ""
+      windows_manage_wsl_distributions_update:
+        type: list
+        elements: str
+        description:
+          - Distributions to update in place.
+          - Defaults to the value of O(windows_manage_wsl_distributions).
+          - This step does not support check mode; when a distribution is listed an
+            update is always attempted.
+        default: []
+      windows_manage_wsl_distribution_update_commands:
+        type: dict
+        description:
+          - Mapping of distribution variants to the shell commands used to update them.
+          - Each entry provides a list of C(patterns) (case-insensitive globs matched
+            against the distribution name) and a list of C(commands) to run.
+          - The first matching variant is used.
+        default: {}

@@ -1,0 +1,6 @@
+---
+# Installing WSL is heavy: it requires a reboot and network access and cannot be
+# cleanly undone on a shared test image. By default this test only exercises the
+# role in check mode (safe, read-only) to validate its logic without changing the
+# host. Set to true on a disposable host to perform a real install/uninstall.
+windows_ops_test_wsl_full: false

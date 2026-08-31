@@ -1,0 +1,8 @@
+---
+- name: Enable WSL
+  ansible.builtin.include_tasks: enable.yml
+  when: windows_manage_wsl_enable | bool
+
+- name: Disable WSL
+  ansible.builtin.include_tasks: disable.yml
+  when: not windows_manage_wsl_enable | bool

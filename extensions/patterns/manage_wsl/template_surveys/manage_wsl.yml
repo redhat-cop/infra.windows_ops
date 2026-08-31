@@ -1,0 +1,57 @@
+---
+name: "Manage WSL Configuration Survey"
+description: "Survey to configure Windows Subsystem for Linux (WSL) options"
+spec:
+  - question_name: "Enable WSL"
+    question_description: "Install (true) or uninstall (false) the Windows Subsystem for Linux"
+    required: true
+    variable: "wsl_enable"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"
+
+  - question_name: "Update WSL"
+    question_description: "Update WSL during configuration (no check-mode support)"
+    required: true
+    variable: "wsl_update"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"
+
+  - question_name: "Reboot After Changes"
+    question_description: "Reboot the host after a WSL install or uninstall"
+    required: true
+    variable: "wsl_reboot"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"
+
+  - question_name: "Exclusive Distributions"
+    question_description: "Remove installed distributions not in the supplied list"
+    required: true
+    variable: "wsl_distributions_exclusive"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"
+
+  - question_name: "Config File Template"
+    question_description: "Template to install as %USERPROFILE%\\.wslconfig (e.g. disable_cgroup_v1); leave blank to skip"
+    required: false
+    variable: "wsl_config_file"
+    type: "text"
+    default: ""
+
+  - question_name: "Default Distribution"
+    question_description: "Distribution to set as default; leave blank to keep the current default"
+    required: false
+    variable: "wsl_distribution_default"
+    type: "text"
+    default: ""

@@ -1,0 +1,76 @@
+---
+- name: Test WSL configuration
+  block:
+    # -- Safe path: exercise the role in check mode (no host changes) --
+    # The role's wsl.exe read tasks run read-only; install/uninstall steps
+    # detect check mode via ansible_check_mode and exit before making changes.
+    - name: Run role in check mode (enable)
+      check_mode: true
+      block:
+        - name: Include role in check mode
+          ansible.builtin.include_role:
+            name: infra.windows_ops.windows_manage_wsl
+          vars:
+            windows_manage_wsl_enable: true
+            windows_manage_wsl_update: false
+            windows_manage_wsl_reboot: false
+
+    - name: Record that the check-mode run completed
+      ansible.builtin.set_fact:
+        windows_manage_wsl__check_ok: true
+
+    - name: Run role again in check mode (idempotency smoke test)
+      check_mode: true
+      block:
+        - name: Include role in check mode again
+          ansible.builtin.include_role:
+            name: infra.windows_ops.windows_manage_wsl
+          vars:
+            windows_manage_wsl_enable: true
+            windows_manage_wsl_update: false
+            windows_manage_wsl_reboot: false
+
+    - name: Assert the role ran cleanly in check mode
+      ansible.builtin.assert:
+        that:
+          - windows_manage_wsl__check_ok | default(false) | bool
+        fail_msg: "windows_manage_wsl did not complete cleanly in check mode"
+        quiet: true
+
+    # -- Optional real install/uninstall (disposable hosts only) --
+    - name: Full install/uninstall cycle
+      when: windows_ops_test_wsl_full | bool
+      block:
+        - name: Install WSL
+          ansible.builtin.include_role:
+            name: infra.windows_ops.windows_manage_wsl
+          vars:
+            windows_manage_wsl_enable: true
+            windows_manage_wsl_reboot: true
+
+        - name: Query WSL status
+          environment:
+            WSL_UTF8: "1"
+          check_mode: false
+          ansible.windows.win_powershell:
+            error_action: silently_continue
+            script: |
+              $Ansible.Changed = $false
+              $Ansible.Result = ((wsl.exe --status) -replace '\x00', '' | Out-String)
+          register: windows_manage_wsl__status
+
+        - name: Assert WSL reports a status
+          ansible.builtin.assert:
+            that:
+              - windows_manage_wsl__status.result | trim | length > 0
+            fail_msg: "WSL did not report a status after install"
+            quiet: true
+
+  always:
+    - name: Restore host by uninstalling WSL
+      when: windows_ops_test_wsl_full | bool
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_wsl
+      vars:
+        windows_manage_wsl_enable: false
+        windows_manage_wsl_reboot: true
