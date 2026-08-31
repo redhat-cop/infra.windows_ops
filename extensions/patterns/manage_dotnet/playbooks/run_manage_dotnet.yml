@@ -1,0 +1,12 @@
+---
+- name: Optimize Windows .NET Native Images
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Optimize .NET native images
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_dotnet
+      vars:
+        windows_manage_dotnet_powershell: "{{ dotnet_powershell | default(true) | bool }}"  # Set by survey
+        windows_manage_dotnet_all_assemblies: "{{ dotnet_all_assemblies | default(false) | bool }}"  # Set by survey
+...

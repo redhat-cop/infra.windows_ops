@@ -1,0 +1,3 @@
+---
+minor_changes:
+  - "windows_manage_dotnet - new role for optimizing .NET native images (ngen) for PowerShell and installed assemblies (https://github.com/redhat-cop/infra.windows_ops/pull/94)."

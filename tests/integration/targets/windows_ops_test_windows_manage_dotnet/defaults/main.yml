@@ -1,0 +1,3 @@
+---
+# Test compiles only the PowerShell assemblies (fast, idempotent).
+# The all-assemblies path is intentionally left disabled to keep the run short.

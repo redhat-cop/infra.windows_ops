@@ -1,0 +1,74 @@
+---
+# ngen native-image compilation is a system optimization with nothing to
+# restore afterwards, so there is no capture/cleanup phase. Idempotency is
+# verified functionally: after the role runs, no PowerShell assembly should
+# still be pending compilation.
+- name: Test .NET native image optimization
+  block:
+    - name: Optimize PowerShell assemblies (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_dotnet
+      vars:
+        windows_manage_dotnet_powershell: true
+        windows_manage_dotnet_all_assemblies: false
+
+    - name: Probe for PowerShell assemblies still pending compilation
+      ansible.windows.win_powershell:
+        error_action: stop
+        script: |
+          $ngenPath = [System.IO.Path]::Combine(
+            [Runtime.InteropServices.RuntimeEnvironment]::GetRuntimeDirectory(), 'ngen.exe')
+          $pending = 0
+          [AppDomain]::CurrentDomain.GetAssemblies() | ForEach-Object {
+            if (-not $_.Location) { return }
+            $name = Split-Path -Path $_.Location -Leaf
+            if ($name.StartsWith('Microsoft.PowerShell')) {
+              $images = & $ngenPath display $_.Location /nologo
+              if ($images -match 'pending' -or $images -match 'not installed') { $pending++ }
+            }
+          }
+          $Ansible.Result = $pending
+      check_mode: false
+      changed_when: false
+      register: windows_manage_dotnet__pending_after_a
+
+    - name: Assert all PowerShell assemblies are compiled
+      ansible.builtin.assert:
+        that:
+          - windows_manage_dotnet__pending_after_a.result == 0
+        fail_msg: >-
+          {{ windows_manage_dotnet__pending_after_a.result }} PowerShell
+          assemblies were still pending after optimization.
+
+    - name: Re-run role to verify idempotency (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_dotnet
+      vars:
+        windows_manage_dotnet_powershell: true
+        windows_manage_dotnet_all_assemblies: false
+
+    - name: Probe again after idempotent re-run
+      ansible.windows.win_powershell:
+        error_action: stop
+        script: |
+          $ngenPath = [System.IO.Path]::Combine(
+            [Runtime.InteropServices.RuntimeEnvironment]::GetRuntimeDirectory(), 'ngen.exe')
+          $pending = 0
+          [AppDomain]::CurrentDomain.GetAssemblies() | ForEach-Object {
+            if (-not $_.Location) { return }
+            $name = Split-Path -Path $_.Location -Leaf
+            if ($name.StartsWith('Microsoft.PowerShell')) {
+              $images = & $ngenPath display $_.Location /nologo
+              if ($images -match 'pending' -or $images -match 'not installed') { $pending++ }
+            }
+          }
+          $Ansible.Result = $pending
+      check_mode: false
+      changed_when: false
+      register: windows_manage_dotnet__pending_after_rerun
+
+    - name: Assert state remains stable after re-run
+      ansible.builtin.assert:
+        that:
+          - windows_manage_dotnet__pending_after_rerun.result == 0
+        fail_msg: "PowerShell assemblies became pending again after a re-run."
