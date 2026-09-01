@@ -1,0 +1,6 @@
+---
+# Test creates a throwaway group + user, verifies membership, then deletes them.
+# The built-in Administrator account is kept enabled to avoid any lockout risk.
+windows_manage_accounts_test_group: AnsibleTestGroup
+windows_manage_accounts_test_user: ansibletestusr
+windows_manage_accounts_test_password: Ansible_Test_123!

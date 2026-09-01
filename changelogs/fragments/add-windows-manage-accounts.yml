@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - "windows_manage_accounts - new role for managing local Windows user accounts, groups, group memberships, user rights, and profiles
+    (https://github.com/redhat-cop/infra.windows_ops/pull/81)."
