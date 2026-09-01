@@ -1,0 +1,71 @@
+---
+- name: Test file and directory removal
+  block:
+    # -- Setup: create a throwaway workspace with plain and wildcard targets --
+    - name: Create test workspace and subdirectory
+      ansible.windows.win_file:
+        path: "{{ windows_manage_file_remove__test_dir }}\\keep\\nested"
+        state: directory
+
+    - name: Create test files
+      ansible.windows.win_copy:
+        content: "test"
+        dest: "{{ windows_manage_file_remove__test_dir }}\\{{ item }}"
+      loop:
+        - plain.txt
+        - first.log
+        - second.log
+        - keep.log
+
+    # -- Remove: one plain file and a wildcard pattern, excluding keep.log --
+    - name: Remove files and directories
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_remove
+      vars:
+        windows_manage_file_remove_paths:
+          - "{{ windows_manage_file_remove__test_dir }}\\plain.txt"
+          - "{{ windows_manage_file_remove__test_dir }}\\*.log"
+        windows_manage_file_remove_exclude:
+          - "{{ windows_manage_file_remove__test_dir }}\\keep.log"
+
+    - name: Stat targets after removal
+      ansible.windows.win_stat:
+        path: "{{ windows_manage_file_remove__test_dir }}\\{{ item }}"
+      register: windows_manage_file_remove__after
+      loop:
+        - plain.txt
+        - first.log
+        - second.log
+        - keep.log
+
+    - name: Assert removed and excluded targets are in the expected state
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_file_remove__after.results[0].stat.exists
+          - not windows_manage_file_remove__after.results[1].stat.exists
+          - not windows_manage_file_remove__after.results[2].stat.exists
+          - windows_manage_file_remove__after.results[3].stat.exists
+        fail_msg: "Removal did not match expectations (excluded keep.log must survive)."
+
+    # -- Idempotency: re-run must report no change --
+    - name: Remove files and directories again (idempotency check)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_remove
+      vars:
+        windows_manage_file_remove_paths:
+          - "{{ windows_manage_file_remove__test_dir }}\\plain.txt"
+          - "{{ windows_manage_file_remove__test_dir }}\\*.log"
+        windows_manage_file_remove_exclude:
+          - "{{ windows_manage_file_remove__test_dir }}\\keep.log"
+
+    - name: Assert re-run made no changes
+      ansible.builtin.assert:
+        that:
+          - windows_manage_file_remove__removed is not changed
+        fail_msg: "Role is not idempotent - re-run reported changes."
+
+  always:
+    - name: Clean up test workspace
+      ansible.windows.win_file:
+        path: "{{ windows_manage_file_remove__test_dir }}"
+        state: absent
