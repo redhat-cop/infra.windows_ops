@@ -1,0 +1,33 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Manage Windows environment variables and PATH settings.
+    description:
+      - Configure machine or user scoped PATH-like environment variables via M(ansible.windows.win_path).
+      - Configure machine or user scoped environment variables via M(ansible.windows.win_environment).
+      - Optionally reboot the host when a changed setting requests it.
+    options:
+      windows_manage_environment_paths:
+        type: list
+        elements: dict
+        description:
+          - List of PATH-like environment settings to configure.
+          - Each item must include C(scope) (C(machine) or C(user)), C(name), C(elements), and C(state) (C(present) or C(absent)).
+          - C(elements) may be a single string or a list of strings.
+          - Each item may optionally include C(reboot) to request a reboot when the item changes.
+        default: []
+      windows_manage_environment_variables:
+        type: list
+        elements: dict
+        description:
+          - List of environment variable settings to configure.
+          - Each item must include C(level) (C(machine) or C(user)) and C(variables), a mapping of variable names to values.
+          - Setting a variable to an empty string removes it.
+          - Each item may optionally include C(reboot) to request a reboot when the item changes.
+        default: []
+      windows_manage_environment_reboot:
+        type: bool
+        description:
+          - "Reboot the host after environment changes when a changed item requested it via C(reboot: true)."
+        default: true

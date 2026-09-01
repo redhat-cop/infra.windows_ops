@@ -1,0 +1,13 @@
+---
+- name: Manage Windows Environment Settings
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Configure environment settings
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_environment
+      vars:
+        windows_manage_environment_reboot: "{{ environment_reboot | default(true) | bool }}"  # Set by survey
+        # windows_manage_environment_paths and windows_manage_environment_variables are lists of
+        # dictionaries; supply them via job template extra_vars (surveys cannot collect lists).
+...
