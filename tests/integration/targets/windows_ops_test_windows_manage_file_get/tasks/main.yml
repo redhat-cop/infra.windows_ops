@@ -1,0 +1,54 @@
+---
+- name: Test file download
+  block:
+    - name: Ensure test file is absent before starting
+      ansible.windows.win_file:
+        path: "{{ windows_manage_file_get__test_dest }}"
+        state: absent
+
+    # -- State A: initial download --
+    - name: Download file (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_get
+      vars:
+        windows_manage_file_get_files:
+          - url: "{{ windows_manage_file_get__test_url }}"
+            dest: "{{ windows_manage_file_get__test_dest }}"
+
+    - name: Stat downloaded file after state A
+      ansible.windows.win_stat:
+        path: "{{ windows_manage_file_get__test_dest }}"
+      register: windows_manage_file_get__stat_a
+
+    - name: Assert file was downloaded
+      ansible.builtin.assert:
+        that:
+          - windows_manage_file_get__stat_a.stat.exists
+          - windows_manage_file_get__stat_a.stat.size > 0
+        fail_msg: "File was not downloaded"
+
+    # -- Idempotency test: re-run must not modify the existing file --
+    - name: Download file again to verify idempotency
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_get
+      vars:
+        windows_manage_file_get_files:
+          - url: "{{ windows_manage_file_get__test_url }}"
+            dest: "{{ windows_manage_file_get__test_dest }}"
+
+    - name: Stat downloaded file after idempotent re-run
+      ansible.windows.win_stat:
+        path: "{{ windows_manage_file_get__test_dest }}"
+      register: windows_manage_file_get__stat_idempotent
+
+    - name: Assert file was not modified on re-run
+      ansible.builtin.assert:
+        that:
+          - windows_manage_file_get__stat_idempotent.stat.lastwritetime == windows_manage_file_get__stat_a.stat.lastwritetime
+        fail_msg: "Role is not idempotent - file was re-downloaded on re-run"
+
+  always:
+    - name: Remove downloaded test file
+      ansible.windows.win_file:
+        path: "{{ windows_manage_file_get__test_dest }}"
+        state: absent

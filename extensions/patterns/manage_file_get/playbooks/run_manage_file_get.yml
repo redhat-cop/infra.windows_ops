@@ -1,0 +1,13 @@
+---
+- name: Download Files to Windows Hosts
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Download files
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_get
+      vars:
+        windows_manage_file_get_files:
+          - url: "{{ file_get_url }}"  # Set by survey
+            dest: "{{ file_get_dest }}"  # Set by survey
+...

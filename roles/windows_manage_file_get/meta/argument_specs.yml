@@ -1,0 +1,35 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Download files to Windows hosts.
+    description:
+      - Download one or more files to Windows hosts over HTTP or HTTPS with
+        C(ansible.windows.win_get_url).
+      - Optionally set the owner of each downloaded file with
+        C(ansible.windows.win_owner).
+    options:
+      windows_manage_file_get_files:
+        type: list
+        elements: dict
+        description:
+          - List of files to download.
+          - Each item must include C(url) and C(dest).
+          - Optional per-item keys mirror the C(ansible.windows.win_get_url)
+            options, for example C(url_username), C(url_password), C(timeout),
+            C(method), C(validate_certs), C(force_basic_auth),
+            C(use_default_credential), C(http_agent), C(use_proxy), C(proxy_url),
+            C(proxy_username), C(proxy_password), C(proxy_use_default_credential),
+            C(headers), C(follow_redirects), C(maximum_redirection),
+            C(client_cert), C(client_cert_password), C(force), C(checksum),
+            C(checksum_algorithm), and C(checksum_url).
+          - When C(owner) is set for an item, the downloaded file's owner is
+            updated with C(ansible.windows.win_owner).
+        default: []
+      windows_manage_file_get_no_log:
+        type: bool
+        description:
+          - Whether to hide task output when any downloaded item defines
+            C(url_password).
+          - Has no effect when no item defines C(url_password).
+        default: true

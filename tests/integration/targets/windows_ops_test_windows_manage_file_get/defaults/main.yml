@@ -1,0 +1,5 @@
+---
+# Test downloads a small, stable file over HTTPS and verifies idempotency.
+# NOTE: this target requires outbound HTTPS access from the Windows host.
+windows_manage_file_get__test_url: https://www.example.com/
+windows_manage_file_get__test_dest: C:\Windows\Temp\windows_manage_file_get_test.html

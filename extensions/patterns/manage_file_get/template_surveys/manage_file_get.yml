@@ -1,0 +1,15 @@
+---
+name: "Manage File Get Survey"
+description: "Survey to download a file to Windows hosts"
+spec:
+  - question_name: "File URL"
+    question_description: "The HTTP or HTTPS URL of the file to download"
+    required: true
+    variable: "file_get_url"
+    type: "text"
+
+  - question_name: "Destination Path"
+    question_description: "The full path on the Windows host to save the file to"
+    required: true
+    variable: "file_get_dest"
+    type: "text"
