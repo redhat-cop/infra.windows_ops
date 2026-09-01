@@ -1,0 +1,5 @@
+---
+minor_changes:
+  - windows_manage_updates - add update filtering (accept/reject lists, skip optional), a configurable retry loop, reboot timeout control, and optional .NET assembly compilation via the windows_manage_dotnet role (https://github.com/redhat-cop/infra.windows_ops/pull/105).
+bugfixes:
+  - windows_manage_updates - honor the documented ``windows_manage_updates_reboot`` toggle when deciding whether to reboot after installing updates; the role previously gated the reboot on an undefined ``windows_manage_updates_reboot_server`` variable, so the documented control had no effect (https://github.com/redhat-cop/infra.windows_ops/pull/105).

@@ -1,2 +1,18 @@
 ---
 windows_manage_updates_state: "searched"
+
+# Update filtering (see ansible.windows.win_updates)
+windows_manage_updates_accept_list: []
+windows_manage_updates_reject_list: []
+windows_manage_updates_skip_optional: false
+
+# Retry the update task on transient failures
+windows_manage_updates_retry_count: 3
+windows_manage_updates_retry_delay: 60
+
+# Time (seconds) to wait for the host to come back online after a reboot
+windows_manage_updates_reboot_timeout: 1200
+
+# Optionally compile .NET assemblies after updates via windows_manage_dotnet
+windows_manage_updates_compile_assemblies: false
+windows_manage_updates_compile_filter: ""

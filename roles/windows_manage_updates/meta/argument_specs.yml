@@ -28,3 +28,59 @@ argument_specs:
           - "downloaded"
         default: "searched"
         description: State for the updates, Installed, Searched (list) and Downloaded.
+      windows_manage_updates_accept_list:
+        type: list
+        elements: str
+        default: []
+        description:
+          - A list of update titles or KB numbers to restrict which updates are
+            searched or installed. Empty means no restriction. Passed to
+            C(ansible.windows.win_updates) I(accept_list).
+      windows_manage_updates_reject_list:
+        type: list
+        elements: str
+        default: []
+        description:
+          - A list of update titles or KB numbers to exclude from search or
+            install. Empty means nothing excluded. Passed to
+            C(ansible.windows.win_updates) I(reject_list).
+      windows_manage_updates_skip_optional:
+        type: bool
+        default: false
+        description:
+          - Skip optional updates where the update has BrowseOnly set by
+            Microsoft. Passed to C(ansible.windows.win_updates) I(skip_optional).
+      windows_manage_updates_retry_count:
+        type: int
+        default: 3
+        description:
+          - Number of times to retry the update task if it fails with a
+            transient error.
+      windows_manage_updates_retry_delay:
+        type: int
+        default: 60
+        description:
+          - Number of seconds to wait between update retry attempts.
+      windows_manage_updates_reboot_timeout:
+        type: int
+        default: 1200
+        description:
+          - Maximum time in seconds to wait for the host to come back online
+            after a reboot. Passed to C(ansible.windows.win_reboot)
+            I(reboot_timeout).
+      windows_manage_updates_compile_assemblies:
+        type: bool
+        default: false
+        description:
+          - After a successful update that changed the host, run the
+            C(windows_manage_dotnet) role to compile .NET native images and
+            improve subsequent PowerShell/WinRM responsiveness.
+      windows_manage_updates_compile_filter:
+        type: str
+        default: ""
+        description:
+          - Optional regular expression matched against the titles of the
+            updates that were applied. When set, .NET assembly compilation only
+            runs if at least one applied update title matches. Empty means
+            compile whenever updates changed the host and
+            I(windows_manage_updates_compile_assemblies) is true.
