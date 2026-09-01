@@ -1,0 +1,5 @@
+---
+# The test applies a throwaway HKCU setting to the Default user profile and
+# verifies it by loading the profile hive with reg.exe. The role intentionally
+# excludes the connecting WinRM user's own profile, so the Default profile
+# (always included by the role) is used as the deterministic verification target.
