@@ -1,0 +1,13 @@
+---
+- name: Manage file fetch from Windows hosts
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Fetch files from the remote host
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_fetch
+      vars:
+        windows_manage_file_fetch_files:
+          - src: "{{ fetch_src }}"
+            dest: "{{ fetch_dest }}"
+            flat: true

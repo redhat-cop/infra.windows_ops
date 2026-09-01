@@ -1,0 +1,17 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Fetch files from Windows hosts to the controller.
+    description:
+      - Fetch files from remote Windows hosts to the Ansible controller.
+      - Uses the M(ansible.builtin.fetch) module.
+    options:
+      windows_manage_file_fetch_files:
+        type: list
+        elements: dict
+        description:
+          - List of files to fetch from the remote host.
+          - Each item must include C(src) (remote path) and C(dest) (controller path).
+          - "Optional keys per item: C(flat), C(fail_on_missing), and C(validate_checksum)."
+        default: []
