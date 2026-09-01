@@ -1,0 +1,3 @@
+---
+# Test toggles the three user experience registry settings across two states
+# and verifies idempotency, then restores the original values.
