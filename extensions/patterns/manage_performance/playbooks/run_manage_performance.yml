@@ -1,0 +1,17 @@
+---
+- name: Manage Windows Performance Settings
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Apply performance tuning
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_performance
+      vars:
+        windows_manage_performance_ntfs_last_access_time_update: >-
+          {{ performance_ntfs_last_access_time_update | default(false) | bool }}  # Set by survey
+        windows_manage_performance_page_file_size: "{{ performance_page_file_size | default('auto') }}"  # Set by survey
+        windows_manage_performance_page_file_reboot: >-
+          {{ performance_page_file_reboot | default(true) | bool }}  # Set by survey
+        windows_manage_performance_power_scheme: "{{ performance_power_scheme | default('balanced') }}"  # Set by survey
+        windows_manage_performance_hibernation: "{{ performance_hibernation | default(false) | bool }}"  # Set by survey
+...

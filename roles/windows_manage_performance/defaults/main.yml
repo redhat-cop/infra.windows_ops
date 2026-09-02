@@ -1,0 +1,25 @@
+---
+# Enable or disable NTFS Last Access Time updates
+windows_manage_performance_ntfs_last_access_time_update: false
+
+# Page file configuration
+# auto      - automatically managed
+# disabled  - page file fully disabled
+# <size>    - static page file size in MB (as a string, e.g. "4096")
+# system    - system managed page file size
+windows_manage_performance_page_file_size: auto
+
+# Disk drive letter to host the page file
+windows_manage_performance_page_file_disk: C
+
+# Reboot after a page file change when required
+windows_manage_performance_page_file_reboot: true
+
+# Power scheme configuration
+# balanced          - balance between performance and energy use
+# power_saver       - maximum energy savings at the cost of performance
+# high_performance  - maximum performance with higher energy use
+windows_manage_performance_power_scheme: balanced
+
+# Enable or disable hibernation
+windows_manage_performance_hibernation: false

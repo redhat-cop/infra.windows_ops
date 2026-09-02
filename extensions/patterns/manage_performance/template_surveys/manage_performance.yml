@@ -1,0 +1,51 @@
+---
+name: "Manage Performance Settings Survey"
+description: "Survey to configure Windows performance tuning options"
+spec:
+  - question_name: "NTFS Last Access Time Updates"
+    question_description: "Enable or disable NTFS last access time updates"
+    required: true
+    variable: "performance_ntfs_last_access_time_update"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"
+
+  - question_name: "Page File Size"
+    question_description: "Page file setting: auto, disabled, system, or a static size in MB (e.g. 4096)"
+    required: true
+    variable: "performance_page_file_size"
+    type: "text"
+    default: "auto"
+
+  - question_name: "Reboot After Page File Change"
+    question_description: "Reboot the host when a page file change requires it"
+    required: true
+    variable: "performance_page_file_reboot"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"
+
+  - question_name: "Power Scheme"
+    question_description: "Active power scheme to configure"
+    required: true
+    variable: "performance_power_scheme"
+    type: "multiplechoice"
+    choices:
+      - "balanced"
+      - "power_saver"
+      - "high_performance"
+    default: "balanced"
+
+  - question_name: "Hibernation"
+    question_description: "Enable or disable hibernation"
+    required: true
+    variable: "performance_hibernation"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"
