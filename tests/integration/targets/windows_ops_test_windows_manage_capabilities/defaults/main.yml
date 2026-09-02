@@ -1,0 +1,5 @@
+---
+# Capability used to exercise install/idempotency/remove. OpenSSH.Client is a
+# Feature on Demand available on Windows Server 2019+. Installing it may require
+# Windows Update / a configured FoD source; the test restores the original state.
+windows_manage_capabilities__test_name: OpenSSH.Client

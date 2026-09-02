@@ -18,7 +18,7 @@ tags:
   - compliance
   - hardening
 dependencies:
-  ansible.windows: '>=3.0.0'
+  ansible.windows: '>=3.6.0'
   microsoft.iis: '>=1.0.2'
   community.windows: '>=3.0.0'
 build_ignore:

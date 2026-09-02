@@ -1,0 +1,35 @@
+---
+name: "Manage Windows Capabilities Survey"
+description: "Survey to configure Windows capabilities (Features on Demand) options"
+spec:
+  - question_name: "Reboot If Needed"
+    question_description: "Reboot the host automatically when a capability change requires it"
+    required: true
+    variable: "capabilities_reboot"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"
+
+  - question_name: "Ignore Unknown On Removal"
+    question_description: "Ignore failures when removing capabilities that are not present or unknown"
+    required: true
+    variable: "capabilities_remove_ignore_unknown"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"
+
+  - question_name: "DISM Log Level"
+    question_description: "DISM logging level (0=errors, 1=errors+warnings, 2=+information, 3=+debug)"
+    required: true
+    variable: "capabilities_log_level"
+    type: "multiplechoice"
+    choices:
+      - "0"
+      - "1"
+      - "2"
+      - "3"
+    default: "1"
