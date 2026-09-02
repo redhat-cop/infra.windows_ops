@@ -6,13 +6,20 @@
     name: "{{ windows_manage_service_name }}"
     state: "{{ windows_manage_service_state }}"
     start_mode: "{{ windows_manage_service_start_mode }}"
+    path: "{{ windows_manage_service_path | default(omit) }}"
+    display_name: "{{ windows_manage_service_display_name | default(omit) }}"
+    description: "{{ windows_manage_service_description | default(omit) }}"
+    dependencies: "{{ windows_manage_service_dependencies | default(omit) }}"
+    username: "{{ windows_manage_service_username | default(omit) }}"
+    password: "{{ windows_manage_service_password | default(omit) }}"
+    force_dependent_services: "{{ windows_manage_service_force_dependent_services | default(omit) }}"
 
 - name: Check Win Service
   ansible.windows.win_service_info:
     name: "{{ windows_manage_service_name }}"
-  register: windows_manage_service_status
+  register: windows_manage_service__status
 
 - name: Display Win Service
   ansible.builtin.debug:
-    var: windows_manage_service_status
+    var: windows_manage_service__status
 ...

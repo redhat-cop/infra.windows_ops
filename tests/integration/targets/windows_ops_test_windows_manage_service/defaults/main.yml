@@ -1,0 +1,8 @@
+---
+# An existing, non-critical Windows service used to exercise the role's
+# reconfiguration capabilities. The Print Spooler is present on Windows Server
+# by default and its original configuration is captured and restored by the test.
+windows_manage_service_test_name: "Spooler"
+windows_manage_service_test_display_name: "Ansible Test - Spooler Display Name"
+windows_manage_service_test_description: "Ansible integration test description for windows_manage_service."
+windows_manage_service_test_start_mode: "manual"

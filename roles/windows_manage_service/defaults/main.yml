@@ -1,2 +1,18 @@
 ---
+# The start mode of the service.
 windows_manage_service_start_mode: "auto"
+
+# Optional service creation/reconfiguration parameters. When unset they are
+# omitted from the underlying ansible.windows.win_service call, so existing
+# callers that only manage state/start_mode are unaffected.
+#
+# windows_manage_service_path: 'C:\Program Files\MyApp\myapp.exe'
+# windows_manage_service_display_name: "My Application Service"
+# windows_manage_service_description: "Runs the My Application background worker."
+# windows_manage_service_dependencies:
+#   - Tcpip
+#   - Dnscache
+# windows_manage_service_username: "DOMAIN\\svc_account"
+# windows_manage_service_password: "{{ vault_service_password }}"
+# windows_manage_service_force_dependent_services: true
+...
