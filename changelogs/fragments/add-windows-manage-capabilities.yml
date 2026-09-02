@@ -1,0 +1,3 @@
+---
+minor_changes:
+  - "windows_manage_capabilities - new role for installing and removing Windows capabilities (Features on Demand) via DISM (https://github.com/redhat-cop/infra.windows_ops/pull/93)."
