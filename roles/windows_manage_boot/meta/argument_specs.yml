@@ -1,0 +1,16 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Configure Windows Boot Manager settings.
+    description:
+      - Configure Windows Boot Manager settings via C(bcdedit).
+      - Currently manages the boot menu timeout in seconds.
+    options:
+      windows_manage_boot_timeout:
+        type: int
+        description:
+          - Boot Manager menu timeout in seconds.
+          - The value is applied with C(bcdedit /timeout) only when it differs
+            from the current configuration.
+        default: 30

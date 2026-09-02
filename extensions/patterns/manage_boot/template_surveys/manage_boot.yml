@@ -1,0 +1,12 @@
+---
+name: "Manage Boot Configuration Survey"
+description: "Survey to configure Boot Manager options"
+spec:
+  - question_name: "Boot Menu Timeout"
+    question_description: "Boot Manager menu timeout in seconds (0-999)"
+    required: true
+    variable: "boot_timeout"
+    type: "integer"
+    min: 0
+    max: 999
+    default: 30
