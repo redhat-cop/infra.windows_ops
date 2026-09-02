@@ -1,0 +1,60 @@
+---
+# Windows capabilities (Features on Demand) are managed natively by
+# ansible.windows.win_capability (DISM), so no win_powershell is required.
+
+- name: Compute capability names scheduled for install
+  ansible.builtin.set_fact:
+    windows_manage_capabilities__install_names: >-
+      {{ windows_manage_capabilities_install | select('string') | list
+         + windows_manage_capabilities_install | select('mapping') | map(attribute='name') | list }}
+
+- name: Remove unwanted Windows capabilities
+  ansible.windows.win_capability:
+    name: "{{ item }}"
+    log_path: "{{ windows_manage_capabilities_log_path | default(omit) }}"
+    log_level: "{{ windows_manage_capabilities_log_level }}"
+    disable_windows_update: true
+    state: absent
+  register: windows_manage_capabilities__removed
+  failed_when:
+    - windows_manage_capabilities__removed.msg is defined
+    - not windows_manage_capabilities_remove_ignore_unknown or
+      ('Failed to find' not in windows_manage_capabilities__removed.msg and
+       'Cannot validate argument' not in windows_manage_capabilities__removed.msg and
+       'Element not found' not in windows_manage_capabilities__removed.msg)
+  loop: "{{ windows_manage_capabilities_remove | reject('in', windows_manage_capabilities__install_names) | list }}"
+
+- name: Reboot after removing capabilities
+  ansible.windows.win_reboot:
+    reboot_timeout: 600
+    msg: Ansible reboot after removing Windows capabilities
+  when:
+    - windows_manage_capabilities_reboot
+    - windows_manage_capabilities__removed is changed
+    - windows_manage_capabilities__removed.results
+      | selectattr('reboot_required', 'defined')
+      | selectattr('reboot_required', 'equalto', true) | length > 0
+
+- name: Install wanted Windows capabilities
+  ansible.windows.win_capability:
+    name: "{{ item if item is string else item.name }}"
+    source: "{{ item.source | default(omit) }}"
+    log_path: "{{ windows_manage_capabilities_log_path | default(omit) }}"
+    log_level: "{{ windows_manage_capabilities_log_level }}"
+    disable_windows_update: "{{ item.disable_windows_update | default(omit) }}"
+    state: present
+  register: windows_manage_capabilities__installed
+  loop: "{{ windows_manage_capabilities_install }}"
+  loop_control:
+    label: "{{ item if item is string else item.name }}"
+
+- name: Reboot after installing capabilities
+  ansible.windows.win_reboot:
+    reboot_timeout: 600
+    msg: Ansible reboot after installing Windows capabilities
+  when:
+    - windows_manage_capabilities_reboot
+    - windows_manage_capabilities__installed is changed
+    - windows_manage_capabilities__installed.results
+      | selectattr('reboot_required', 'defined')
+      | selectattr('reboot_required', 'equalto', true) | length > 0

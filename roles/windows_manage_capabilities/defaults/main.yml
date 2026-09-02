@@ -1,0 +1,25 @@
+---
+# Windows capabilities (Features on Demand) to install.
+# Each item is either a capability name string, or a mapping with the keys
+# name, and optionally source and disable_windows_update.
+windows_manage_capabilities_install: []
+
+# Windows capability names to remove.
+# Names also present in windows_manage_capabilities_install are skipped.
+windows_manage_capabilities_remove: []
+
+# Ignore failures when removing capabilities that are not present or unknown.
+windows_manage_capabilities_remove_ignore_unknown: true
+
+# Reboot the host automatically when a capability change requires it.
+windows_manage_capabilities_reboot: true
+
+# DISM logging level:
+#   0 - errors only
+#   1 - errors and warnings
+#   2 - errors, warnings, and information
+#   3 - all of the above plus debug output
+windows_manage_capabilities_log_level: 1
+
+# Path to the DISM log file. Leave unset to use the default DISM log location.
+# windows_manage_capabilities_log_path: C:\Windows\Logs\DISM\dism.log
