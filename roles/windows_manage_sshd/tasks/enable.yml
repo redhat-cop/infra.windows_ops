@@ -39,7 +39,7 @@
         }
         $Ansible.Changed = $true
       }
-  register: windows_manage_sshd_admins_keys_file
+  register: windows_manage_sshd__admins_keys_file
 
 - name: Set administrators SSH key file ACLs
   ansible.windows.win_acl:
@@ -65,14 +65,14 @@
 
 - name: Configure administrators SSH key file
   vars:
-    windows_manage_sshd_keys: "{{ windows_manage_sshd_admins_keys }}"
-    windows_manage_sshd_keys_del: "{{ ['absent'] | product(windows_manage_sshd_keys.absent | default([]) | select) }}"
-    windows_manage_sshd_keys_add: "{{ ['present'] | product(windows_manage_sshd_keys.present | default([]) | select) }}"
+    windows_manage_sshd__keys: "{{ windows_manage_sshd_admins_keys }}"
+    windows_manage_sshd__keys_del: "{{ ['absent'] | product(windows_manage_sshd__keys.absent | default([])) }}"
+    windows_manage_sshd__keys_add: "{{ ['present'] | product(windows_manage_sshd__keys.present | default([])) }}"
   community.windows.win_lineinfile:
     path: C:\ProgramData\ssh\administrators_authorized_keys
     line: "{{ item.1 }}"
     state: "{{ item.0 }}"
-  loop: "{{ windows_manage_sshd_keys_add + windows_manage_sshd_keys_del }}"
+  loop: "{{ windows_manage_sshd__keys_add + windows_manage_sshd__keys_del }}"
   loop_control:
     label: "{{ item.0 + ': ' + item.1 | split | last }}"
   when:
@@ -93,14 +93,14 @@
     src: "{{ windows_manage_sshd_config_file }}"
     dest: C:\ProgramData\ssh\sshd_config
     newline_sequence: '\r\n'
-  register: windows_manage_sshd_config_template
+  register: windows_manage_sshd__config_template
   when: windows_manage_sshd_config_file is string
 
 - name: Create sshd configuration file using options
   vars:
-    windows_manage_sshd_opts: "{{ windows_manage_sshd_options | default({}, true) }}"
-    windows_manage_sshd_file_content: |
-      {% for item in windows_manage_sshd_opts | dict2items | select %}
+    windows_manage_sshd__opts: "{{ windows_manage_sshd_options | default({}) }}"
+    windows_manage_sshd__file_content: |
+      {% for item in windows_manage_sshd__opts | dict2items %}
       {% if item.value is sameas true or item.value is sameas false %}
       {{ item.key }} {{ item.value | ternary('yes', 'no') }}
       {% elif item.value is not string and item.value is not number %}
@@ -119,9 +119,9 @@
       {% endif %}
       {% endfor %}
   ansible.windows.win_copy:
-    content: "{{ windows_manage_sshd_file_content | regex_replace('\\n', '\\r\\n') }}"
+    content: "{{ windows_manage_sshd__file_content | regex_replace('\\n', '\\r\\n') }}"
     dest: C:\ProgramData\ssh\sshd_config
-  register: windows_manage_sshd_config_options
+  register: windows_manage_sshd__config_options
   when:
     - windows_manage_sshd_config_file is not string
     - windows_manage_sshd_options is not none
@@ -132,7 +132,7 @@
     name: sshd
     start_mode: "{{ windows_manage_sshd_start_mode }}"
     state: started
-  register: windows_manage_sshd_service_start
+  register: windows_manage_sshd__service_start
 
 - name: Allow firewall SSH port
   community.windows.win_firewall_rule:
@@ -143,13 +143,13 @@
     direction: in
     localport: 22
     protocol: tcp
-    profiles: "{{ windows_manage_sshd_firewall_profiles | default(omit, true) }}"
+    profiles: "{{ windows_manage_sshd_firewall_profiles | default(omit) }}"
 
 - name: Restart sshd service to apply configuration changes
   ansible.windows.win_service:
     name: sshd
     state: restarted
   when:
-    - windows_manage_sshd_service_start is not changed
-    - windows_manage_sshd_config_template is changed or
-      windows_manage_sshd_config_options is changed
+    - windows_manage_sshd__service_start is not changed
+    - windows_manage_sshd__config_template is changed or
+      windows_manage_sshd__config_options is changed

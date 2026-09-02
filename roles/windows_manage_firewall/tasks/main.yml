@@ -5,10 +5,10 @@
     profiles: "{{ item.profiles | default(omit) }}"
     inbound_action: "{{ item.inbound_action | default(omit) }}"
     outbound_action: "{{ item.outbound_action | default(omit) }}"
-  loop: "{{ windows_manage_firewall_profiles_disable | select }}"
+  loop: "{{ windows_manage_firewall_profiles_disable }}"
   loop_control:
     label: "{{ item.profiles | default(item) }}"
-  when: item not in windows_manage_firewall_profiles_enable | select
+  when: item not in windows_manage_firewall_profiles_enable
 
 - name: Enable firewall profiles
   ansible.windows.win_firewall:
@@ -16,7 +16,7 @@
     profiles: "{{ item.profiles | default(omit) }}"
     inbound_action: "{{ item.inbound_action | default(omit) }}"
     outbound_action: "{{ item.outbound_action | default(omit) }}"
-  loop: "{{ windows_manage_firewall_profiles_enable | select }}"
+  loop: "{{ windows_manage_firewall_profiles_enable }}"
   loop_control:
     label: "{{ item.profiles | default(item) }}"
 
@@ -38,10 +38,10 @@
     protocol: "{{ item.protocol | default(omit) }}"
     profiles: "{{ item.profiles | default(omit) }}"
     icmp_type_code: "{{ item.icmp_type_code | default(omit) }}"
-  loop: "{{ windows_manage_firewall_rules_disable | select }}"
+  loop: "{{ windows_manage_firewall_rules_disable }}"
   loop_control:
     label: "{{ item.name | default(item) }}"
-  when: item not in windows_manage_firewall_rules_enable | select
+  when: item not in windows_manage_firewall_rules_enable
 
 - name: Enable firewall rules
   community.windows.win_firewall_rule:
@@ -61,6 +61,6 @@
     protocol: "{{ item.protocol | default(omit) }}"
     profiles: "{{ item.profiles | default(omit) }}"
     icmp_type_code: "{{ item.icmp_type_code | default(omit) }}"
-  loop: "{{ windows_manage_firewall_rules_enable | select }}"
+  loop: "{{ windows_manage_firewall_rules_enable }}"
   loop_control:
     label: "{{ item.name | default(item) }}"

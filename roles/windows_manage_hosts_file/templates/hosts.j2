@@ -21,7 +21,7 @@
 {{ '%-40s' | format(_default_ipv6) }} {{ _self_fqdn }} {{ _self_host }}
 {% endif %}
 {% endif %}
-{% for line in windows_manage_hosts_file_entries | default([], true) %}
+{% for line in windows_manage_hosts_file_entries %}
 {% if windows_manage_hosts_file_omit_entries == 'none' or
       (windows_manage_hosts_file_omit_entries == 'ipv4' and '.' not in line.split(' ')[0]) or
       (windows_manage_hosts_file_omit_entries == 'ipv6' and ':' not in line.split(' ')[0]) %}

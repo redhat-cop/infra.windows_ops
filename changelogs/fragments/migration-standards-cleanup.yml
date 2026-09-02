@@ -1,0 +1,2 @@
+trivial:
+  - windows_manage_* roles - Standardize internal implementation variables to the ``windows_manage_<name>__<var>`` (double-underscore) form to distinguish them from the public role interface, remove defensive empty/null input filtering (``| select``, ``default(omit, true)``, ``default([], true)``) now that argument spec validation guarantees input types, and convert precondition ``ansible.builtin.fail`` tasks to ``ansible.builtin.assert`` (https://github.com/redhat-cop/infra.windows_ops/pull/79).
