@@ -1,0 +1,5 @@
+---
+minor_changes:
+  - windows_manage_file_copy - new role to copy files and render templates to
+    Windows hosts, optionally setting the destination path owner
+    (https://github.com/redhat-cop/infra.windows_ops/pull/85).

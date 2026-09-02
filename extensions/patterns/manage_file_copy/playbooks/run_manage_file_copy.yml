@@ -1,0 +1,17 @@
+---
+- name: Manage Windows File Copy
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Copy files and templates
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_file_copy
+      vars:
+        # A single destination + content pair can be provided via the survey;
+        # full file/template lists are provided via extra_vars / the job template.
+        windows_manage_file_copy_files: >-
+          {{ (file_copy_files | default([]))
+             + ([{'dest': file_copy_dest, 'content': file_copy_content}]
+                if (file_copy_dest | default('')) | length > 0 else []) }}
+        windows_manage_file_copy_templates: "{{ file_copy_templates | default([]) }}"
+...
