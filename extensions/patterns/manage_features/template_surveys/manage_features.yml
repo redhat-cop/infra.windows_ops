@@ -1,0 +1,23 @@
+---
+name: "Manage Features Survey"
+description: "Survey to configure Windows feature management options"
+spec:
+  - question_name: "Reboot If Needed"
+    question_description: "Reboot the host automatically when a feature change requires it"
+    required: true
+    variable: "features_reboot"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"
+
+  - question_name: "Ignore Unknown Features"
+    question_description: "Ignore errors when removing features that are not valid on the host"
+    required: true
+    variable: "features_ignore_unknown"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"

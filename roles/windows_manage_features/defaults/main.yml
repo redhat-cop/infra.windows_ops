@@ -1,0 +1,15 @@
+---
+# Windows features to remove (list of feature name strings)
+windows_manage_features_remove: []
+
+# Ignore failures when removing features that are not valid on the host
+windows_manage_features_remove_ignore_unknown: true
+
+# Windows features to install.
+# Each item is either a feature name string, or a dictionary with a
+# 'name' key and optional 'source', 'include_sub_features', and
+# 'include_management_tools' keys.
+windows_manage_features_install: []
+
+# Reboot the host automatically when a feature change requires it
+windows_manage_features_reboot: true

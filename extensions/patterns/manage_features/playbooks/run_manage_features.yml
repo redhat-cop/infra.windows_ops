@@ -1,0 +1,14 @@
+---
+- name: Manage Windows Features
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Manage features
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_features
+      vars:
+        windows_manage_features_reboot: "{{ features_reboot | default(true) | bool }}"  # Set by survey
+        windows_manage_features_remove_ignore_unknown: "{{ features_ignore_unknown | default(true) | bool }}"  # Set by survey
+        # The feature lists are not survey-friendly; supply them as job template
+        # extra_vars: windows_manage_features_install and windows_manage_features_remove.
+...
