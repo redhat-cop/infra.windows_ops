@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   role_name: windows_manage_file_copy
-  author: Hen Yaish
+  author: Ansible Ecosystem Engineering team (@eco-ansible-content)
   company: Red Hat, Inc.
   description: Copy files and render templates to Windows hosts, optionally setting the path owner.
   license: GPL-3.0-or-later

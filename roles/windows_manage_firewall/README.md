@@ -57,4 +57,4 @@ GPL-3.0-or-later
 
 ## Author
 
-Red Hat Ansible Content Team
+Ansible Ecosystem Engineering team (@eco-ansible-content)

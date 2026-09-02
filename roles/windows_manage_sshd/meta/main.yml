@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   role_name: windows_manage_sshd
-  author: Red Hat
+  author: Ansible Ecosystem Engineering team (@eco-ansible-content)
   company: Red Hat, Inc.
   description: Manage OpenSSH Server on Windows
   license: GPL-3.0-or-later
