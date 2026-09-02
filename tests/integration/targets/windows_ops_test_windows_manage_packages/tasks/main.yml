@@ -1,0 +1,87 @@
+---
+# NOTE: This test is NETWORK-DEPENDENT. It downloads a small, publicly hosted
+# MSI (7-Zip) and installs/removes it through the role. See defaults/main.yml.
+- name: Test package management
+  block:
+    - name: Ensure test package is absent before starting
+      ansible.windows.win_package:
+        product_id: "{{ windows_manage_packages_test_product_id }}"
+        state: absent
+
+    # -- State A: install the package via the role --
+    - name: Install package (state A - present)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_packages
+      vars:
+        windows_manage_packages_reboot: false
+        windows_manage_packages_install:
+          - path: "{{ windows_manage_packages_test_url }}"
+            product_id: "{{ windows_manage_packages_test_product_id }}"
+
+    - name: Verify package is present (check_mode reports no change)
+      ansible.windows.win_package:
+        path: "{{ windows_manage_packages_test_url }}"
+        product_id: "{{ windows_manage_packages_test_product_id }}"
+        state: present
+      check_mode: true
+      register: windows_manage_packages_verify_present
+
+    - name: Assert package is installed
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_packages_verify_present.changed
+        fail_msg: "Package was not installed after state A"
+
+    # -- Idempotency test --
+    - name: Install package again (idempotency)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_packages
+      vars:
+        windows_manage_packages_reboot: false
+        windows_manage_packages_install:
+          - path: "{{ windows_manage_packages_test_url }}"
+            product_id: "{{ windows_manage_packages_test_product_id }}"
+      register: windows_manage_packages_idempotent
+
+    - name: Verify package still present after idempotent re-run
+      ansible.windows.win_package:
+        path: "{{ windows_manage_packages_test_url }}"
+        product_id: "{{ windows_manage_packages_test_product_id }}"
+        state: present
+      check_mode: true
+      register: windows_manage_packages_verify_idempotent
+
+    - name: Assert role is idempotent
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_packages_verify_idempotent.changed
+        fail_msg: "Role is not idempotent - package changed on re-run"
+
+    # -- State B: remove the package via the role --
+    - name: Remove package (state B - absent)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_packages
+      vars:
+        windows_manage_packages_reboot: false
+        windows_manage_packages_remove:
+          - product_id: "{{ windows_manage_packages_test_product_id }}"
+
+    - name: Verify package is absent (check_mode reports install would change)
+      ansible.windows.win_package:
+        path: "{{ windows_manage_packages_test_url }}"
+        product_id: "{{ windows_manage_packages_test_product_id }}"
+        state: present
+      check_mode: true
+      register: windows_manage_packages_verify_absent
+
+    - name: Assert package is removed
+      ansible.builtin.assert:
+        that:
+          - windows_manage_packages_verify_absent.changed
+        fail_msg: "Package was not removed after state B"
+
+  always:
+    - name: Ensure test package is removed
+      ansible.windows.win_package:
+        product_id: "{{ windows_manage_packages_test_product_id }}"
+        state: absent
