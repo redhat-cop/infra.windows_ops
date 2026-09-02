@@ -1,0 +1,7 @@
+---
+# Throwaway test artifacts created under the Windows temp directory.
+# The test applies an ACL for the built-in Guests account (a low-risk,
+# always-present principal) to a temporary file, then cleans up.
+windows_ops_test_file_acl_dir: C:\Windows\Temp\windows_manage_file_acl_test
+windows_ops_test_file_acl_file: C:\Windows\Temp\windows_manage_file_acl_test\acl_target.txt
+windows_ops_test_file_acl_user: Guests
