@@ -1,23 +1,22 @@
 ---
 galaxy_info:
-  author: Bill Peck
-  description: Role to manage services on Windows.
-  company: Red Hat
-
+  role_name: windows_manage_service
+  author: Bill Peck, Hen Yaish
+  company: Red Hat, Inc.
+  description: Manage the lifecycle of Windows services, including creation and reconfiguration.
   license: GPL-3.0-or-later
-
-  min_ansible_version: 2.15.0
-
+  min_ansible_version: "2.18"
   platforms:
-    - name: EL
+    - name: Windows
       versions:
-        - "8"
-
+        - "2019"
+        - "2022"
+        - "2025"
   galaxy_tags:
-    - linux
+    - windows
+    - service
     - system
-    - ansible
-
+    - configuration
 dependencies: []
 collections:
   - ansible.windows

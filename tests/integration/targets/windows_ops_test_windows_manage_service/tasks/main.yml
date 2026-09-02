@@ -1,0 +1,115 @@
+---
+# Integration test for the windows_manage_service role.
+#
+# This test reconfigures an existing, non-critical Windows service (the Print
+# Spooler) rather than creating or deleting a real OS service on the shared
+# host. The original configuration is captured up front and restored in the
+# always: block so the host is left in its initial state.
+
+- name: Reconfigure an existing Windows service
+  block:
+    # -- Capture the original configuration so it can be restored --
+    - name: Capture original service configuration
+      ansible.windows.win_service_info:
+        name: "{{ windows_manage_service_test_name }}"
+      register: windows_manage_service__original
+      check_mode: false
+
+    - name: Assert the test service exists on the host
+      ansible.builtin.assert:
+        that:
+          - windows_manage_service__original.exists
+          - windows_manage_service__original.services | length == 1
+        fail_msg: >-
+          Test service '{{ windows_manage_service_test_name }}' was not found
+          on the host; cannot run the windows_manage_service test.
+
+    - name: Record original service settings
+      ansible.builtin.set_fact:
+        windows_manage_service__orig_start_mode: "{{ windows_manage_service__original.services[0].start_mode }}"
+        windows_manage_service__orig_display_name: "{{ windows_manage_service__original.services[0].display_name }}"
+        windows_manage_service__orig_description: "{{ windows_manage_service__original.services[0].description }}"
+        windows_manage_service__orig_state: "{{ windows_manage_service__original.services[0].state }}"
+
+    # -- Reconfigure the service through the role --
+    - name: Reconfigure the service (display name, description, start mode)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_service
+      vars:
+        windows_manage_service_name: "{{ windows_manage_service_test_name }}"
+        windows_manage_service_state: started
+        windows_manage_service_start_mode: "{{ windows_manage_service_test_start_mode }}"
+        windows_manage_service_display_name: "{{ windows_manage_service_test_display_name }}"
+        windows_manage_service_description: "{{ windows_manage_service_test_description }}"
+
+    - name: Read back the reconfigured service
+      ansible.windows.win_service_info:
+        name: "{{ windows_manage_service_test_name }}"
+      register: windows_manage_service__after_change
+      check_mode: false
+
+    - name: Assert the reconfiguration was applied
+      ansible.builtin.assert:
+        that:
+          - windows_manage_service__after_change.services[0].start_mode == windows_manage_service_test_start_mode
+          - windows_manage_service__after_change.services[0].display_name == windows_manage_service_test_display_name
+          - windows_manage_service__after_change.services[0].description == windows_manage_service_test_description
+        fail_msg: "Service reconfiguration was not applied as expected"
+
+    # -- Idempotency: applying the same configuration again is a no-op --
+    - name: Re-apply the same configuration to verify idempotency
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_service
+      vars:
+        windows_manage_service_name: "{{ windows_manage_service_test_name }}"
+        windows_manage_service_state: started
+        windows_manage_service_start_mode: "{{ windows_manage_service_test_start_mode }}"
+        windows_manage_service_display_name: "{{ windows_manage_service_test_display_name }}"
+        windows_manage_service_description: "{{ windows_manage_service_test_description }}"
+
+    - name: Read back after idempotent re-run
+      ansible.windows.win_service_info:
+        name: "{{ windows_manage_service_test_name }}"
+      register: windows_manage_service__after_idempotent
+      check_mode: false
+
+    - name: Assert configuration is unchanged after idempotent re-run
+      ansible.builtin.assert:
+        that:
+          - windows_manage_service__after_idempotent.services[0].start_mode == windows_manage_service_test_start_mode
+          - windows_manage_service__after_idempotent.services[0].display_name == windows_manage_service_test_display_name
+          - windows_manage_service__after_idempotent.services[0].description == windows_manage_service_test_description
+        fail_msg: "Service configuration drifted on idempotent re-run"
+
+    # -- Exercise the restart capability through the role --
+    - name: Restart the service through the role
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_service
+      vars:
+        windows_manage_service_name: "{{ windows_manage_service_test_name }}"
+        windows_manage_service_state: restarted
+        windows_manage_service_start_mode: "{{ windows_manage_service_test_start_mode }}"
+
+    - name: Confirm the service is running after restart
+      ansible.windows.win_service_info:
+        name: "{{ windows_manage_service_test_name }}"
+      register: windows_manage_service__after_restart
+      check_mode: false
+
+    - name: Assert the service is running after restart
+      ansible.builtin.assert:
+        that:
+          - windows_manage_service__after_restart.services[0].state == "started"
+        fail_msg: "Service was not running after restart"
+
+  always:
+    # -- Restore the original configuration --
+    - name: Restore original service configuration
+      ansible.windows.win_service:
+        name: "{{ windows_manage_service_test_name }}"
+        start_mode: "{{ windows_manage_service__orig_start_mode }}"
+        display_name: "{{ windows_manage_service__orig_display_name }}"
+        description: "{{ windows_manage_service__orig_description }}"
+        state: "{{ windows_manage_service__orig_state }}"
+      when: windows_manage_service__orig_start_mode is defined
+...
