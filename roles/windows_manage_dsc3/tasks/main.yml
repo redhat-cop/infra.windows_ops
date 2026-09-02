@@ -1,0 +1,40 @@
+---
+- name: Verify each DSC v3 setting specifies exactly one configuration source
+  ansible.builtin.assert:
+    that:
+      - (windows_manage_dsc3__setting.config is defined) !=
+        (windows_manage_dsc3__setting.config_file is defined)
+    fail_msg: >-
+      DSC v3 setting '{{ windows_manage_dsc3__setting.setting }}' must specify
+      exactly one of 'config' or 'config_file'.
+    quiet: true
+  loop: "{{ windows_manage_dsc3_settings }}"
+  loop_control:
+    loop_var: windows_manage_dsc3__setting
+    label: "{{ windows_manage_dsc3__setting.setting }}"
+
+- name: Apply DSC v3 configurations
+  ansible.windows.dsc3:
+    config: "{{ windows_manage_dsc3__setting.config | default(omit) }}"
+    config_file: "{{ windows_manage_dsc3__setting.config_file | default(omit) }}"
+    remote_config_file: "{{ windows_manage_dsc3__setting.remote_config_file | default(omit) }}"
+    parameters: "{{ windows_manage_dsc3__setting.parameters | default(omit) }}"
+    trace_level: "{{ windows_manage_dsc3__setting.trace_level | default(omit) }}"
+  register: windows_manage_dsc3__result
+  loop: "{{ windows_manage_dsc3_settings }}"
+  loop_control:
+    loop_var: windows_manage_dsc3__setting
+    label: "{{ windows_manage_dsc3__setting.setting }}"
+
+- name: Reboot system after DSC v3 changes
+  ansible.windows.win_reboot:
+    reboot_timeout: "{{ windows_manage_dsc3_reboot_timeout }}"
+    msg: Ansible reboot after DSC v3 changes
+  when:
+    - windows_manage_dsc3_reboot | bool
+    - windows_manage_dsc3__result is changed
+    - windows_manage_dsc3__result.results
+      | selectattr('windows_manage_dsc3__setting.reboot', 'defined')
+      | selectattr('windows_manage_dsc3__setting.reboot', 'equalto', true)
+      | selectattr('changed', 'equalto', true)
+      | length > 0

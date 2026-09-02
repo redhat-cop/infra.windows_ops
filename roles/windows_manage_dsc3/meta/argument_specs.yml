@@ -1,0 +1,84 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Apply Windows DSC v3 configurations.
+    description:
+      - Apply one or more Windows Desired State Configuration (DSC) v3
+        configuration documents on Windows hosts using M(ansible.windows.dsc3).
+      - Optionally reboots the host when a changed setting requests it.
+      - Requires the DSC v3 engine (C(dsc)) to be present and discoverable via
+        the C(PATH) environment variable on the target host.
+    options:
+      windows_manage_dsc3_settings:
+        type: list
+        elements: dict
+        description:
+          - List of DSC v3 configurations to apply.
+          - Each item must specify exactly one configuration source, either
+            O(windows_manage_dsc3_settings[].config) or
+            O(windows_manage_dsc3_settings[].config_file).
+        default: []
+        options:
+          setting:
+            type: str
+            required: true
+            description:
+              - A human-readable label for the DSC v3 setting, shown in task
+                output.
+          config:
+            type: dict
+            description:
+              - The inline DSC v3 configuration document to set or test.
+              - Mutually exclusive with
+                O(windows_manage_dsc3_settings[].config_file).
+          config_file:
+            type: path
+            description:
+              - Path to a DSC v3 configuration document on the control node or
+                the target host.
+              - O(windows_manage_dsc3_settings[].remote_config_file) controls
+                whether the file is located on the target host or the control
+                node.
+              - Mutually exclusive with
+                O(windows_manage_dsc3_settings[].config).
+          remote_config_file:
+            type: bool
+            description:
+              - Whether the provided
+                O(windows_manage_dsc3_settings[].config_file) already exists on
+                the target host.
+              - If V(false), the file is transferred from the control node to
+                the target host and removed after the module completes.
+          parameters:
+            type: dict
+            description:
+              - Runtime parameter values for the configuration document.
+          trace_level:
+            type: str
+            choices:
+              - error
+              - warn
+              - info
+              - debug
+              - trace
+            description:
+              - Level of tracing output emitted by C(dsc).
+          reboot:
+            type: bool
+            default: false
+            description:
+              - Whether a reboot is required after this setting changes.
+              - Only honored when O(windows_manage_dsc3_reboot) is C(true).
+      windows_manage_dsc3_reboot:
+        type: bool
+        default: false
+        description:
+          - Reboot the host after DSC v3 changes when a changed setting sets
+            O(windows_manage_dsc3_settings[].reboot=true).
+      windows_manage_dsc3_reboot_timeout:
+        type: int
+        default: 3600
+        description:
+          - Maximum time in seconds to wait for the host to reboot and become
+            reachable again after DSC v3 changes.
