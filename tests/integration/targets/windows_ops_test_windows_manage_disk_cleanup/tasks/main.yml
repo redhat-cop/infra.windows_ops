@@ -1,0 +1,73 @@
+---
+- name: Test disk cleanup role
+  block:
+    - name: Create a throwaway classic event log and write an entry
+      ansible.windows.win_powershell:
+        error_action: stop
+        script: |
+          $log = '{{ windows_manage_disk_cleanup__test_log }}'
+          if (-not [System.Diagnostics.EventLog]::SourceExists($log)) {
+            New-EventLog -LogName $log -Source $log
+          }
+          Write-EventLog -LogName $log -Source $log -EntryType Information -EventId 1 -Message 'ansible windows_ops disk_cleanup test entry'
+
+    - name: Count entries in the test log before cleanup
+      ansible.windows.win_powershell:
+        script: |
+          $Ansible.Changed = $false
+          (Get-WinEvent -LogName '{{ windows_manage_disk_cleanup__test_log }}' -ErrorAction SilentlyContinue | Measure-Object).Count
+      register: windows_manage_disk_cleanup__precount
+
+    - name: Assert the test log was populated
+      ansible.builtin.assert:
+        that:
+          - windows_manage_disk_cleanup__precount.output[0] | int >= 1
+        fail_msg: "Test event log was not populated"
+
+    # -- No-op default: all cleanup actions disabled --
+    - name: Run role with defaults (all actions disabled)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_disk_cleanup
+
+    - name: Count entries after the no-op run
+      ansible.windows.win_powershell:
+        script: |
+          $Ansible.Changed = $false
+          (Get-WinEvent -LogName '{{ windows_manage_disk_cleanup__test_log }}' -ErrorAction SilentlyContinue | Measure-Object).Count
+      register: windows_manage_disk_cleanup__noop_count
+
+    - name: Assert the no-op default did not clear logs
+      ansible.builtin.assert:
+        that:
+          - windows_manage_disk_cleanup__noop_count.output[0] | int >= 1
+        fail_msg: "Disk cleanup cleared logs when event log clearing was disabled"
+
+    # -- Event log clearing enabled --
+    - name: Run role with event log clearing enabled
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_disk_cleanup
+      vars:
+        windows_manage_disk_cleanup_event_logs: true
+
+    - name: Count entries after clearing
+      ansible.windows.win_powershell:
+        script: |
+          $Ansible.Changed = $false
+          (Get-WinEvent -LogName '{{ windows_manage_disk_cleanup__test_log }}' -ErrorAction SilentlyContinue | Measure-Object).Count
+      register: windows_manage_disk_cleanup__postcount
+
+    - name: Assert event logs were cleared
+      ansible.builtin.assert:
+        that:
+          - windows_manage_disk_cleanup__postcount.output[0] | int == 0
+        fail_msg: "Event logs were not cleared when event log clearing was enabled"
+
+  always:
+    - name: Remove the throwaway event log
+      ansible.windows.win_powershell:
+        error_action: continue
+        script: |
+          $log = '{{ windows_manage_disk_cleanup__test_log }}'
+          if ([System.Diagnostics.EventLog]::SourceExists($log)) {
+            Remove-EventLog -LogName $log
+          }

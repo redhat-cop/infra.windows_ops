@@ -1,0 +1,33 @@
+---
+name: "Manage Disk Cleanup Survey"
+description: "Survey to configure disk cleanup options"
+spec:
+  - question_name: "Clean Windows Update Files"
+    question_description: "Remove superseded Windows Update component files via DISM"
+    required: true
+    variable: "disk_cleanup_windows_update_files"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"
+
+  - question_name: "Reset Update Base"
+    question_description: "Also remove files needed to uninstall updates (irreversible; only applies when cleaning Windows Update files)"
+    required: true
+    variable: "disk_cleanup_windows_update_reset"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"
+
+  - question_name: "Clear Event Logs"
+    question_description: "Clear all Windows event log channels"
+    required: true
+    variable: "disk_cleanup_event_logs"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"

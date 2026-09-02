@@ -1,0 +1,6 @@
+---
+# Test verifies the safe no-op default and event log clearing against a
+# throwaway classic event log. The DISM component-cleanup step is left
+# disabled throughout: it is slow and irreversible, and is not needed to
+# validate the role's behaviour.
+windows_manage_disk_cleanup__test_log: AnsibleWinOpsDiskCleanupTest
