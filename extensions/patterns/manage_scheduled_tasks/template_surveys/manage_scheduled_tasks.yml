@@ -1,0 +1,21 @@
+---
+name: "Manage Scheduled Tasks Survey"
+description: "Survey to create, enable, disable, or remove Windows scheduled tasks"
+spec:
+  - question_name: "Scheduled tasks to create"
+    question_description: >-
+      YAML or JSON list of scheduled task definitions passed to
+      win_scheduled_task. Each item requires a 'name'. Set 'enabled: false'
+      to create a disabled task. Use '[]' for none.
+    required: false
+    variable: "scheduled_tasks_create"
+    type: "textarea"
+    default: "[]"
+
+  - question_name: "Scheduled tasks to remove"
+    question_description: >-
+      YAML or JSON list of scheduled task names to remove. Use '[]' for none.
+    required: false
+    variable: "scheduled_tasks_remove"
+    type: "textarea"
+    default: "[]"

@@ -1,0 +1,15 @@
+---
+- name: Manage Windows Scheduled Tasks
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Configure scheduled tasks
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_scheduled_tasks
+      vars:
+        # The survey collects YAML/JSON lists as text; parse them into the
+        # role's list variables. The task definitions themselves are best
+        # supplied via job-template extra_vars for anything non-trivial.
+        windows_manage_scheduled_tasks_create: "{{ scheduled_tasks_create | from_yaml }}"  # Set by survey
+        windows_manage_scheduled_tasks_remove: "{{ scheduled_tasks_remove | from_yaml }}"  # Set by survey
+...

@@ -1,0 +1,4 @@
+---
+# Test exercises create -> idempotency -> disable -> remove of a throwaway
+# scheduled task. The task is created under the root path and removed in the
+# always block, so it never persists on the host.

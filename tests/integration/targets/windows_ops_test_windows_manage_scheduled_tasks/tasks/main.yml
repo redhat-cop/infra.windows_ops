@@ -1,0 +1,112 @@
+---
+- name: Test windows_manage_scheduled_tasks
+  block:
+    - name: Define the throwaway test task
+      ansible.builtin.set_fact:
+        windows_manage_scheduled_tasks__test_name: _ansible_windows_ops_test_sched
+        windows_manage_scheduled_tasks__test_def:
+          - name: _ansible_windows_ops_test_sched
+            description: infra.windows_ops integration test task
+            enabled: true
+            actions:
+              - path: cmd.exe
+                arguments: /c exit
+            username: SYSTEM
+
+    # -- State A: create the task via the role --
+    - name: Create scheduled task via the role
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_scheduled_tasks
+      vars:
+        windows_manage_scheduled_tasks_create: "{{ windows_manage_scheduled_tasks__test_def }}"
+
+    - name: Stat the task after creation
+      community.windows.win_scheduled_task_stat:
+        name: "{{ windows_manage_scheduled_tasks__test_name }}"
+        path: \
+      register: windows_manage_scheduled_tasks__after_create
+
+    - name: Assert the task exists and is enabled
+      ansible.builtin.assert:
+        that:
+          - windows_manage_scheduled_tasks__after_create.task_exists
+          - windows_manage_scheduled_tasks__after_create.state.status != 'TASK_STATE_DISABLED'
+        fail_msg: "Scheduled task was not created or is not enabled"
+
+    # -- Idempotency: converge again, then confirm no drift in check mode --
+    - name: Re-run the role to converge again
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_scheduled_tasks
+      vars:
+        windows_manage_scheduled_tasks_create: "{{ windows_manage_scheduled_tasks__test_def }}"
+
+    - name: Verify the desired state is already present (check mode)
+      community.windows.win_scheduled_task:
+        name: "{{ windows_manage_scheduled_tasks__test_name }}"
+        enabled: true
+        actions:
+          - path: cmd.exe
+            arguments: /c exit
+        username: SYSTEM
+        state: present
+      check_mode: true
+      register: windows_manage_scheduled_tasks__idem
+
+    - name: Assert the role is idempotent
+      ansible.builtin.assert:
+        that:
+          - windows_manage_scheduled_tasks__idem is not changed
+        fail_msg: "Role is not idempotent - the task would change on re-run"
+
+    # -- State B: disable the task via the role --
+    - name: Disable scheduled task via the role
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_scheduled_tasks
+      vars:
+        windows_manage_scheduled_tasks_create:
+          - name: _ansible_windows_ops_test_sched
+            enabled: false
+            actions:
+              - path: cmd.exe
+                arguments: /c exit
+            username: SYSTEM
+
+    - name: Stat the task after disable
+      community.windows.win_scheduled_task_stat:
+        name: "{{ windows_manage_scheduled_tasks__test_name }}"
+        path: \
+      register: windows_manage_scheduled_tasks__after_disable
+
+    - name: Assert the task is disabled
+      ansible.builtin.assert:
+        that:
+          - windows_manage_scheduled_tasks__after_disable.task_exists
+          - windows_manage_scheduled_tasks__after_disable.state.status == 'TASK_STATE_DISABLED'
+        fail_msg: "Scheduled task was not disabled"
+
+    # -- Removal via the role --
+    - name: Remove scheduled task via the role
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_scheduled_tasks
+      vars:
+        windows_manage_scheduled_tasks_remove:
+          - _ansible_windows_ops_test_sched
+
+    - name: Stat the task after removal
+      community.windows.win_scheduled_task_stat:
+        name: "{{ windows_manage_scheduled_tasks__test_name }}"
+        path: \
+      register: windows_manage_scheduled_tasks__after_remove
+
+    - name: Assert the task is gone
+      ansible.builtin.assert:
+        that:
+          - not windows_manage_scheduled_tasks__after_remove.task_exists
+        fail_msg: "Scheduled task was not removed"
+
+  always:
+    - name: Clean up the throwaway test task
+      community.windows.win_scheduled_task:
+        name: _ansible_windows_ops_test_sched
+        path: \
+        state: absent
