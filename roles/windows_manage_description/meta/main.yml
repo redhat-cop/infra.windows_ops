@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  author: Red Hat Ansible Content Team
+  author: Ansible Ecosystem Engineering team (@eco-ansible-content)
   description: Configure Windows system description, organization, and owner fields.
   company: Red Hat, Inc.
   license: GPL-3.0-or-later

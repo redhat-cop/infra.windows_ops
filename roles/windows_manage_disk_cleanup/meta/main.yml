@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   role_name: windows_manage_disk_cleanup
-  author: Hen Yaish
+  author: Ansible Ecosystem Engineering team (@eco-ansible-content)
   company: Red Hat, Inc.
   description: Reclaim disk space by cleaning superseded Windows Update files and clearing event logs.
   license: GPL-3.0-or-later

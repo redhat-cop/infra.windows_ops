@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   role_name: windows_manage_wsl
-  author: Hen Yaish
+  author: Ansible Ecosystem Engineering team (@eco-ansible-content)
   company: Red Hat, Inc.
   description: Install, configure, and remove the Windows Subsystem for Linux (WSL) and its distributions.
   license: GPL-3.0-or-later

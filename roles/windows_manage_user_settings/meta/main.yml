@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   role_name: windows_manage_user_settings
-  author: Hen Yaish
+  author: Ansible Ecosystem Engineering team (@eco-ansible-content)
   company: Red Hat, Inc.
   description: Apply per-user registry settings across existing and logged-in Windows user profiles.
   license: GPL-3.0-or-later

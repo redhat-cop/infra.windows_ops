@@ -50,4 +50,4 @@ See [LICENCE](https://github.com/redhat-cop/infra.windows_ops/blob/main/LICENSE)
 Author Information
 ------------------
 
-- Red Hat Ansible Content Team
+- Ansible Ecosystem Engineering team (@eco-ansible-content)

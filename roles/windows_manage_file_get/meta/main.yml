@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   role_name: windows_manage_file_get
-  author: Hen Yaish
+  author: Ansible Ecosystem Engineering team (@eco-ansible-content)
   company: Red Hat, Inc.
   description: Download files to Windows hosts over HTTP/HTTPS with optional ownership.
   license: GPL-3.0-or-later

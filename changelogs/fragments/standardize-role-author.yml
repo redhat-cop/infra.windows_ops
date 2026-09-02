@@ -1,0 +1,2 @@
+trivial:
+  - Standardize the author metadata across the migrated Windows roles to ``Ansible Ecosystem Engineering team (@eco-ansible-content)`` in both ``meta/main.yml`` and the README author sections, matching the microsoft.scvmm convention (https://github.com/redhat-cop/infra.windows_ops/pull/106).

@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   role_name: windows_manage_winrm
-  author: Hen Yaish
+  author: Ansible Ecosystem Engineering team (@eco-ansible-content)
   company: Red Hat, Inc.
   description: Configure Windows Remote Management (WinRM) service, listeners, and firewall rules.
   license: GPL-3.0-or-later

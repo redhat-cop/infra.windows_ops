@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   role_name: windows_manage_dsc
-  author: Hen Yaish
+  author: Ansible Ecosystem Engineering team (@eco-ansible-content)
   company: Red Hat, Inc.
   description: Apply Windows PowerShell DSC resource configurations with optional reboot handling.
   license: GPL-3.0-or-later

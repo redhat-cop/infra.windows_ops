@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   role_name: windows_manage_firewall
-  author: Hen Yaish
+  author: Ansible Ecosystem Engineering team (@eco-ansible-content)
   company: Red Hat, Inc.
   description: Manage Windows firewall profiles and rules.
   license: GPL-3.0-or-later

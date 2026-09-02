@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   role_name: windows_manage_file_remove
-  author: Hen Yaish
+  author: Ansible Ecosystem Engineering team (@eco-ansible-content)
   company: Red Hat, Inc.
   description: Remove files and directories on Windows, with wildcard and exclusion support.
   license: GPL-3.0-or-later
