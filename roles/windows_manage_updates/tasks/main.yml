@@ -9,30 +9,51 @@
 
 - name: Install Windows Updates Block
   block:
-  - name: Install Windows Updates
-    ansible.windows.win_updates:
-      category_names: "{{ windows_manage_updates_categories | default(omit) }}"
-      state: "{{ windows_manage_updates_state }}"
-    become: yes
-    become_method: ansible.builtin.runas
-    become_user: SYSTEM
-    register: windows_manage_updates_output
+    - name: Install Windows Updates
+      ansible.windows.win_updates:
+        category_names: "{{ windows_manage_updates_categories | default(omit) }}"
+        state: "{{ windows_manage_updates_state }}"
+        accept_list: "{{ windows_manage_updates_accept_list or omit }}"
+        reject_list: "{{ windows_manage_updates_reject_list or omit }}"
+        skip_optional: "{{ windows_manage_updates_skip_optional }}"
+      become: true
+      become_method: ansible.builtin.runas
+      become_user: SYSTEM
+      register: windows_manage_updates__output
+      until: windows_manage_updates__output is succeeded
+      retries: "{{ windows_manage_updates_retry_count }}"
+      delay: "{{ windows_manage_updates_retry_delay }}"
 
-  - name: Reboot when required and requested
-    ansible.windows.win_reboot:
-    when:
-      - windows_manage_updates_output.reboot_required
-      - windows_manage_updates_reboot_server
+    - name: Reboot when required and requested
+      ansible.windows.win_reboot:
+        reboot_timeout: "{{ windows_manage_updates_reboot_timeout }}"
+      when:
+        - windows_manage_updates__output.reboot_required
+        - windows_manage_updates_reboot == "Yes"
+
+    - name: Compile .NET assemblies after updates
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_dotnet
+      vars:
+        windows_manage_dotnet_powershell: true
+        windows_manage_dotnet_all_assemblies: true
+      when:
+        - windows_manage_updates_compile_assemblies | bool
+        - windows_manage_updates__output is changed
+        - windows_manage_updates_compile_filter | length == 0 or
+          windows_manage_updates__output.updates | dict2items
+          | selectattr('value.title', 'search', windows_manage_updates_compile_filter)
+          | list | length > 0
 
   rescue:
-  - name: Windows update failed?
-    ansible.builtin.debug:
-      msg: "error: {{ windows_manage_updates_output.msg }}"
-    when:
-      - windows_manage_updates_output is failed
-      - windows_manage_updates_output.msg is defined
+    - name: Windows update failed?
+      ansible.builtin.debug:
+        msg: "error: {{ windows_manage_updates__output.msg }}"
+      when:
+        - windows_manage_updates__output is failed
+        - windows_manage_updates__output.msg is defined
 
   always:
-  - name: Report results
-    ansible.builtin.debug:
-      var: windows_manage_updates_output
+    - name: Report results
+      ansible.builtin.debug:
+        var: windows_manage_updates__output
