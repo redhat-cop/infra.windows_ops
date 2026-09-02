@@ -1,0 +1,23 @@
+---
+name: "Manage Optional Features Survey"
+description: "Survey to control Windows optional feature reboot behavior. Feature lists are provided via extra_vars."
+spec:
+  - question_name: "Reboot If Needed"
+    question_description: "Reboot the host automatically when a feature change requires it"
+    required: true
+    variable: "optional_features_reboot"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"
+
+  - question_name: "Ignore Unknown On Removal"
+    question_description: "Ignore failures when removing features that are not present on the host"
+    required: true
+    variable: "optional_features_ignore_unknown"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "true"

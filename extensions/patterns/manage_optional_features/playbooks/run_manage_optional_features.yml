@@ -1,0 +1,14 @@
+---
+- name: Manage Windows Optional Features
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Manage optional features
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_optional_features
+      vars:
+        # Feature lists are supplied via extra_vars (surveys cannot collect lists):
+        #   windows_manage_optional_features_install, windows_manage_optional_features_remove
+        windows_manage_optional_features_reboot: "{{ optional_features_reboot | default(true) | bool }}"  # Set by survey
+        windows_manage_optional_features_remove_ignore_unknown: "{{ optional_features_ignore_unknown | default(true) | bool }}"  # Set by survey
+...

@@ -1,0 +1,95 @@
+---
+- name: Test Windows optional features management
+  block:
+    # Detect current state of the candidate feature (check_mode: changed => absent).
+    - name: Capture original state of candidate optional feature
+      ansible.windows.win_optional_feature:
+        name: "{{ windows_manage_optional_features__test_candidate }}"
+        state: present
+      check_mode: true
+      register: windows_manage_optional_features__orig
+      failed_when: false
+
+    - name: Record candidate availability and original state
+      ansible.builtin.set_fact:
+        windows_manage_optional_features__available: >-
+          {{ 'Failed to find' not in (windows_manage_optional_features__orig.msg | default('')) }}
+        windows_manage_optional_features__was_present: >-
+          {{ not (windows_manage_optional_features__orig.changed | default(true)) }}
+
+    - name: Run optional feature tests when the candidate is available
+      when: windows_manage_optional_features__available | bool
+      block:
+        # -- State A: install the candidate feature --
+        - name: Install candidate feature via role
+          ansible.builtin.include_role:
+            name: infra.windows_ops.windows_manage_optional_features
+          vars:
+            windows_manage_optional_features_install:
+              - "{{ windows_manage_optional_features__test_candidate }}"
+            windows_manage_optional_features_reboot: false
+
+        - name: Verify candidate feature is present
+          ansible.windows.win_optional_feature:
+            name: "{{ windows_manage_optional_features__test_candidate }}"
+            state: present
+          check_mode: true
+          register: windows_manage_optional_features__verify_present
+
+        - name: Assert candidate feature is installed
+          ansible.builtin.assert:
+            that:
+              - not windows_manage_optional_features__verify_present.changed
+            fail_msg: "Candidate optional feature was not installed"
+
+        # -- Idempotency --
+        - name: Install candidate feature again (idempotency)
+          ansible.builtin.include_role:
+            name: infra.windows_ops.windows_manage_optional_features
+          vars:
+            windows_manage_optional_features_install:
+              - "{{ windows_manage_optional_features__test_candidate }}"
+            windows_manage_optional_features_reboot: false
+
+        - name: Verify candidate feature still present after re-run
+          ansible.windows.win_optional_feature:
+            name: "{{ windows_manage_optional_features__test_candidate }}"
+            state: present
+          check_mode: true
+          register: windows_manage_optional_features__verify_idempotent
+
+        - name: Assert state unchanged after idempotent re-run
+          ansible.builtin.assert:
+            that:
+              - not windows_manage_optional_features__verify_idempotent.changed
+            fail_msg: "Role is not idempotent - candidate feature state changed on re-run"
+
+        # -- State B: remove the candidate feature --
+        - name: Remove candidate feature via role
+          ansible.builtin.include_role:
+            name: infra.windows_ops.windows_manage_optional_features
+          vars:
+            windows_manage_optional_features_remove:
+              - "{{ windows_manage_optional_features__test_candidate }}"
+            windows_manage_optional_features_reboot: false
+
+        - name: Verify candidate feature is absent
+          ansible.windows.win_optional_feature:
+            name: "{{ windows_manage_optional_features__test_candidate }}"
+            state: present
+          check_mode: true
+          register: windows_manage_optional_features__verify_absent
+
+        - name: Assert candidate feature was removed
+          ansible.builtin.assert:
+            that:
+              - windows_manage_optional_features__verify_absent.changed
+            fail_msg: "Candidate optional feature was not removed"
+
+  always:
+    - name: Restore candidate feature to its original state
+      ansible.windows.win_optional_feature:
+        name: "{{ windows_manage_optional_features__test_candidate }}"
+        state: "{{ 'present' if windows_manage_optional_features__was_present | bool else 'absent' }}"
+      when:
+        - windows_manage_optional_features__available | default(false) | bool
