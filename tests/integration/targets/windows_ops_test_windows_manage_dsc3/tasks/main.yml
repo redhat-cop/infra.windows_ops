@@ -1,0 +1,104 @@
+---
+# NOTE: This test requires the DSC v3 engine (dsc) present and discoverable via
+# PATH on the target host. ansible.windows.dsc3 shells out to it, so the test
+# cannot run on hosts without DSC v3 installed.
+- name: Test windows_manage_dsc3
+  vars:
+    windows_manage_dsc3__test_key: HKLM\SOFTWARE\_ansible_windows_ops_dsc3_test
+    windows_manage_dsc3__test_key_stat: HKLM:\SOFTWARE\_ansible_windows_ops_dsc3_test
+    windows_manage_dsc3__test_name: Dsc3TestValue
+  block:
+    # -- State A: apply a throwaway registry value via the built-in DSC v3 Registry resource --
+    - name: Apply DSC v3 registry setting (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_dsc3
+      vars:
+        windows_manage_dsc3_reboot: false
+        windows_manage_dsc3_settings:
+          - setting: Create throwaway DSC v3 test value
+            config:
+              resources:
+                - name: Create throwaway DSC v3 test value
+                  type: Microsoft.Windows/Registry
+                  properties:
+                    keyPath: "{{ windows_manage_dsc3__test_key }}\\{{ windows_manage_dsc3__test_name }}"
+                    valueName: "{{ windows_manage_dsc3__test_name }}"
+                    valueData:
+                      DWord: 1
+                    _exist: true
+
+    - name: Read back the DSC v3-applied value
+      ansible.windows.win_reg_stat:
+        path: "{{ windows_manage_dsc3__test_key_stat }}"
+        name: "{{ windows_manage_dsc3__test_name }}"
+      register: windows_manage_dsc3__verify_a
+
+    - name: Assert the value was applied
+      ansible.builtin.assert:
+        that:
+          - windows_manage_dsc3__verify_a.exists
+          - windows_manage_dsc3__verify_a.value == 1
+        fail_msg: "DSC v3 did not apply the registry value"
+
+    # -- Idempotency: re-apply the identical configuration --
+    - name: Apply DSC v3 registry setting again (idempotency)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_dsc3
+      vars:
+        windows_manage_dsc3_reboot: false
+        windows_manage_dsc3_settings:
+          - setting: Create throwaway DSC v3 test value
+            config:
+              resources:
+                - name: Create throwaway DSC v3 test value
+                  type: Microsoft.Windows/Registry
+                  properties:
+                    keyPath: "{{ windows_manage_dsc3__test_key }}\\{{ windows_manage_dsc3__test_name }}"
+                    valueName: "{{ windows_manage_dsc3__test_name }}"
+                    valueData:
+                      DWord: 1
+                    _exist: true
+
+    - name: Assert idempotent re-run made no change
+      ansible.builtin.assert:
+        that:
+          - windows_manage_dsc3__result is not changed
+        fail_msg: "windows_manage_dsc3 was not idempotent on re-run"
+
+    # -- State B: change the value to verify a second state applies --
+    - name: Apply DSC v3 registry setting (state B - new value)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_dsc3
+      vars:
+        windows_manage_dsc3_reboot: false
+        windows_manage_dsc3_settings:
+          - setting: Update throwaway DSC v3 test value
+            config:
+              resources:
+                - name: Update throwaway DSC v3 test value
+                  type: Microsoft.Windows/Registry
+                  properties:
+                    keyPath: "{{ windows_manage_dsc3__test_key }}\\{{ windows_manage_dsc3__test_name }}"
+                    valueName: "{{ windows_manage_dsc3__test_name }}"
+                    valueData:
+                      DWord: 2
+                    _exist: true
+
+    - name: Read back the updated value
+      ansible.windows.win_reg_stat:
+        path: "{{ windows_manage_dsc3__test_key_stat }}"
+        name: "{{ windows_manage_dsc3__test_name }}"
+      register: windows_manage_dsc3__verify_b
+
+    - name: Assert the updated value was applied
+      ansible.builtin.assert:
+        that:
+          - windows_manage_dsc3__verify_b.value == 2
+        fail_msg: "DSC v3 did not update the registry value"
+
+  always:
+    - name: Remove throwaway DSC v3 test registry key
+      ansible.windows.win_regedit:
+        path: "{{ windows_manage_dsc3__test_key_stat }}"
+        state: absent
+        delete_key: true
