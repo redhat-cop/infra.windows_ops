@@ -1,0 +1,24 @@
+---
+- name: Manage Windows DSC v3 configuration
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Apply DSC v3 settings
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_dsc3
+      vars:
+        windows_manage_dsc3_reboot: "{{ dsc3_reboot | default(false) | bool }}"  # Set by survey
+        # windows_manage_dsc3_settings is a list of mappings and cannot be represented
+        # by a survey question; supply it via job template extra variables, e.g.:
+        #   windows_manage_dsc3_settings:
+        #     - setting: Set a registry value
+        #       config:
+        #         resources:
+        #           - name: Set MyValue
+        #             type: Microsoft.Windows/Registry
+        #             properties:
+        #               keyPath: HKLM\SOFTWARE\ExampleApp
+        #               valueName: MyValue
+        #               valueData:
+        #                 String: enabled
+...

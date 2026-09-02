@@ -1,0 +1,20 @@
+---
+# List of Windows DSC v3 configurations to apply via ansible.windows.dsc3.
+# Each item requires a human-readable "setting" label and exactly one
+# configuration source:
+#   config      - an inline DSC v3 configuration document (mapping)
+#   config_file - path to a DSC v3 configuration document
+# Optional per item:
+#   remote_config_file - whether config_file already exists on the target host
+#                        (true) or is transferred from the control node (false)
+#   parameters         - runtime parameter values for the configuration document
+#   trace_level        - dsc trace level (error, warn, info, debug, trace)
+#   reboot             - whether a reboot is required after this setting changes
+#                        (only honored when windows_manage_dsc3_reboot is true)
+windows_manage_dsc3_settings: []
+
+# Reboot the host after DSC v3 changes when a changed setting requests it.
+windows_manage_dsc3_reboot: false
+
+# Timeout in seconds for the reboot performed after DSC v3 changes.
+windows_manage_dsc3_reboot_timeout: 3600
