@@ -1,0 +1,15 @@
+---
+- name: Manage Windows Capabilities
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Manage capabilities
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_capabilities
+      vars:
+        windows_manage_capabilities_reboot: "{{ capabilities_reboot | default(true) | bool }}"  # Set by survey
+        windows_manage_capabilities_remove_ignore_unknown: "{{ capabilities_remove_ignore_unknown | default(true) | bool }}"  # Set by survey
+        windows_manage_capabilities_log_level: "{{ capabilities_log_level | default(1) | int }}"  # Set by survey
+        # windows_manage_capabilities_install and windows_manage_capabilities_remove
+        # are lists; supply them via job-template extra_vars.
+...
