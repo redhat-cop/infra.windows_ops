@@ -2,9 +2,13 @@
 argument_specs:
   main:
     version_added: 1.0.0
-    short_description: A role to Manage Windows Services.
+    short_description: A role to manage Windows services.
     description:
-      - A role to Manage Windows Services.
+      - Manage the lifecycle of Windows services via M(ansible.windows.win_service).
+      - Control the state and start mode of existing services.
+      - Optionally create or reconfigure a service by supplying its binary path,
+        display name, description, dependencies, and run-as account.
+      - Report the resulting service state with M(ansible.windows.win_service_info).
     options:
       windows_manage_service_name:
         type: str
@@ -29,3 +33,50 @@ argument_specs:
           - "manual"
         default: "auto"
         description: The start mode of the service.
+      windows_manage_service_path:
+        type: str
+        required: false
+        description:
+          - The path to the executable to set for the service.
+          - Supplying this creates the service if it does not already exist,
+            or reconfigures its binary path.
+      windows_manage_service_display_name:
+        type: str
+        required: false
+        description:
+          - The display name to set for the service.
+      windows_manage_service_description:
+        type: str
+        required: false
+        description:
+          - The description to set for the service.
+      windows_manage_service_dependencies:
+        type: list
+        elements: str
+        required: false
+        description:
+          - A list of service dependencies to set for this service.
+          - This must be a list of service names, not display names.
+      windows_manage_service_username:
+        type: str
+        required: false
+        description:
+          - The username the service should run as.
+          - Can be set to C(LocalSystem), C(NetworkService), C(LocalService),
+            a local or domain account, or a gMSA in the form C(DOMAIN\\gMSA$).
+      windows_manage_service_password:
+        type: str
+        required: false
+        no_log: true
+        description:
+          - The password for the account the service runs as.
+          - Should be supplied together with I(windows_manage_service_username)
+            when using a local or domain account.
+      windows_manage_service_force_dependent_services:
+        type: bool
+        required: false
+        description:
+          - If C(true), stopping or restarting a service with dependent services
+            forces the dependent services to stop or restart as well.
+          - If C(false), stopping or restarting a service with dependent services
+            may fail.
