@@ -1,0 +1,17 @@
+---
+- name: Manage Windows Software Packages
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Install and remove packages
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_packages
+      vars:
+        # The install/remove package lists are lists of dictionaries and are
+        # not survey-friendly; provide them as extra variables (for example via
+        # job template extra_vars or a variable set) using the
+        # windows_manage_packages_install and windows_manage_packages_remove
+        # structures. The survey controls only the reboot behaviour below.
+        windows_manage_packages_reboot: "{{ packages_reboot | default(false) | bool }}"  # Set by survey
+        windows_manage_packages_reboot_timeout: "{{ packages_reboot_timeout | default(3600) | int }}"  # Set by survey
+...

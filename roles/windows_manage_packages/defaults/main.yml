@@ -1,0 +1,30 @@
+---
+# Packages to install with ansible.windows.win_package (state: present).
+# Each item is a dictionary mapping to win_package parameters. At least one
+# of "path" or "product_id" is required per item.
+#   path:                 Local path or URL to the package (MSI/EXE/MSIX)
+#   product_id:           Product ID used to determine install state
+#   arguments:            Installer arguments (string or list)
+#   expected_return_code: List of return codes treated as success
+#   creates_path:         Path expected to exist once installed
+#   creates_service:      Service expected to exist once installed
+#   creates_version:      Version of the file at creates_path
+#
+# Example:
+#  - path: https://www.7-zip.org/a/7z2408-x64.msi
+#    product_id: '{23170F69-40C1-2702-2408-000001000000}'
+windows_manage_packages_install: []
+
+# Packages to remove with ansible.windows.win_package (state: absent).
+# Same item structure as windows_manage_packages_install.
+#
+# Example:
+#  - product_id: '{23170F69-40C1-2702-2408-000001000000}'
+windows_manage_packages_remove: []
+
+# Reboot the host after package changes.
+# A reboot only occurs when a changed package reports reboot_required.
+windows_manage_packages_reboot: false
+
+# Maximum time in seconds to wait for the host to reboot.
+windows_manage_packages_reboot_timeout: 3600

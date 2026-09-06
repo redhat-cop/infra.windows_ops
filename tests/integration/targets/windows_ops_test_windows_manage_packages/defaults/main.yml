@@ -1,0 +1,10 @@
+---
+# NOTE: This test is NETWORK-DEPENDENT. It downloads a small, publicly hosted
+# MSI (7-Zip) from www.7-zip.org and installs/removes it through the role. If
+# the download host is unreachable or the pinned version is removed upstream,
+# update the URL and product_id below.
+#
+# The product_id follows 7-Zip's documented MSI product-code convention:
+#   {23170F69-40C1-2702-<version>-000001000000}  (x64)
+windows_manage_packages_test_url: https://www.7-zip.org/a/7z2408-x64.msi
+windows_manage_packages_test_product_id: '{23170F69-40C1-2702-2408-000001000000}'

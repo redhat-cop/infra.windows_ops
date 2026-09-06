@@ -1,0 +1,102 @@
+---
+argument_specs:
+  main:
+    version_added: 2.1.0
+    short_description: Install and remove Windows software packages.
+    description:
+      - Install and remove Windows software (MSI, EXE, or MSIX) with
+        M(ansible.windows.win_package).
+      - Packages are identified by a local path or URL together with a
+        C(product_id), and are ensured present or absent.
+      - Optionally reboots the host when a package reports that a reboot is
+        required.
+    options:
+      windows_manage_packages_install:
+        type: list
+        elements: dict
+        description:
+          - List of packages to ensure are installed (C(state=present)).
+          - Each item maps to M(ansible.windows.win_package) parameters.
+          - At least one of C(path) or C(product_id) is required per item.
+        default: []
+        options:
+          path:
+            type: str
+            description:
+              - Local path or URL to the package file (MSI, EXE, or MSIX).
+          product_id:
+            type: str
+            description:
+              - The product ID of the package used to determine install state.
+          arguments:
+            type: raw
+            description:
+              - Arguments passed to the installer, as a string or list.
+          expected_return_code:
+            type: list
+            elements: int
+            description:
+              - Return codes that indicate a successful install.
+          creates_path:
+            type: str
+            description:
+              - Path that is expected to exist when the package is installed.
+          creates_service:
+            type: str
+            description:
+              - Service that is expected to exist when the package is installed.
+          creates_version:
+            type: str
+            description:
+              - Version of the file at C(creates_path) used to determine state.
+      windows_manage_packages_remove:
+        type: list
+        elements: dict
+        description:
+          - List of packages to ensure are removed (C(state=absent)).
+          - Each item maps to M(ansible.windows.win_package) parameters.
+          - At least one of C(path) or C(product_id) is required per item.
+        default: []
+        options:
+          path:
+            type: str
+            description:
+              - Local path or URL to the package file used for removal.
+          product_id:
+            type: str
+            description:
+              - The product ID of the package used to determine install state.
+          arguments:
+            type: raw
+            description:
+              - Arguments passed to the uninstaller, as a string or list.
+          expected_return_code:
+            type: list
+            elements: int
+            description:
+              - Return codes that indicate a successful uninstall.
+          creates_path:
+            type: str
+            description:
+              - Path that is expected to exist when the package is installed.
+          creates_service:
+            type: str
+            description:
+              - Service that is expected to exist when the package is installed.
+          creates_version:
+            type: str
+            description:
+              - Version of the file at C(creates_path) used to determine state.
+      windows_manage_packages_reboot:
+        type: bool
+        description:
+          - Allow the role to reboot the host after package changes.
+          - A reboot only occurs when a changed package reports that a reboot
+            is required.
+        default: false
+      windows_manage_packages_reboot_timeout:
+        type: int
+        description:
+          - Maximum time in seconds to wait for the host to reboot and become
+            reachable again.
+        default: 3600

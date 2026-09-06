@@ -1,0 +1,61 @@
+---
+- name: Verify each package defines a path or product_id
+  ansible.builtin.assert:
+    that:
+      - item.path is defined or item.product_id is defined
+    fail_msg: >-
+      Each package must define at least one of "path" or "product_id":
+      {{ item }}
+    quiet: true
+  loop: "{{ windows_manage_packages_install + windows_manage_packages_remove }}"
+  loop_control:
+    label: "{{ item.path | default(item.product_id) }}"
+
+- name: Install packages
+  ansible.windows.win_package:
+    state: present
+    path: "{{ windows_manage_packages__install_item.path | default(omit) }}"
+    product_id: "{{ windows_manage_packages__install_item.product_id | default(omit) }}"
+    arguments: "{{ windows_manage_packages__install_item.arguments | default(omit) }}"
+    expected_return_code: "{{ windows_manage_packages__install_item.expected_return_code | default(omit) }}"
+    creates_path: "{{ windows_manage_packages__install_item.creates_path | default(omit) }}"
+    creates_service: "{{ windows_manage_packages__install_item.creates_service | default(omit) }}"
+    creates_version: "{{ windows_manage_packages__install_item.creates_version | default(omit) }}"
+  register: windows_manage_packages__install_result
+  loop: "{{ windows_manage_packages_install }}"
+  loop_control:
+    loop_var: windows_manage_packages__install_item
+    label: "{{ windows_manage_packages__install_item.path | default(windows_manage_packages__install_item.product_id) }}"
+
+- name: Remove packages
+  ansible.windows.win_package:
+    state: absent
+    path: "{{ windows_manage_packages__remove_item.path | default(omit) }}"
+    product_id: "{{ windows_manage_packages__remove_item.product_id | default(omit) }}"
+    arguments: "{{ windows_manage_packages__remove_item.arguments | default(omit) }}"
+    expected_return_code: "{{ windows_manage_packages__remove_item.expected_return_code | default(omit) }}"
+    creates_path: "{{ windows_manage_packages__remove_item.creates_path | default(omit) }}"
+    creates_service: "{{ windows_manage_packages__remove_item.creates_service | default(omit) }}"
+    creates_version: "{{ windows_manage_packages__remove_item.creates_version | default(omit) }}"
+  register: windows_manage_packages__remove_result
+  loop: "{{ windows_manage_packages_remove }}"
+  loop_control:
+    loop_var: windows_manage_packages__remove_item
+    label: "{{ windows_manage_packages__remove_item.path | default(windows_manage_packages__remove_item.product_id) }}"
+
+- name: Determine whether a reboot is required
+  ansible.builtin.set_fact:
+    windows_manage_packages__reboot_required: >-
+      {{ (windows_manage_packages__install_result.results
+          + windows_manage_packages__remove_result.results)
+         | selectattr('reboot_required', 'defined')
+         | selectattr('reboot_required', 'equalto', true)
+         | list | length > 0 }}
+
+- name: Reboot the host after package changes
+  ansible.windows.win_reboot:
+    reboot_timeout: "{{ windows_manage_packages_reboot_timeout }}"
+    msg: "Ansible reboot after package changes"
+  when:
+    - windows_manage_packages_reboot | bool
+    - windows_manage_packages__reboot_required | bool

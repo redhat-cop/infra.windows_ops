@@ -1,0 +1,25 @@
+---
+name: "Manage Packages Survey"
+description: "Survey to configure Windows package management options"
+spec:
+  - question_name: "Reboot After Changes"
+    question_description: >
+      Allow a reboot after package changes. A reboot only occurs when a
+      changed package reports that a reboot is required.
+    required: true
+    variable: "packages_reboot"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"
+  - question_name: "Reboot Timeout (seconds)"
+    question_description: >
+      Maximum time in seconds to wait for the host to reboot and become
+      reachable again.
+    required: false
+    variable: "packages_reboot_timeout"
+    type: "integer"
+    min: 0
+    max: 7200
+    default: 3600
