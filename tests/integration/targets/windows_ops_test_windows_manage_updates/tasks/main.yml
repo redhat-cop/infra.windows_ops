@@ -1,0 +1,59 @@
+---
+# Searching for updates is a read-only operation with nothing to restore, so
+# there is no capture/cleanup phase. The test never installs updates or reboots:
+# it runs the role in "searched" state with the new filtering variables set and
+# verifies the role completes cleanly and is idempotent.
+- name: Test windows_manage_updates filtering and retry (read-only)
+  block:
+    - name: Search for updates with accept/reject filtering (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_updates
+      vars:
+        windows_manage_updates_state: searched
+        windows_manage_updates_categories:
+          - SecurityUpdates
+        windows_manage_updates_accept_list:
+          - KB0000000
+        windows_manage_updates_reject_list:
+          - Windows Malicious Software Removal Tool
+        windows_manage_updates_skip_optional: true
+        windows_manage_updates_retry_count: 2
+        windows_manage_updates_retry_delay: 5
+        windows_manage_updates_reboot_timeout: 600
+        windows_manage_updates_reboot: "No"
+        windows_manage_updates_compile_assemblies: false
+
+    - name: Assert the search ran cleanly and made no changes
+      ansible.builtin.assert:
+        that:
+          - windows_manage_updates__output is succeeded
+          - windows_manage_updates__output is not changed
+          - windows_manage_updates__output.found_update_count is defined
+        fail_msg: >-
+          Searching for updates with filtering did not complete cleanly:
+          {{ windows_manage_updates__output }}
+
+    - name: Re-run the search to verify idempotency (state A)
+      ansible.builtin.include_role:
+        name: infra.windows_ops.windows_manage_updates
+      vars:
+        windows_manage_updates_state: searched
+        windows_manage_updates_categories:
+          - SecurityUpdates
+        windows_manage_updates_accept_list:
+          - KB0000000
+        windows_manage_updates_reject_list:
+          - Windows Malicious Software Removal Tool
+        windows_manage_updates_skip_optional: true
+        windows_manage_updates_retry_count: 2
+        windows_manage_updates_retry_delay: 5
+        windows_manage_updates_reboot_timeout: 600
+        windows_manage_updates_reboot: "No"
+        windows_manage_updates_compile_assemblies: false
+
+    - name: Assert the re-run remained clean and unchanged
+      ansible.builtin.assert:
+        that:
+          - windows_manage_updates__output is succeeded
+          - windows_manage_updates__output is not changed
+        fail_msg: "Searching for updates was not idempotent on re-run."

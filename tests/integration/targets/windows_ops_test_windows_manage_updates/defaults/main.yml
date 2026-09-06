@@ -1,0 +1,4 @@
+---
+# The test only ever runs in "searched" state so it never installs updates or
+# reboots the host. It exercises the new filtering/retry variables in a
+# read-only way and verifies the role runs cleanly and idempotently.
