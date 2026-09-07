@@ -1,0 +1,6 @@
+---
+bugfixes:
+  - "windows_manage_cis - fix the Markdown compliance report and remediation guide failing with ``The 'boolean' argument must be
+    of type 'bool', not 'str'`` on ansible-core 2.20+/Jinja2 3.1+, caused by passing an empty string as the second (boolean)
+    positional argument to the ``default`` filter in generate_report.yml
+    (https://github.com/redhat-cop/infra.windows_ops/pull/111)."
