@@ -249,7 +249,7 @@
                   {% if result.status == 'FAIL' %}
                   <tr class="{{ (result.severity | default('unknown')).lower() }}-severity">
                       <td><strong>{{ result.rule_id }}</strong></td>
-                      <td>{{ (result.rule_title | default(result.title, '')) }}</td>
+                      <td>{{ (result.rule_title | default(result.title | default(''))) }}</td>
                       <td><span class="{{ 'fail' if (result.severity | default('')) == 'High' else 'skip' if (result.severity | default('')) == 'Medium' else 'audit' }}">{{ result.severity | default('Unknown') }}</span></td>
                       <td><code>{{ result.expected_value }}</code></td>
                       <td><code>{{ result.current_value }}</code></td>
@@ -276,7 +276,7 @@
                   {% for result in windows_manage_cis_results %}
                   <tr>
                       <td><strong>{{ result.rule_id }}</strong></td>
-                      <td>{{ (result.rule_title | default(result.title, '')) }}</td>
+                      <td>{{ (result.rule_title | default(result.title | default(''))) }}</td>
                       <td><span class="{{ result.status.lower() }}">{{ result.status }}</span></td>
                       <td>{{ result.severity | default('Unknown') }}</td>
                       <td><code>{{ result.expected_value }}</code></td>
