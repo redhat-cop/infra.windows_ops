@@ -249,7 +249,7 @@
                   {% if result.status == 'FAIL' %}
                   <tr class="{{ (result.severity | default('unknown')).lower() }}-severity">
                       <td><strong>{{ result.rule_id }}</strong></td>
-                      <td>{{ (result.rule_title | default(result.title, '')) }}</td>
+                      <td>{{ (result.rule_title | default(result.title | default(''))) }}</td>
                       <td><span class="{{ 'fail' if (result.severity | default('')) == 'High' else 'skip' if (result.severity | default('')) == 'Medium' else 'audit' }}">{{ result.severity | default('Unknown') }}</span></td>
                       <td><code>{{ result.expected_value }}</code></td>
                       <td><code>{{ result.current_value }}</code></td>
@@ -276,7 +276,7 @@
                   {% for result in windows_manage_cis_results %}
                   <tr>
                       <td><strong>{{ result.rule_id }}</strong></td>
-                      <td>{{ (result.rule_title | default(result.title, '')) }}</td>
+                      <td>{{ (result.rule_title | default(result.title | default(''))) }}</td>
                       <td><span class="{{ result.status.lower() }}">{{ result.status }}</span></td>
                       <td>{{ result.severity | default('Unknown') }}</td>
                       <td><code>{{ result.expected_value }}</code></td>
@@ -339,7 +339,7 @@
 
       {% for result in windows_manage_cis_results %}
       {% if result.status == 'FAIL' %}
-      ### {{ result.rule_id }}: {{ (result.rule_title | default(result.title, '')) }}
+      ### {{ result.rule_id }}: {{ (result.rule_title | default(result.title | default(''))) }}
       - **Section:** {{ result.rule_section }}
       - **Severity:** {{ 'HIGH High' if (result.severity | default('')) == 'High' else 'MEDIUM Medium' if (result.severity | default('')) == 'Medium' else 'LOW Low' if (result.severity | default('')) == 'Low' else 'UNKNOWN Unknown' }}
       - **Expected:** `{{ result.expected_value }}`
@@ -357,7 +357,7 @@
       | Rule ID | Control Description | Status | Severity | Expected | Actual | Changed |
       |---------|-------------------|--------|----------|----------|---------|---------|
       {% for result in windows_manage_cis_results %}
-      | **{{ result.rule_id }}** | {{ (result.rule_title | default(result.title, '')) }} | {{ 'PASS' if result.status == 'PASS' else 'FAIL' if result.status == 'FAIL' else 'SKIP' if result.status == 'SKIPPED' else 'AUDIT' }} {{ result.status }} | {{ result.severity | default('Unknown') }} | `{{ result.expected_value }}` | `{{ result.current_value }}` | {{ 'Yes' if result.changed else 'No' }} |
+      | **{{ result.rule_id }}** | {{ (result.rule_title | default(result.title | default(''))) }} | {{ 'PASS' if result.status == 'PASS' else 'FAIL' if result.status == 'FAIL' else 'SKIP' if result.status == 'SKIPPED' else 'AUDIT' }} {{ result.status }} | {{ result.severity | default('Unknown') }} | `{{ result.expected_value }}` | `{{ result.current_value }}` | {{ 'Yes' if result.changed else 'No' }} |
       {% endfor %}
 
       ## Report Metadata
@@ -434,7 +434,7 @@
 
       {% for result in windows_manage_cis_results %}
       {% if result.status == 'FAIL' and (result.severity | default('')) == 'High' %}
-      #### HIGH {{ result.rule_id }}: {{ (result.rule_title | default(result.title, '')) }}
+      #### HIGH {{ result.rule_id }}: {{ (result.rule_title | default(result.title | default(''))) }}
       - **Section:** {{ result.rule_section }}
       - **Current Value:** `{{ result.current_value }}`
       - **Required Value:** `{{ result.expected_value }}`
@@ -445,7 +445,7 @@
 
       {% for result in windows_manage_cis_results %}
       {% if result.status == 'FAIL' and (result.severity | default('')) == 'Medium' %}
-      #### MEDIUM {{ result.rule_id }}: {{ (result.rule_title | default(result.title, '')) }}
+      #### MEDIUM {{ result.rule_id }}: {{ (result.rule_title | default(result.title | default(''))) }}
       - **Section:** {{ result.rule_section }}
       - **Current Value:** `{{ result.current_value }}`
       - **Required Value:** `{{ result.expected_value }}`
@@ -455,7 +455,7 @@
 
       {% for result in windows_manage_cis_results %}
       {% if result.status == 'FAIL' and (result.severity | default('')) == 'Low' %}
-      #### LOW {{ result.rule_id }}: {{ (result.rule_title | default(result.title, '')) }}
+      #### LOW {{ result.rule_id }}: {{ (result.rule_title | default(result.title | default(''))) }}
       - **Section:** {{ result.rule_section }}
       - **Current Value:** `{{ result.current_value }}`
       - **Required Value:** `{{ result.expected_value }}`
