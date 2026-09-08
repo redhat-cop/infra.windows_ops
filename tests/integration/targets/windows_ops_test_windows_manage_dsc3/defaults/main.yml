@@ -1,0 +1,7 @@
+---
+# This test requires the DSC v3 engine (dsc) to be installed and discoverable
+# via PATH on the target host; ansible.windows.dsc3 shells out to it.
+#
+# The test applies the built-in Microsoft.Windows/Registry DSC v3 resource to a
+# throwaway key so no extra DSC resources are required. The key is removed in
+# the always block.

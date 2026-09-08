@@ -1,0 +1,14 @@
+---
+name: "Manage DSC v3 Configuration Survey"
+description: "Survey to configure DSC v3 options"
+spec:
+  - question_name: "Reboot After Changes"
+    question_description: >-
+      Reboot the host after DSC v3 changes when a changed setting requests it.
+    required: true
+    variable: "dsc3_reboot"
+    type: "multiplechoice"
+    choices:
+      - "true"
+      - "false"
+    default: "false"
