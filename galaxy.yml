@@ -21,8 +21,23 @@ dependencies:
   ansible.windows: '>=3.6.0'
   microsoft.iis: '>=1.0.2'
   community.windows: '>=3.0.0'
+# Patterns are fnmatch-matched against each entry's path relative to the
+# collection root, so nested paths must be spelled out in full. Everything
+# excluded by .gitignore is repeated here: the collection build does not read
+# .gitignore, so untracked local files would otherwise be published.
 build_ignore:
   - '.tox'
   - '.git'
   - '.github'
   - '.gitignore'
+  - '.yamllint'
+  - '.config'
+  - '.ansible'
+  - '.venv'
+  - '.claude*'
+  - 'CLAUDE.md'
+  - 'docs/plans'
+  - 'generate_inventory'
+  - 'inventory.winrm*'
+  - 'tests/integration/inventory.winrm*'
+  - 'STIG_CONTROLS_*.md'
