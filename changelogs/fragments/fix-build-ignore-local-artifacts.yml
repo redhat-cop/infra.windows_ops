@@ -1,3 +1,0 @@
----
-bugfixes:
-  - infra.windows_ops - exclude local development files from the built collection artifact. ``ansible-galaxy collection build`` does not read ``.gitignore``, so a build run from a working tree that contained them packaged the integration test inventory (``tests/integration/inventory.winrm``), a local ``.venv`` virtual environment, ``docs/plans``, and assistant configuration into the published tarball. These are now listed in ``build_ignore`` (https://github.com/redhat-cop/infra.windows_ops/pull/113).

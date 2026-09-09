@@ -1,3 +1,0 @@
----
-minor_changes:
-  - "windows_manage_reboot - new role for rebooting Windows systems with configurable delays and timeout."

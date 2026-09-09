@@ -1,3 +1,0 @@
----
-minor_changes:
-  - "windows_manage_locale - new role for configuring Windows locale, language, and input settings."

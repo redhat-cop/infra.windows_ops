@@ -1,4 +1,0 @@
----
-minor_changes:
-  - "windows_manage_network - new role for configuring Windows network settings including IPv6, NetBIOS, LMHOSTS lookup, and static routes
-    (https://github.com/redhat-cop/infra.windows_ops/pull/71)."

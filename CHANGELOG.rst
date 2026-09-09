@@ -4,6 +4,59 @@ Infra.Windows\_ops Release Notes
 
 .. contents:: Topics
 
+v2.1.0
+======
+
+Minor Changes
+-------------
+
+- windows_manage_accounts - new role for managing local Windows user accounts, groups, group memberships, user rights, and profiles (https://github.com/redhat-cop/infra.windows_ops/pull/81).
+- windows_manage_audit - new role for managing Windows audit policies and audit rules with system-wide policy configuration and path-specific rule management (https://github.com/redhat-cop/infra.windows_ops/pull/77).
+- windows_manage_boot - new role for configuring Windows Boot Manager settings such as the boot menu timeout (https://github.com/redhat-cop/infra.windows_ops/pull/95).
+- windows_manage_capabilities - new role for installing and removing Windows capabilities (Features on Demand) via DISM (https://github.com/redhat-cop/infra.windows_ops/pull/93).
+- windows_manage_description - new role for configuring Windows system description, organization, and owner.
+- windows_manage_disk_cleanup - new role for reclaiming disk space by cleaning superseded Windows Update component files and clearing event logs (https://github.com/redhat-cop/infra.windows_ops/pull/96).
+- windows_manage_dns_client - new role for configuring Windows DNS client settings including DNS servers and suffix search lists per network adapter (https://github.com/redhat-cop/infra.windows_ops/pull/70).
+- windows_manage_dotnet - new role for optimizing .NET native images (ngen) for PowerShell and installed assemblies (https://github.com/redhat-cop/infra.windows_ops/pull/94).
+- windows_manage_dsc - new role for applying Windows PowerShell DSC resource configurations with optional reboot handling (https://github.com/redhat-cop/infra.windows_ops/pull/100).
+- windows_manage_dsc3 - new role to apply Windows DSC v3 configurations with ``ansible.windows.dsc3``, including optional reboot handling (https://github.com/redhat-cop/infra.windows_ops/pull/103).
+- windows_manage_environment - new role for managing Windows environment variables and PATH settings (https://github.com/redhat-cop/infra.windows_ops/pull/99).
+- windows_manage_features - new role for installing and removing Windows Server roles and features (https://github.com/redhat-cop/infra.windows_ops/pull/91).
+- windows_manage_file_acl - new role to manage Windows file and directory ACLs, ownership, and ACL inheritance (https://github.com/redhat-cop/infra.windows_ops/pull/84).
+- windows_manage_file_copy - new role to copy files and render templates to Windows hosts, optionally setting the destination path owner (https://github.com/redhat-cop/infra.windows_ops/pull/85).
+- windows_manage_file_create - new role for creating directories and files and setting path ownership on Windows hosts (https://github.com/redhat-cop/infra.windows_ops/pull/86).
+- windows_manage_file_fetch - new role to fetch files from remote Windows hosts to the Ansible controller (https://github.com/redhat-cop/infra.windows_ops/pull/87).
+- windows_manage_file_get - new role to download files to Windows hosts over HTTP/HTTPS with optional ownership (https://github.com/redhat-cop/infra.windows_ops/pull/88).
+- windows_manage_file_remove - new role for removing files and directories on Windows with wildcard and exclusion support (https://github.com/redhat-cop/infra.windows_ops/pull/89).
+- windows_manage_firewall - new role for managing Windows firewall profiles and rules with enable/disable support and skip-on-conflict safety logic (https://github.com/redhat-cop/infra.windows_ops/pull/76).
+- windows_manage_hostname - new role for configuring Windows system hostname with validation and optional reboot (https://github.com/redhat-cop/infra.windows_ops/pull/60).
+- windows_manage_hosts_file - new role for managing Windows hosts file entries with optional self-entry and IPv4/IPv6 filtering (https://github.com/redhat-cop/infra.windows_ops/pull/72).
+- windows_manage_init - new role for one-time Windows system initialization.
+- windows_manage_locale - new role for configuring Windows locale, language, and input settings.
+- windows_manage_network - new role for configuring Windows network settings including IPv6, NetBIOS, LMHOSTS lookup, and static routes (https://github.com/redhat-cop/infra.windows_ops/pull/71).
+- windows_manage_optional_features - new role for installing and removing Windows optional features via DISM, with optional reboot handling (https://github.com/redhat-cop/infra.windows_ops/pull/92).
+- windows_manage_packages - new role to install and remove Windows software packages (MSI/EXE/MSIX) with ``ansible.windows.win_package``, including optional reboot handling (https://github.com/redhat-cop/infra.windows_ops/pull/102).
+- windows_manage_performance - new role for applying Windows performance tuning settings, including NTFS last access time, page file, power scheme, and hibernation (https://github.com/redhat-cop/infra.windows_ops/pull/97).
+- windows_manage_rdp - new role for enabling or disabling Remote Desktop Protocol with firewall and authentication settings (https://github.com/redhat-cop/infra.windows_ops/pull/73).
+- windows_manage_reboot - new role for rebooting Windows systems with configurable delays and timeout.
+- windows_manage_recovery - new role for managing Windows Recovery Environment (WinRE).
+- windows_manage_registry - new role to apply system-wide Windows registry settings with ``ansible.windows.win_regedit``, including optional per-setting reboot handling (https://github.com/redhat-cop/infra.windows_ops/pull/90).
+- windows_manage_scheduled_tasks - new role for creating, enabling, disabling, and removing Windows scheduled tasks (https://github.com/redhat-cop/infra.windows_ops/pull/98).
+- windows_manage_service - add support for creating and reconfiguring services (binary path, display name, description, dependencies, run-as account) and report service state with ``ansible.windows.win_service_info`` (https://github.com/redhat-cop/infra.windows_ops/pull/104).
+- windows_manage_sshd - new role for managing OpenSSH Server on Windows with config validation, admin key management, and disable safety check (https://github.com/redhat-cop/infra.windows_ops/pull/78).
+- windows_manage_time - new role for configuring Windows NTP servers and timezone.
+- windows_manage_updates - add update filtering (accept/reject lists, skip optional), a configurable retry loop, reboot timeout control, and optional .NET assembly compilation via the windows_manage_dotnet role (https://github.com/redhat-cop/infra.windows_ops/pull/105).
+- windows_manage_user_experience - new role for configuring Windows user experience settings such as Server Manager auto-launch, network location wizard, and Welcome Screen behavior (https://github.com/redhat-cop/infra.windows_ops/pull/82).
+- windows_manage_user_settings - new role for applying per-user registry settings across existing and logged-in Windows user profiles (https://github.com/redhat-cop/infra.windows_ops/pull/83).
+- windows_manage_winrm - new role for configuring Windows Remote Management service, listeners, and firewall rules (https://github.com/redhat-cop/infra.windows_ops/pull/74).
+- windows_manage_wsl - new role for installing, configuring, and removing the Windows Subsystem for Linux (WSL) and its distributions (https://github.com/redhat-cop/infra.windows_ops/pull/101).
+
+Bugfixes
+--------
+
+- infra.windows_ops - exclude local development files from the built collection artifact. ``ansible-galaxy collection build`` does not read ``.gitignore``, so a build run from a working tree that contained them packaged the integration test inventory (``tests/integration/inventory.winrm``), a local ``.venv`` virtual environment, ``docs/plans``, and assistant configuration into the published tarball. These are now listed in ``build_ignore`` (https://github.com/redhat-cop/infra.windows_ops/pull/113).
+- windows_manage_updates - honor the documented ``windows_manage_updates_reboot`` toggle when deciding whether to reboot after installing updates; the role previously gated the reboot on an undefined ``windows_manage_updates_reboot_server`` variable, so the documented control had no effect (https://github.com/redhat-cop/infra.windows_ops/pull/105).
+
 v2.0.1
 ======
 
